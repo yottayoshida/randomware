@@ -1,0 +1,28 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+Access-Control-Allow-Origin: *
+access-control-expose-headers: X-PokeAPI-Hash,X-PokeAPI-Deploy-Date
+Cache-Control: public, max-age=86400, s-maxage=86400
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=n%2FA2lRedSgCETSUWaNQYKv9zbzm84Xy0F6cplthaoNl%2B%2B2S5YEKX4CgocRJ%2B3%2BFrNI9VN6Je8t9Xrj8itmVNdLq1dkVgbDOMWxVObunnzZKNwYg3SM%2BkbRIYM3no"}]}
+etag: W/"46440-4KxSp1sOMtHV+M3QFLlo8UrCgf0"
+function-execution-id: bs71v0auw1ti
+Server: cloudflare
+strict-transport-security: max-age=31556926
+x-cloud-trace-context: 6ff294f2069d103c88df9973f04f1421
+x-country-code: JP
+x-orig-accept-language: ja,en-US;q=0.9,en;q=0.8
+x-pokeapi-deploy-date: 1783928786
+x-pokeapi-hash: 128bccadf9922328ac0770e07a526a17766ec598
+x-powered-by: Express
+x-served-by: cache-itm1220025-ITM
+x-cache: HIT
+x-cache-hits: 0
+x-timer: S1784331832.193292,VS0,VE1
+vary: Accept-Encoding,cookie,need-authorization, x-fh-requested-host, accept-encoding
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-cache-status: MISS
+CF-RAY: a1cd1c7f1d05d472-NRT
+Transfer-Encoding: chunked
+

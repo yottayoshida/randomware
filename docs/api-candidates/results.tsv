@@ -1,0 +1,30 @@
+id	http	content_type	time_s	bytes	cors
+randomuser	200	application/json; charset=utf-8	0.276952	1208	*
+sunrise-sunset	200	application/json	0.283318	368	*
+pokeapi	200	application/json; charset=utf-8	0.294906	287808	*
+catfact	200	application/json	0.321723	107	*
+zippopotam	200	application/json	0.330207	225	*
+nager-date	200	application/json; charset=utf-8	0.365381	2819	*
+bored	200	application/json; charset=utf-8	0.430749	226	-
+datamuse	200	application/json	0.466226	288	https://randomware-check.example
+met-museum	200	application/json	0.529691	2792	*
+rest-countries	200	application/json	0.585201	261	*
+xkcd	200	application/json	0.596205	381	-
+deck-of-cards	200	application/json	0.762365	79	*
+frankfurter-dev	200	application/json; charset=utf-8	0.746033	84	*
+frankfurter-app	200	application/json; charset=utf-8	0.779464	70	*
+advice-slip	200	application/json	0.823700	95	*
+opentdb	200	application/json	0.843890	546	*
+jikan	504	application/json	0.892042	168	*
+poetrydb	200	application/json	0.908136	488	*
+numbersapi-https	404	text/html	0.895448	58296	-
+radio-browser-de1	200	application/json	0.976129	2077	*
+artic	200	application/json	1.040140	1074	*
+open-meteo	200	application/json; charset=utf-8	1.065493	405	*
+tvmaze	200	application/json; charset=UTF-8	1.126873	12755	*
+uselessfacts	200	application/json; charset=UTF-8	1.320256	324	*
+wttr-in	200	text/plain; charset=utf-8	1.324762	39693	*
+quotable	000	-	-	0	-
+dog-ceo	200	application/json	2.679783	97	*
+open-library	200	application/json	3.448183	1183	*
+wheretheiss	200	application/json	9.761851	311	*

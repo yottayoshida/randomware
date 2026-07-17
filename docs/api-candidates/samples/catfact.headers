@@ -1,0 +1,21 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: application/json
+Connection: keep-alive
+Server: cloudflare
+Cache-Control: no-cache, private
+x-ratelimit-limit: 100
+x-ratelimit-remaining: 99
+access-control-allow-origin: *
+Set-Cookie: XSRF-TOKEN=eyJpdiI6ImRFVEFtOUUydldkR29IUmFab3JLTGc9PSIsInZhbHVlIjoiL0dLdXhZa3YwN21QdG50QTdhN3MwZEI0SmNON1JscktVNTlha01TQ1NlSDd2K2c0VWFqMFlRSnowR2RhY0xDVDRJK0l1cDVTUld3STMzUW96SXdsU0NCVW5QcTdBSi80RXBkTVFqczEzSnd5eVJ5UkdPcVQyQWdyajhIRTZONUIiLCJtYWMiOiIyZGRmYmI0OGM5ZjBmMjU5NjNhMjlhN2Q4MTNkOTAwMWJiMDNmNzQ1Mjc5OWE2MWY1N2IyOGIyZjFiYjE3MjhiIiwidGFnIjoiIn0%3D; expires=Sat, 18-Jul-2026 01:43:52 GMT; Max-Age=7200; path=/; secure; samesite=lax
+Set-Cookie: catfacts_session=eyJpdiI6IlFBTElCS0tEQVF5cmg2bVRCMGw2WlE9PSIsInZhbHVlIjoicnhhRnl0dWo5SCtSdEFOYm1UdFlCYi9qVVd1eFROWjRRd0J3N0xHK2RTSEZ6bWFBZTFaOWRuTFZndVkxTVVDazhxeTkrN3J1TEZXdzBRcTZQdllnVTF5d2x3cjZiTllpeDdOS3dWSEtCaWRIUmVoT3JWanZnSG9WNVBHSGdneDciLCJtYWMiOiI1ZDY5OTUzOGMzZTk3MTk1NDUzNWQ0YjJhZjRmODQ4ODdlYTg5NjY5MDg0YWRiNTkwZWNhODU1YTdkZWFkZTFkIiwidGFnIjoiIn0%3D; expires=Sat, 18-Jul-2026 01:43:52 GMT; Max-Age=7200; path=/; secure; httponly; samesite=lax
+Set-Cookie: a49myrkzkmUQd7McKuCF3qtZm1LsMii0sGOg2CcR=eyJpdiI6ImU5Sm8zRnFWSTBUbSs0TUJoYmwrT2c9PSIsInZhbHVlIjoiRFlmSTBtVE9IWGFhUmVFL0ExY1pKNWNVU2hkTUVISnprenF2VkVPcXAvd1NzTUI4VDZZRUxRQlZwRmZIaXRpMGRxcFNFaldOUkZDdC9TY1ByVi8yY3VPejkzZnNFQmJNVzB2U2l6YVE0UUd0REdYWlZqZEJrSUhpdUE2NGNrMGFPaGw2NXlGMmZBeElFalhxUVBZMDNMY2wvZDR4V1AxcDVOVkdNbGlQaUZzNjVhenRFNFlFSnZvWjdoc2tWWGNCMFM2WGgwK01vK3B4Z0cyVTZuWnlRSlU1cFY1M0U1SVpscjVQTXcxY0RYMzhOTmg5TG4zVDY4d2xITUlSQ0czRE9xM3BndW5meStubXhjNVVTQ3ZlcTJmWnh1d1liMUdSd2tuaXhmQktBTnJKTk5nN3lrSXQvNjZwNFQ3NTRObE11cWRxUjBZUUM5M1FtYzRCdURKeU5SMmpwd28raHR2R0poVUN1Tld6RXBOVkF5K1BpcWp0cUVqMmtzV0hKUnBpIiwibWFjIjoiZDJlYjVhOGI4ZjAyODlhYjU4Y2I2NTNjODYxYzAzZmU5Mzc2NGM3MDA4OGI3YTViN2U0ZTY4ZWY4ZTNhZTA4NCIsInRhZyI6IiJ9; expires=Sat, 18-Jul-2026 01:43:52 GMT; Max-Age=7200; path=/; secure; httponly; samesite=lax
+x-frame-options: SAMEORIGIN
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-cache-status: DYNAMIC
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=UASJMxL91fIxu%2BhQIaofpI7oOT0RElnJYtKIn6HGmOkO2yF%2BMsOt9PV4rdjJCINRUDB782kLlNWdUfFgw8N1KsfDN5YiGq1%2BGxeOeLFKu3bnyNxQFdARd6Cal%2BowlFKy"}]}
+CF-RAY: a1cd1c7ee8609d04-NRT
+Content-Length: 107
+

@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+Connection: keep-alive
+Date: Fri, 17 Jul 2026 23:43:53 GMT
+ETag: "42ba9bafcc9a6119f5ee3d40d6ffc342"
+Server: Apache/2.4.66 (Amazon Linux) OpenSSL/3.2.2
+Cache-Control: no-cache, private
+Access-Control-Allow-Origin: *
+Vary: Accept-Encoding
+X-Cache: Miss from cloudfront
+Via: 1.1 0d77e3c2bc9ecd8af261bb574e3f0214.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: SEA900-P4
+X-Amz-Cf-Id: CQFFlDBbsSLW6Opsze4znDtwiHlIxEliRYmU_HtGe06_79wsTiLv4Q==
+Transfer-Encoding: chunked
+

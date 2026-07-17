@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:44:01 GMT
+Server: Apache/2.2.22 (Ubuntu)
+X-Powered-By: PHP/5.3.10-1ubuntu3.26
+X-Rate-Limit-Limit: 350
+X-Rate-Limit-Remaining: 349
+X-Rate-Limit-Interval: 5 minutes
+Access-Control-Allow-Origin: *
+X-Apache-Time: D=24098
+Cache-Control: max-age=0, no-cache
+Content-Type: application/json
+Content-Length: 311
+

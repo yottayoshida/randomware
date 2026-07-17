@@ -1,0 +1,30 @@
+HTTP/1.1 301 Moved Permanently
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+Location: https://api.frankfurter.dev/v1/latest?from=USD&to=JPY
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=ZFm%2BxVYZ0MvokufV1j81vNHazBp0iEd%2F66XHSnAai5EA9Fl67K3ASxitpGZzrXiSaFKSwRoXATUD%2BaM5OWcb%2FGNQ%2BB%2Fyhw5fvC9UkJ0AEDKoBHqh6Wf3gV8Nmaam6I0J%2Btk0Wc1E"}]}
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Server: cloudflare
+CF-RAY: a1cd1c7f7ee7da78-NRT
+Transfer-Encoding: chunked
+
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+access-control-allow-origin: *
+access-control-allow-methods: GET, OPTIONS
+access-control-expose-headers: 
+access-control-max-age: 7200
+cache-control: public, max-age=86400
+etag: "6fa42dabcfd8435b40bc17e5b914bcfc"
+vary: Origin
+Accept-Ranges: bytes
+cf-cache-status: MISS
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=XwqabtAJW3dyExjezoIa3R0mOF6MSD6k96mB1ZmHs%2BiBcJZqJabBSsbHw2GfDJMJYLZMClwigxF7TKth4ZGwitD%2FKusL5kaWbw2Kkeu8H5w4t1E0nA%2BNMi8X9jshcEJ9FpApNBQ%3D"}]}
+Server: cloudflare
+CF-RAY: a1cd1c7fcd6a80bf-NRT
+Content-Length: 70
+

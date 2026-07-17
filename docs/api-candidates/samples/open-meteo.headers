@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:53 GMT
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+access-control-allow-origin: *
+access-control-allow-headers: accept, authorization, content-type, origin, x-requested-with, user-agent, access-control-allow-origin
+access-control-allow-methods: GET, POST, OPTIONS
+access-control-max-age: 600
+Transfer-Encoding: chunked
+

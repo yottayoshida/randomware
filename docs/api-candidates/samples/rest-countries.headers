@@ -1,0 +1,34 @@
+HTTP/1.1 301 Moved Permanently
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+Location: https://files-03.restcountries.com/countries.00/legacy.json?fields=name,capital,latlng,currencies,flags
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=LG6NyYlpIFR6WtKS2pka4cqJPl%2FQngcCSqwLUm%2BBKlaJ%2BtLVrtZIDXLXyYPmE2Kh2YHvijmqiw2WQiDpZyQr2XWNumE4fdb99%2FRwAZP%2B9eyu7PEDBhJeqTN3nkB4vdRT48LmrA%3D%3D"}]}
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Server: cloudflare
+CF-RAY: a1cd1c7f3fc9d760-NRT
+Transfer-Encoding: chunked
+
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: application/json
+Connection: keep-alive
+access-control-allow-origin: *
+access-control-allow-methods: GET
+access-control-max-age: 3000
+last-modified: Mon, 13 Jul 2026 00:19:02 GMT
+etag: "6938e4853cd51623f62e76953d47dc36"
+x-amz-server-side-encryption: AES256
+Accept-Ranges: bytes
+Server: cloudflare
+x-cache: Miss from cloudfront
+via: 1.1 8621531f38532d2d0ce4a262486acd50.cloudfront.net (CloudFront)
+x-amz-cf-pop: NRT57-P5
+x-amz-cf-id: HkpAyjcUwrQVtGsOjf_LTloKXFQ1imDBU0FdVLMKUOTuU4UC1wXlVg==
+Cache-Control: max-age=14400
+cf-cache-status: MISS
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=%2FHT0z%2FIZnxOfd4CdQsEtMAzcVc60z416JKDCcLELyT2nM43i1gRSF5ZsIX71ZAuPJR5g8GL9cGuCySoxiyKgDx7UcV1nx9zYQ7rCVF7zW%2FFdDkiWH6cPwyx12RUGzge3m9ZDPVOElN%2Ftwz5%2FtA%3D%3D"}]}
+CF-RAY: a1cd1c7f9c804b7a-NRT
+Content-Length: 261
+

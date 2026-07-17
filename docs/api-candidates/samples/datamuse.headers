@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+Connection: keep-alive
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Access-Control-Allow-Origin: https://randomware-check.example
+Access-Control-Allow-Credentials: true
+Cache-Control: no-transform, max-age=86400
+Vary: Origin,Accept-Encoding
+X-Cache: Miss from cloudfront
+Via: 1.1 abaa72f8da10c1f85bdf8e9941095944.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: NRT57-P11
+X-Amz-Cf-Id: Q_3Hj5MCtmND1VpmtC2L8_eTnMbOcVcLisWnBg-_XkT8aN0V-BcOEw==
+Content-Length: 288
+

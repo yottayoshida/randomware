@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Content-Type: application/json
+Connection: keep-alive
+Server: cloudflare
+vary: Accept-Encoding
+access-control-allow-origin: *
+link: <https://api.sunrise-sunset.org/v2>; rel="successor-version"
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=3g7zSHSFgV4pL5tvF4Sue7DslH9FmVvP4j5PaoMMc3RdYMTJ24MkYv4cB5LeV4laOa48MMxyxxlM4k2WmlPuQQBDhKEgthZp7J%2BDC8D19sKaycaZm1Bxp1akT%2FpRtioayEpoj3q0yMWR"}]}
+cf-cache-status: DYNAMIC
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+CF-RAY: a1cd1c7f19fd3d20-NRT
+Transfer-Encoding: chunked
+

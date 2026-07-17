@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:54 GMT
+Content-Type: application/json
+Connection: keep-alive
+Server: cloudflare
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=I7GcvzFoSL4ndRbC7uFl%2BvxP58K03eeGI21ySAdNm2QgdE%2BzyKeS7eWWl%2F91Y4tYYJSdpBcMugX5tvGao1vlgXFIPxvvZrqwRPNrmfC3NOJGVieKqu4aN67z"}]}
+cache-control: no-store
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Access-Control-Expose-Headers: *
+cf-cache-status: DYNAMIC
+Speculation-Rules: "/cdn-cgi/speculation"
+CF-RAY: a1cd1c8048c7fb36-NRT
+Content-Length: 97
+

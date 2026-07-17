@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Connection: keep-alive
+Server: nginx
+Content-Type: application/json
+ETag: "6a5a8968-17d"
+Expires: Fri, 17 Jul 2026 23:48:52 GMT
+Cache-Control: max-age=300
+Accept-Ranges: bytes
+Age: 0
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Via: 1.1 varnish
+X-Served-By: cache-nrt-rjtf7700069-NRT
+X-Cache: MISS
+X-Cache-Hits: 0
+X-Timer: S1784331832.238645,VS0,VE449
+Vary: Accept-Encoding
+Content-Length: 381
+

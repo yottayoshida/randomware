@@ -1,0 +1,9 @@
+HTTP/1.1 200 OK
+Access-Control-Allow-Headers: Accept, Content-Type, Content-Length, Accept-Encoding, Authorization
+Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
+Access-Control-Allow-Origin: *
+Content-Type: application/json; charset=UTF-8
+Date: Fri, 17 Jul 2026 23:43:53 GMT
+Server: nginx
+Content-Length: 324
+

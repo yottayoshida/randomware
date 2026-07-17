@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Date: Fri, 17 Jul 2026 23:43:52 GMT
+Server: Apache
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Access-Control-Allow-Origin: *
+Set-Cookie: PHPSESSID=463a7baf26838a8ec7b630012e1527ac; path=/
+Upgrade: h2
+Connection: Upgrade
+Vary: User-Agent
+Strict-Transport-Security: max-age=31536000
+Content-Type: application/json
+Transfer-Encoding: chunked
+
