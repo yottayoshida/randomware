@@ -1,0 +1,72 @@
+const { registry } = require('./core/registry');
+const { selectApis } = require('./core/selection');
+const { validateArtifact } = require('./core/validator');
+const { validateConcept } = require('./core/concept');
+const { RunStore } = require('./core/store');
+const { Broker } = require('./core/broker');
+const { CapabilitySigner } = require('./core/capability');
+const { deathCertificate } = require('./core/failure');
+
+const headers = (contentType = 'application/json; charset=utf-8', extra = {}) => ({ 'content-type': contentType, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', ...extra });
+const response = (body, status = 200, contentType, extra) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers: headers(contentType, extra) });
+const seed = () => `${Date.now()}-${crypto.randomUUID()}`;
+
+async function readJson(request) {
+  const text = await request.text();
+  if (text.length > 60000) throw new Error('payload_too_large');
+  return text ? JSON.parse(text) : {};
+}
+
+function summary(run) {
+  return { runId: run.id, phase: run.phase, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }), concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount };
+}
+
+function simpleOwnerPage(run, revision) {
+  const name = String(run.concept?.appName || 'Randomware creation').replace(/[<>&"']/g, '');
+  const premise = String(run.concept?.premise || 'A generated collision.').replace(/[<>&"']/g, '');
+  const apis = run.selectedApis.map((entry) => `<li>${entry.apiId}</li>`).join('');
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title></head><body><header><strong>AI-generated experimental app</strong><p>Do not enter real personal, payment, authentication, or secret data.</p><a href="/api/creations/${run.creationId}/source">Inspect source</a> · <a href="/api/creations/${run.creationId}/requests">Inspect requests</a> · <a href="/api/creations/${run.creationId}/dataflow">Inspect dataflow</a></header><main><h1>${name}</h1><p>${premise}</p><ul>${apis}</ul><iframe title="Generated app" sandbox="allow-scripts" credentialless referrerpolicy="no-referrer" src="/run/${run.creationId}"></iframe></main><footer>Specimen ${run.creationId} · revision ${revision.revision} · <a href="/api/creations/${run.creationId}/report">Report/remove</a></footer></body></html>`;
+}
+
+function failure(run) {
+  const certificate = deathCertificate(run.failure?.code || 'capacity_reached', { detail: run.failure?.detail, specimenId: run.creationId, revisions: run.revisions });
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Failed Creation</title></head><body><main><p>AI-generated experimental app</p><h1>Failed Creation</h1><p>Cause: <code>${certificate.code}</code></p><p>${certificate.detail}</p><p>${certificate.epitaph}</p><p>Specimen ${run.creationId}</p></main></body></html>`;
+}
+
+function tools() {
+  const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'get_run', 'record_choreography_failure'].includes(name), destructiveHint: false } });
+  return [base('open_randomware', 'Use this to mount the Randomware slot machine.', {}), base('spin_apis', 'Use this to select a fresh bounded API collision.', { seed: { type: 'string' }, requestId: { type: 'string' } }), base('submit_concept', 'Use this after spin_apis to submit the concept contract.', { runId: { type: 'string' }, requestId: { type: 'string' }, apiIds: { type: 'array' } }, ['runId', 'requestId', 'apiIds']), base('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']), base('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']), base('get_run', 'Use this to recover a run snapshot.', { runId: { type: 'string' } }, ['runId']), base('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.', { creationId: { type: 'string' }, premise: { type: 'string' } }, ['creationId', 'premise']), base('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.', { runId: { type: 'string' }, phase: { type: 'string' }, code: { type: 'string' } }, ['runId', 'phase', 'code'])];
+}
+
+function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtureMode: false }), signer = new CapabilitySigner('worker-development-secret'), assets } = {}) {
+  return async function handle(request, env = {}) {
+    const url = new URL(request.url);
+    try {
+      if (request.method === 'GET' && url.pathname === '/healthz') return response({ ok: true, service: 'randomware', registry: registry.length });
+      if (request.method === 'GET' && url.pathname === '/api/registry') return response(registry.map(({ id, name, category, capability, docsUrl, attribution }) => ({ id, name, category, capability, docsUrl, attribution })));
+      if (request.method === 'GET' && url.pathname === '/api/tools') return response(tools());
+      if (request.method === 'GET' && url.pathname === '/api/creations/recent') return response(store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
+      if (request.method === 'POST' && url.pathname === '/mcp') {
+        const input = await readJson(request); if (input.method === 'tools/list') return response({ jsonrpc: '2.0', id: input.id, result: { tools: tools() } });
+        if (input.method === 'tools/call' && input.params?.name === 'open_randomware') return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: { ok: true, registry: registry.length } } });
+        if (input.method === 'tools/call' && input.params?.name === 'spin_apis') { const args = input.params.arguments || {}; const selected = selectApis({ seed: args.seed || seed(), registry }); const run = store.createRun({ requestId: args.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: summary(run) } }); }
+        return response({ jsonrpc: '2.0', id: input.id, error: { code: -32601, message: 'method_not_supported' } }, 400);
+      }
+      if (request.method === 'POST' && url.pathname === '/api/spin') { const input = await readJson(request); const selected = selectApis({ seed: input.seed || seed(), registry, history: input.history || [] }); const run = store.createRun({ requestId: input.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] }); return response({ ...summary(run), statusUrl: `/api/runs/${run.id}`, disclosure: 'Building publishes this experimental AI-generated app at a public URL.' }); }
+      const reroll = url.pathname.match(/^\/api\/runs\/([^/]+)\/reroll$/); if (reroll && request.method === 'POST') return response(summary(store.rerollConcept(reroll[1], await readJson(request))));
+      const runMatch = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(concept|artifact|repair))?$/);
+      if (runMatch) {
+        const runId = runMatch[1]; const action = runMatch[2]; if (request.method === 'GET' && !action) return response(summary(store.getRun(runId)));
+        if (request.method === 'POST' && action === 'concept') { const input = await readJson(request); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] }); if (!check.ok) return response(check, 422); return response(summary(store.acceptConcept(runId, concept))); }
+        if (request.method === 'POST' && (action === 'artifact' || action === 'repair')) { const input = await readJson(request); const run = store.getRun(runId); const check = validateArtifact(input.html, { selectedApis: run.selectedApis }); if (!check.ok) { if (action === 'repair') store.recordRepairFailure(runId, { requestId: input.requestId || seed(), code: check.code, html: input.html }); else store.recordArtifactFailure(runId, { requestId: input.requestId || seed(), code: check.code, html: input.html }); return response({ ...check, nextTool: action === 'repair' ? 'none' : 'submit_repair' }, 422); } const accepted = action === 'repair' ? store.acceptRepair(runId, { requestId: input.requestId || seed(), html: input.html, sha256: check.sha256, bytes: check.bytes }) : store.acceptArtifact(runId, { requestId: input.requestId || seed(), html: input.html, sha256: check.sha256, bytes: check.bytes }); return response({ ok: true, creationId: accepted.creationId, ...summary(accepted) }); }
+      }
+      const creation = url.pathname.match(/^\/(c|run)\/([^/]+)$/); if (creation && request.method === 'GET') { const run = store.findByCreation(creation[2]); if (run.unpublished) return response('<h1>Creation removed</h1>', 200, 'text/html; charset=utf-8'); const revision = [...run.revisions].reverse().find((item) => item.status === 'accepted'); if (!revision) return response(failure(run), 200, 'text/html; charset=utf-8'); if (creation[1] === 'c') return response(simpleOwnerPage(run, revision), 200, 'text/html; charset=utf-8', { 'content-security-policy': "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" }); run.lastCapabilityExpiresAt = Date.now() + 600000; const token = signer.issue({ creationId: run.creationId, revision: revision.revision, selected: run.selectedApis.flatMap((entry) => entry.operationIds.map((operationId) => ({ apiId: entry.apiId, operationId }))) }); const harness = `<script>window.randomware=Object.freeze({call:async(a,o,p)=>{const r=await fetch('/api/runtime/call',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({creationId:${JSON.stringify(run.creationId)},revision:${revision.revision},apiId:a,operationId:o,params:p,capability:${JSON.stringify(token)}})});if(!r.ok)throw new Error('broker_failure');return r.json()},ready:()=>parent.postMessage({channel:'randomware',type:'ready'},'*')});</script>`; return response(`${harness}${revision.html}`, 200, 'text/html; charset=utf-8', { 'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: 'self'; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'", 'access-control-allow-origin': 'null' }); }
+      const source = url.pathname.match(/^\/api\/creations\/([^/]+)\/(source|requests|dataflow)$/); if (source && request.method === 'GET') { const run = store.findByCreation(source[1]); if (source[2] === 'source') return response([...run.revisions].reverse()[0]?.html || '', 200, 'text/plain; charset=utf-8'); if (source[2] === 'requests') return response(run.runtimeRequests || []); return response(store.dataflow(run.id)); }
+      if (request.method === 'POST' && url.pathname === '/api/runtime/call') { if (request.headers.get('origin') && request.headers.get('origin') !== 'null') throw new Error('origin_not_allowed'); const input = await readJson(request); const run = store.findByCreation(input.creationId); if (run.unpublished) throw new Error('creation_unpublished'); const capability = signer.verify(input.capability, { creationId: input.creationId, revision: input.revision, apiId: input.apiId, operationId: input.operationId }); store.assertRuntimeQuota(run.id, capability.quotas); const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {} }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return response(result, 200, 'application/json; charset=utf-8', { 'access-control-allow-origin': 'null' }); }
+      if (assets && url.pathname.startsWith('/')) return assets.fetch(request);
+      return response({ ok: false, code: 'not_found' }, 404);
+    } catch (error) { return response({ ok: false, code: error.message }, error.message === 'run_not_found' || error.message === 'creation_not_found' ? 404 : 400); }
+  };
+}
+
+module.exports = { createWebHandler, tools, summary };

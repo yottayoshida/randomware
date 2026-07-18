@@ -10,7 +10,7 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
 Run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. The zero-setup companion path uses fixture mode, visibly labels generated output, and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
 
-The live submission URL and `/mcp` endpoint are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md) when deployed. A short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+The live submission URL and `/mcp` endpoint are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md) when deployed. The current repository includes a Cloudflare Worker entrypoint, Static Assets binding, and D1 migration; deployment remains an owner-gated external step. A short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 ## Pitch
 
@@ -47,6 +47,8 @@ npm run registry:verify
 npm run security:scan
 npm run secrets:scan
 npm run acceptance:machine
+npm run dev:worker
+npm run deploy
 ```
 
 ## Registry and examples

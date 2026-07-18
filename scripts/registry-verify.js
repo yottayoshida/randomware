@@ -13,6 +13,9 @@ for (const entry of registry) {
     const fixture = path.join(root, 'docs', 'api-candidates', 'samples', op.fixturePath);
     if (!fs.existsSync(fixture)) throw new Error(`missing_fixture:${entry.id}:${fixture}`);
     JSON.parse(fs.readFileSync(fixture, 'utf8'));
+    const adapted = path.join(root, op.adaptedFixturePath);
+    if (!fs.existsSync(adapted)) throw new Error(`missing_adapted_fixture:${entry.id}:${adapted}`);
+    JSON.parse(fs.readFileSync(adapted, 'utf8'));
   }
 }
 console.log(`registry:verify passed (${registry.length} enabled entries)`);

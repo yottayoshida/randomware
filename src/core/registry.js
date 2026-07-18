@@ -5,7 +5,7 @@ const deepFreeze = (value) => {
 };
 
 const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000) => ({
-  id, description, method: 'GET', pathTemplate, fixturePath, timeoutMs,
+  id, description, method: 'GET', pathTemplate, fixturePath, adaptedFixturePath: `docs/api-candidates/adapted/${fixturePath}`, timeoutMs,
   paramsSchema: { type: 'object', additionalProperties: false }, outputSchema: { type: 'object' },
   maxRawBytes: 200_000, cacheTtlSeconds: 30, adapt: 'bounded-json'
 });

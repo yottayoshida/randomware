@@ -1,0 +1,10 @@
+{
+  "apiId": "deck-of-cards",
+  "operationId": "draw",
+  "data": {
+    "success": true,
+    "deck_id": "mj525m3mr8kr",
+    "remaining": 52,
+    "shuffled": true
+  }
+}

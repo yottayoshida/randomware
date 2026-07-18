@@ -1,0 +1,8 @@
+{
+  "apiId": "dog-ceo",
+  "operationId": "random",
+  "data": {
+    "message": "https://images.dog.ceo/breeds/terrier-norwich/n02094258_2359.jpg",
+    "status": "success"
+  }
+}

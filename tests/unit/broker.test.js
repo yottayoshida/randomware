@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Broker } = require('../../src/core/broker');
+const { Broker, bounded } = require('../../src/core/broker');
 
 test('broker permits only selected fixed operations and returns bounded JSON', async () => {
   const broker = new Broker({ fixtureMode: true });
@@ -28,4 +28,10 @@ test('live broker enforces JSON content type and bounded bytes', async () => {
 test('broker rejects nested URL parameters', async () => {
   const broker = new Broker({ fixtureMode: true });
   await assert.rejects(() => broker.call({ selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }], apiId: 'open-meteo', operationId: 'forecast', params: { nested: { endpoint: 'https://evil.example' } } }), /invalid_parameters/);
+});
+
+test('broker adapters strip markup and bound untrusted nested output', () => {
+  const data = bounded({ html: '<script>alert(1)</script>clean', nested: { deep: { deeper: { deepest: { value: 'kept' } } } } });
+  assert.equal(data.html, 'alert(1)clean');
+  assert.equal(data.nested.deep.deeper.deepest.value, '[truncated]');
 });

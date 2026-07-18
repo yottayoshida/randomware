@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "randomware",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-07-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "d1_databases": [{ "binding": "DB", "database_name": "randomware", "database_id": "REPLACE_WITH_OWNER_D1_ID", "migrations_dir": "migrations" }],
+  "triggers": { "crons": ["0 * * * *"] },
+  "vars": { "RANDOMWARE_FIXTURES": "0" }
+}
