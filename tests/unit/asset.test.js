@@ -29,7 +29,11 @@ test('every image-bearing operation rewrites all allowlisted fields without leak
     const rewritten = await rewriteAssetCandidates(data, candidates, () => `https://randomware.randomware.workers.dev/api/runtime/asset/signed-${minted++}`);
     const serialized = JSON.stringify(rewritten);
     assert.match(serialized, /https:\/\/randomware\.randomware\.workers\.dev\/api\/runtime\/asset\/signed-/i, `${apiId}:signed_asset_missing`);
-    for (const candidate of candidates) assert.equal(serialized.includes(new URL(candidate.resolvedUrl).hostname), false, `${apiId}:raw_asset_host_leaked`);
+    for (const candidate of candidates) {
+      assert.equal(serialized.includes(new URL(candidate.resolvedUrl).hostname), false, `${apiId}:raw_asset_host_leaked`);
+      const served = await fetchAsset({ target: candidate.resolvedUrl, policy: entry.assetPolicy, fetcher: async () => new Response(Buffer.from('image'), { headers: { 'content-type': 'image/png', 'content-length': '5' } }) });
+      assert.equal(served.contentType, 'image/png', `${apiId}:image_content_type_missing`);
+    }
   }
 });
 
