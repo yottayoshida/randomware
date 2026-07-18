@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const vm = require('node:vm');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
@@ -86,4 +87,11 @@ test('repair prompt includes exact diagnostics and the full artifact contract', 
   assert.match(prompt, /loading marker missing/);
   assert.match(prompt, /viewport marker missing/);
   for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(prompt.includes(literal), `repair_prompt_missing:${literal}`);
+});
+
+test('widget inline script is valid JavaScript', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  const script = widget.match(/<script>([\s\S]*?)<\/script>/i)?.[1];
+  assert.ok(script);
+  assert.doesNotThrow(() => new vm.Script(script, { filename: 'randomware-widget.js' }));
 });

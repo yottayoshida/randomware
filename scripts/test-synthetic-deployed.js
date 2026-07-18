@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
+const vm = require('node:vm');
 const { createArtifact } = require('../src/core/artifact');
 const { toolSchemas } = require('../src/core/tool-contract');
 const { ARTIFACT_CONTRACT_LITERALS } = require('../src/core/artifact-contract');
@@ -48,6 +49,12 @@ function assertPromptSurface(surface, label) {
   for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(text.includes(literal), `prompt_fidelity:${label}:${literal}`);
 }
 
+function assertWidgetScriptParses(widgetText) {
+  const script = String(widgetText || '').match(/<script>([\s\S]*?)<\/script>/i)?.[1];
+  assert.ok(script, 'widget_script_missing');
+  assert.doesNotThrow(() => new vm.Script(script, { filename: 'deployed-randomware-widget.js' }), 'widget_script_syntax_failed');
+}
+
 function wrongValue(schema) {
   if (schema?.type === 'string') return 123;
   if (schema?.type === 'integer') return 'not-an-integer';
@@ -90,6 +97,7 @@ async function runSynthetic(base) {
   for (const tool of tools) assertPromptSurface(tool.description, `tool:${tool.name}`);
   const resourceResponse = await mcp({ jsonrpc: '2.0', id: 2.5, method: 'resources/read', params: { uri: 'ui://widget/randomware.html' } }); assert.equal(resourceResponse.status, 200);
   const widgetText = (await resourceResponse.json()).result.contents[0].text;
+  assertWidgetScriptParses(widgetText);
   assertPromptSurface(widgetText, 'widget');
   assert.ok(widgetText.includes('submit the complete artifact via submit_artifact'), 'prompt_fidelity:widget_build_prompt');
   assert.ok(widgetText.includes('Exact rejection diagnostics:'), 'prompt_fidelity:widget_repair_prompt');
