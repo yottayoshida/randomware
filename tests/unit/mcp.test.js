@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { callToolResult } = require('../../src/core/mcp');
+const { callToolResult, widgetResource } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
@@ -14,4 +14,12 @@ test('MCP tool annotations keep closed-world control tools closed', () => {
   const byName = Object.fromEntries(tools().map((tool) => [tool.name, tool.annotations]));
   for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) assert.equal(byName[name].openWorldHint, false, `${name} must be closed-world`);
   for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) assert.equal(byName[name].openWorldHint, true, `${name} must be open-world`);
+});
+
+test('widget opens a routable creation in-frame and exposes an openExternal fallback', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, /id="creation-frame"/);
+  assert.match(widget, /\/c\//);
+  assert.match(widget, /openExternal\(\{href/);
+  assert.match(widget, /Download or open the creation/);
 });
