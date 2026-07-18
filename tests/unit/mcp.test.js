@@ -120,6 +120,7 @@ test('deployed synthetic driver has no source contract mirror', () => {
   assert.match(source, /tools\/list/);
   assert.match(source, /enumCases/);
   assert.match(source, /schemaCompleteness/);
+  assert.match(source, /Promise\.allSettled/);
 });
 
 test('deployed e2e invokes the real browser semantic renderer', () => {
@@ -161,6 +162,10 @@ test('artifact-facing prompts teach the broker envelope, adapted payload, and se
     assert.match(surface, /adapted shape/i);
     assert.match(surface, /same-origin signed URL/i);
     assert.match(surface, /signed \/media/i);
+    assert.match(surface, /Promise\.allSettled/);
+    assert.match(surface, /partial results/i);
+    assert.match(surface, /per-source failure line/i);
+    assert.match(surface, /every selected API remains essential/i);
   }
   for (const surface of surfaces.slice(1)) {
     assert.match(surface, /"apiId":"frankfurter"/);

@@ -14,7 +14,8 @@ test('launch registry has 18 fixed entries with bounded operations and attributi
     for (const operation of entry.operations) {
       assert.equal(operation.method, 'GET');
       assert.match(operation.pathTemplate, /^\//);
-      assert.ok(operation.timeoutMs <= 6000);
+      if (entry.id === 'librivox') assert.equal(operation.timeoutMs, 10000);
+      else assert.ok(operation.timeoutMs <= 6000);
     }
   }
 });

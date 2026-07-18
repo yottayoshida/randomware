@@ -14,7 +14,7 @@ The implementation uses:
 - `@modelcontextprotocol/sdk`, `@modelcontextprotocol/ext-apps`, and Cloudflare's `agents` package with the web-standard `createMcpHandler` for stateless Streamable HTTP on `/mcp`.
 - Cloudflare Workers Static Assets for the widget/site bundles, D1 for durable records, Worker Cache API for cacheable API responses, and a Cron Trigger for health checks.
 - Cloudflare Workers Free and D1 Free for production. The implementation must not enable a paid plan. Free-tier limits are application limits, not capacity targets.
-- The companion origin as the only production `connectDomains` entry. The widget also declares that same companion origin in `frameDomains` for the owner-authorized embedding retest; link-out through `window.openai.openExternal` remains the fallback. The current exact ancestor allowlist used by both companion documents is `https://chatgpt.com https://chat.openai.com`; wildcard ancestors are prohibited and the owner records any observed platform error.
+- The companion origin as the only production `connectDomains` entry. The widget also declares that same companion origin in `frameDomains` for the owner-authorized embedding retest; link-out through `window.openai.openExternal` remains the fallback. The bounded ancestor allowlist used by both companion documents is `https://chatgpt.com https://chat.openai.com https://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com`; the single subdomain wildcard is required because ChatGPT inserts a connector-specific sandbox ancestor, and the owner records the real-client result.
 
 This is a deliberately server-refereed architecture. There is no owner model call, OpenAI API key, arbitrary-URL proxy, dynamic package installation, user account, or generated backend.
 
@@ -205,6 +205,7 @@ The code prompt repeats the immutable accepted concept and gives a compact runti
 - Use only literal `window.randomware.call(apiId, operationId, params)` calls from the supplied operations. Never use a network primitive or external URL.
 - Treat each call result as the fixed broker envelope `{ ok: true, apiId, operationId, data, bytes, sourceUrl, cached }`; on an HTTP failure the harness rejects with `Error("broker_failure")`. The app payload is exactly `result.data`, not a raw public-API top-level field.
 - Read `result.data` only by the selected operation's supplied adapted `outputSchema` and bounded `responseExample`. Adapted values may be bounded/truncated; image fields are already same-origin signed URLs for verbatim `img.src` assignment, and audio is available only through a signed `/media` URL.
+- Fetch selected operations with per-call failure isolation (`Promise.allSettled` or equivalent). Render all fulfilled sources plus an honest per-source failure line for each rejected source; one runtime outage must not blank the whole app. Every selected API remains conceptually essential even when runtime degradation is partial.
 - Call `window.randomware.ready()` after interactive controls are bound.
 - Provide visible loading, error, interactive, and attribution regions using exact `data-randomware` markers.
 - Render response text with safe DOM APIs; never use HTML string sinks.
@@ -269,6 +270,7 @@ The deployed draft-app retest uses these policies, substituting the exact HTTPS 
 default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;
 connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none';
 form-action 'none'; frame-ancestors https://chatgpt.com https://chat.openai.com
+https://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com
 
 /run/:id:
 default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';
@@ -277,11 +279,12 @@ media-src blob: https://<companion-origin>;
 connect-src https://<companion-origin>;
 font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none';
 base-uri 'none'; form-action 'none'; frame-ancestors https://<companion-origin> https://chatgpt.com https://chat.openai.com
+https://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com
 ```
 
 The response also sets `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a restrictive `Permissions-Policy`, `Cross-Origin-Resource-Policy: same-site` where compatible, and no cookies.
 
-The owner-authorized embedding retest declares the companion origin in `frameDomains` and uses the exact current allowlist above for both documents. The owner records the browser's observed ancestor/error verbatim; if the platform rejects this exact policy, the allowlist is narrowed to the observed origin and the retest is repeated. Wildcard ancestor origins are prohibited. Link-out remains available throughout.
+The owner-authorized embedding retest declares the companion origin in `frameDomains` and uses the bounded allowlist above for both documents. Real ChatGPT evidence established that the connector-specific `https://<connector>.web-sandbox.oaiusercontent.com` iframe is an intermediate ancestor, so both the apex and the narrowly scoped `https://*.web-sandbox.oaiusercontent.com` source are required: `frame-ancestors` must match every ancestor. Link-out remains available throughout.
 
 The production widget resource declares:
 
@@ -452,7 +455,7 @@ The launch target is 18 APIs. Every entry remains disabled until its implementat
 | TVMaze | backup | promote; public endpoints only, 20 calls/10 s ceiling, link attribution, CC BY-SA notice |
 | [Rick and Morty API](https://rickandmortyapi.com/documentation) | round 3 | promote for the noncommercial competition demo under its [BSD/open-source notice](https://rickandmortyapi.com/about); use fixed REST character GETs, credit the API and Adult Swim, proxy only same-host avatars, and never persist or transform them |
 | [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | round 3 | promote; use v3 product-by-code GETs with an explicit `fields` list, never the search endpoints, send a custom user agent, stay at or below 10 rpm, preserve ODbL/DbCL and image CC BY-SA attribution, and proxy only `images.openfoodfacts.org` assets |
-| [LibriVox](https://librivox.org/api/info) | round 3 | promote; request bounded catalog/audiotrack fields, strip returned HTML, credit LibriVox and the reader, and proxy one [public-domain](https://librivox.org/pages/public-domain/) section for at most 90 seconds through signed media restricted to `archive.org` and validated `*.us.archive.org` redirects; no audio caching |
+| [LibriVox](https://librivox.org/api/info) | round 3 | promote; request bounded catalog/audiotrack fields, strip returned HTML, credit LibriVox and the reader, use a 10,000 ms operation/health latency limit for the observed cold path, and proxy one [public-domain](https://librivox.org/pages/public-domain/) section for at most 90 seconds through signed media restricted to `archive.org` and validated `*.us.archive.org` redirects; no audio caching |
 | [TheMealDB](https://www.themealdb.com/terms_of_use.php) | primary, reconfirmed | promote for this noncommercial competition web demo under the free-key development terms; use [official v1 GET endpoints](https://www.themealdb.com/docs_api_guide.php) and key `1`, credit TheMealDB, proxy only `www.themealdb.com` images, and disable before app-store or post-demo production use without a supporter key |
 
 The following verified candidates are not launched:

@@ -38,7 +38,10 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   const creationCssText = await creationCss.text();
   assert.match(creationCssText, /\.rw-frame/);
   assert.match(creationCssText, /min-height:390px/);
-  assert.match(page.headers.get('content-security-policy'), /frame-ancestors https:\/\/chatgpt\.com/);
+  const ownerCsp = page.headers.get('content-security-policy');
+  assert.match(ownerCsp, /frame-ancestors https:\/\/chatgpt\.com/);
+  assert.match(ownerCsp, /https:\/\/web-sandbox\.oaiusercontent\.com/);
+  assert.match(ownerCsp, /https:\/\/\*\.web-sandbox\.oaiusercontent\.com/);
   const download = await fetch(`${base}/api/creations/${artifact.body.creationId}/download`);
   assert.match(download.headers.get('content-disposition'), /attachment/);
   assert.match(await download.text(), /window\.randomware/);
@@ -50,6 +53,9 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   assert.match(await specDownload.text(), /causal chain/i);
   const generated = await fetch(`${base}/run/${artifact.body.creationId}`);
   assert.equal(generated.status, 200);
+  const runtimeCsp = generated.headers.get('content-security-policy');
+  assert.match(runtimeCsp, /https:\/\/web-sandbox\.oaiusercontent\.com/);
+  assert.match(runtimeCsp, /https:\/\/\*\.web-sandbox\.oaiusercontent\.com/);
   assert.match(await generated.text(), /window\.randomware/);
   const recent = await request(base, '/api/creations/recent');
   assert.ok(recent.body.some((creation) => creation.creationId === artifact.body.creationId));

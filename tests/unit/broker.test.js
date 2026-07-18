@@ -198,3 +198,44 @@ test('broker stops after the single timeout retry', async () => {
   assert.equal(calls, 2);
   assert.equal(retries.length, 1);
 });
+
+test('live LibriVox requests receive the registry 10-second timeout budget', async () => {
+  const originalTimeout = AbortSignal.timeout;
+  const budgets = [];
+  AbortSignal.timeout = (milliseconds) => {
+    budgets.push(milliseconds);
+    return originalTimeout(1);
+  };
+  try {
+    const broker = new Broker({ fetcher: async () => { throw new DOMException('timed out', 'TimeoutError'); } });
+    await assert.rejects(() => broker.call({
+      selectedApis: [{ apiId: 'librivox', operationIds: ['book'] }],
+      apiId: 'librivox', operationId: 'book', params: {}
+    }), /runtime_timeout/);
+    assert.deepEqual(budgets, [10000, 10000]);
+  } finally {
+    AbortSignal.timeout = originalTimeout;
+  }
+});
+
+test('LibriVox RSS audio resolution receives the same 10-second timeout budget', async () => {
+  const originalTimeout = AbortSignal.timeout;
+  const budgets = [];
+  AbortSignal.timeout = (milliseconds) => {
+    budgets.push(milliseconds);
+    return originalTimeout(milliseconds);
+  };
+  try {
+    const resolved = await adaptAudio('librivox', {
+      books: [{ id: '999', title: 'Cold Book', url_rss: 'https://librivox.org/rss/cold.xml' }]
+    }, {
+      fixtureMode: false,
+      timeoutMs: 10000,
+      fetcher: async () => new Response('<rss><channel><item><enclosure url="https://archive.org/download/cold/book.mp3" type="audio/mpeg" /></item></channel></rss>', { headers: { 'content-type': 'application/rss+xml' } })
+    });
+    assert.equal(resolved.mediaCandidate.resolvedUrl, 'https://archive.org/download/cold/book.mp3');
+    assert.deepEqual(budgets, [10000]);
+  } finally {
+    AbortSignal.timeout = originalTimeout;
+  }
+});

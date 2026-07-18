@@ -9,4 +9,6 @@ test('default artifact is complete, bounded, and declares every selected operati
   const result = validateArtifact(html, { selectedApis: selected.map((item) => ({ apiId: item.apiId, operationIds: [item.operationId] })) });
   assert.equal(result.ok, true);
   assert.ok(result.bytes >= 10000 && result.bytes <= 40000);
+  assert.match(html, /Promise\.allSettled/);
+  assert.match(html, /Source unavailable:/);
 });

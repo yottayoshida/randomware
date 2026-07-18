@@ -86,11 +86,11 @@ const fixtureLibrivoxAudio = Object.freeze({
   '52': 'https://archive.org/download/letters_brides_0709_librivox/letters_of_two_brides_001_balzac_64kb.mp3'
 });
 
-async function librivoxAudio(book, { fetcher, fixtureMode }) {
+async function librivoxAudio(book, { fetcher, fixtureMode, timeoutMs = 6000 }) {
   if (fixtureMode && fixtureLibrivoxAudio[book.id]) return validateMediaUrl(fixtureLibrivoxAudio[book.id], { kind: 'librivox' });
   if (book.url_rss) {
     let response;
-    try { response = await fetcher(book.url_rss, { method: 'GET', redirect: 'manual', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(6000) }); } catch { throw new Error('upstream_failure'); }
+    try { response = await fetcher(book.url_rss, { method: 'GET', redirect: 'manual', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(timeoutMs) }); } catch { throw new Error('upstream_failure'); }
     if (!response.ok) throw new Error('upstream_failure');
     const raw = Buffer.from(await response.arrayBuffer());
     if (raw.byteLength > 256 * 1024) throw new Error('response_too_large');
@@ -170,7 +170,7 @@ class Broker {
       let response;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          response = await this.fetcher(sourceUrl, { method: 'GET', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(Math.min(op.timeoutMs, 6000)) });
+          response = await this.fetcher(sourceUrl, { method: 'GET', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(Math.min(op.timeoutMs, 10000)) });
           break;
         } catch (error) {
           const timeout = error?.name === 'TimeoutError' || error?.name === 'AbortError';
@@ -190,7 +190,7 @@ class Broker {
       try { data = JSON.parse(raw.toString('utf8')); } catch { throw new Error('response_shape_mismatch'); }
     }
     const prepared = prepareAssetData(apiId, data);
-    const adapted = await adaptAudio(apiId, prepared, { fetcher: this.fetcher, fixtureMode: this.fixtureMode });
+    const adapted = await adaptAudio(apiId, prepared, { fetcher: this.fetcher, fixtureMode: this.fixtureMode, timeoutMs: op.timeoutMs });
     data = bounded(adapted.data, 0, apiId === 'wiki-onthisday' ? 6 : 4);
     const assetCandidates = collectAssetCandidates(entry, data);
     const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates, fixtureExample, fixtureSources };
