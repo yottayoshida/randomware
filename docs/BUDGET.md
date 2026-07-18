@@ -32,7 +32,7 @@ At the start of the implementation session, record the actual redemption timesta
 |---|---:|---:|---|---|
 | Sol technical design | 300 | $12 | five design documents, source verification, commit | design stops; unresolved ambiguity is recorded rather than extended |
 | Luna implementation | 1,400 | $56 | feasibility, vertical slice, safe runtime, experience, registry | stop feature work and preserve a runnable Must path |
-| Codex E2E/verification | 500 | $20 | browser iterations, deployed fixes, acceptance evidence | run only failing Must checks; stop exploratory polish |
+| Codex E2E/verification | 500 | $20 | browser iterations, deployed fixes, acceptance evidence, two independent reviews | run only failing Must checks; stop exploratory polish |
 | Final reserve | 300 | $12 | broken Must acceptance, deployment, README/submission docs, demo blockers | never spend on Should/Could work |
 | **Total** | **2,500** | **$100** |  |  |
 
@@ -47,6 +47,8 @@ Implementation guidance within the 1,400-credit envelope:
 | Milestone 4 API expansion | 250 | launch registry, health, weighting, fixtures |
 
 These shares are control limits, not permission to consume the amount. Unused credits roll forward to E2E/reserve. Moving credits out of the 300-credit final reserve is prohibited. Moving more than 100 credits between non-reserve envelopes requires a one-sentence reason in the checkpoint table.
+
+The post-Milestone-2 security review and pre-`/feedback` whole-repository review are funded only from the 500-credit Codex E2E/verification envelope and have a **150-credit combined cap**. Record their measured combined spend and outcome in `BUILD_LOG.md`; unused review allowance remains in the E2E/verification envelope. Before starting either review, apply §4 to the remaining Must work and untouched reserve. If the review would trigger a hard-stop threshold or the remaining E2E/verification balance cannot fund it within the combined cap, skip that review and record the skip and exact budget reason explicitly. A review skip never waives an acceptance requirement or an already-active hard stop.
 
 ## 4. Hard stop conditions
 

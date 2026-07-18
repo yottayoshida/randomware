@@ -52,6 +52,8 @@ Complete PLAN Milestone 1: with the minimal registry, prove spin → user's-mode
 
 Complete PLAN Milestone 2: full validator, capability broker, CSP/sandbox, assets/media, quotas, immutable revisions, exact single repair, runtime observation, failure taxonomy, death certificate, report/listing/unpublish, and containment browser tests. Do not proceed with a known sandbox/network escape.
 
+After Milestone 2's done-criteria pass, pause before Gate 3 and ask the human to obtain an independent security-focused review from a fresh Codex session running GPT-5.6 Sol at high reasoning effort with no shared conversation context. That session reviews the validator, broker, capability signing, sandbox/CSP headers, and repair transaction; it writes no code and saves only a findings document under `docs/reviews/`. In this primary session, fix and reverify fact-based defects before Milestone 3, record and defer style or scope findings, and record the review round and dispositions in `docs/BUILD_LOG.md`. If the combined-cap rule in `docs/BUDGET.md` requires a skip, record the skip and reason explicitly.
+
 ### Gate 3 — Product experience
 
 Complete PLAN Milestone 3: all Must surfaces and US-01 through US-06, widget recovery/timeouts, honest progress, inspect, mutate/spin again, recent index, mobile/accessibility, and the spike-selected frame-or-link path. Implement Should work only if every preceding Must passes and `BUDGET.md` permits it. Implement no Could work.
@@ -95,6 +97,8 @@ Do not say the project or goal is complete until all PRD Must acceptance checks 
 
 ## Mandatory final stop and human handoff
 
-When every check that Codex can perform has passed, **stop without reporting goal completion**. Ask the human to run `/feedback` in this same primary implementation session and copy the resulting Session ID into `docs/BUILD_LOG.md` and the private submission note. Never fabricate or infer the ID.
+When every check that Codex can perform has passed, **stop without reporting goal completion**. Before asking for `/feedback`, ask the human to obtain an independent whole-repository review against `docs/ACCEPTANCE.md` from a fresh Codex session running GPT-5.6 Sol at high reasoning effort with no shared conversation context. That session writes no code and saves only a findings document under `docs/reviews/`. In this primary session, fix fact-based defects in at most one fix round, record and defer style or scope findings, record the review and dispositions in `docs/BUILD_LOG.md`, and rerun `npm run acceptance:machine`. If `docs/BUDGET.md` requires a skip, record the skip and reason; the skip does not waive acceptance.
+
+Only after that review gate and the fresh machine-acceptance rerun may the primary session ask the human to run `/feedback` here and copy the resulting Session ID into `docs/BUILD_LOG.md` and the private submission note. Never fabricate or infer the ID.
 
 After the human returns with the Session ID, record it, rerun document/secret/status checks, commit and push that evidence, and explicitly list any remaining human-only demo-video or Devpost action. Only then may the implementation result be reported against the completion bar.

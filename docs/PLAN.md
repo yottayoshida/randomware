@@ -163,6 +163,10 @@ Expected: all commands exit 0; every validator rejection has a stable expected c
 - Capacity and upstream failures are owner-controlled views, never raw Cloudflare/upstream pages in tested application paths.
 - Commit: `feat: enforce generated app containment and repair limits`.
 
+### Independent security review gate
+
+After the done-criteria pass and the milestone commit exists, pause before Milestone 3 and ask the human to obtain an independent security-focused review from a fresh Codex session running GPT-5.6 Sol at high reasoning effort with no shared conversation context. The review covers the validator, broker, capability signing, sandbox/CSP headers, and repair transaction; it writes no code and produces only a findings document under `docs/reviews/`. The primary session triages the document: fact-based defects are fixed and reverified before Milestone 3 starts, while style preferences and scope-expanding findings are recorded and deferred. Record the review, disposition, fixes, and any budget-authorized skip in `BUILD_LOG.md`. Apply the combined review cap and skip rule in `BUDGET.md` §3.
+
 ## Milestone 3 — Complete the product experience
 
 ### Scope
@@ -297,4 +301,6 @@ Expected: every command exits 0; CSP/security headers match architecture; the de
 
 ## Mandatory final stop
 
-Do not report the `/goal` complete. Stop and ask the human to run `/feedback` in this same primary Codex session, copy its Session ID into `docs/BUILD_LOG.md` and the private submission note, and return so the ID can be committed. Do not fabricate, infer, or prefill the Session ID. After the human supplies it, rerun the final document/status checks, commit the recorded ID, and report any remaining human submission action explicitly.
+Do not report the `/goal` complete. Before the `/feedback` handoff, pause and ask the human to obtain an independent whole-repository review against `ACCEPTANCE.md` from a fresh Codex session running GPT-5.6 Sol at high reasoning effort with no shared conversation context. The review writes no code and produces only a findings document under `docs/reviews/`. The primary session fixes fact-based defects in at most one fix round, records and defers style or scope findings, records the review and dispositions in `BUILD_LOG.md`, and reruns `npm run acceptance:machine`. If `BUDGET.md` §3 requires the review to be skipped, record the skip and reason instead; a skip does not waive any acceptance requirement.
+
+Only after that review gate and the fresh `acceptance:machine` rerun may the primary session ask the human to run `/feedback` in this same session, copy its Session ID into `docs/BUILD_LOG.md` and the private submission note, and return so the ID can be committed. Do not fabricate, infer, or prefill the Session ID. After the human supplies it, rerun the final document/status checks, commit the recorded ID, and report any remaining human submission action explicitly.
