@@ -1,0 +1,30 @@
+HTTP/1.1 200 OK
+cache-control: s-maxage=300, max-age=60
+content-type: application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/OnThisDay/0.5.0"
+date: Sat, 18 Jul 2026 00:00:29 GMT
+server: production-tls
+access-control-allow-origin: *
+access-control-allow-methods: GET,HEAD
+access-control-allow-headers: accept, content-type, content-length, cache-control, accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding
+access-control-expose-headers: etag
+x-content-type-options: nosniff
+x-frame-options: SAMEORIGIN
+referrer-policy: origin-when-cross-origin
+x-xss-protection: 1; mode=block
+content-security-policy: default-src 'none'; frame-ancestors 'none'
+etag: W/"492745/b05cd030-823b-11f1-8447-b6be672ae9c8"
+age: 1096
+accept-ranges: bytes
+vary: Accept-Encoding
+x-cache: cp5021 miss, cp5021 hit/1
+x-cache-status: hit-front
+strict-transport-security: max-age=106384710; includeSubDomains; preload
+report-to: { "group": "wm_nel", "max_age": 604800, "endpoints": [{ "url": "https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error&schema_uri=/w3c/reportingapi/network_error/1.0.0" }] }
+nel: { "report_to": "wm_nel", "max_age": 604800, "failure_fraction": 0.05, "success_fraction": 0.0}
+x-client-ip: 158.95.54.248
+set-cookie: WMF-Uniq=359uP9fzDp0xB5bkEbom7wOhAAAAAFvdgbIAOH_h8Dk2ehSF42dlOdnJoHa1wQd3;Domain=api.wikimedia.org;Path=/;HttpOnly;secure;SameSite=None;Expires=Sun, 18 Jul 2027 00:00:00 GMT
+x-request-id: afd9eebd-dc6d-4d4e-9cd1-bd2b56d56a3e
+x-analytics: 
+server-timing: cache;desc="hit-front", host;desc="cp5021",co_id;desc="3811251866"
+Content-Length: 164029
+

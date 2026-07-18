@@ -1,6 +1,6 @@
 # Public API Candidate Verification
 
-Verified: **2026-07-18**, from Tokyo, one live GET per API via [`verify.sh`](verify.sh) (curl, 12s timeout, `Origin` header set so servers reveal their CORS policy), plus manual retests for borderline cases. Raw results: [`results.tsv`](results.tsv). Captured response bodies and headers: [`samples/`](samples/).
+Verified: **2026-07-18**, from Tokyo, one live GET per API via [`verify.sh`](verify.sh) (curl, 12s timeout, `Origin` header set so servers reveal their CORS policy), plus manual retests for borderline cases. Raw results: [`results.tsv`](results.tsv). A second round the same day tested 7 additional candidates chosen for collision value under the PRD's creative principles (history, earthquakes, food, music, dictionary, space); raw results: [`results-round2.tsv`](results-round2.tsv). Captured response bodies and headers: [`samples/`](samples/).
 
 ## What was checked
 
@@ -10,9 +10,9 @@ Verified: **2026-07-18**, from Tokyo, one live GET per API via [`verify.sh`](ver
 - Latency (single sample per API — indicative, not a benchmark)
 - Rate-limit headers where present
 
-## Primary set (15)
+## Primary set (17)
 
-Chosen for health, speed, and category diversity (visual / audio / geo / realtime / text / numbers / games / knowledge).
+Chosen for health, speed, category diversity (visual / audio / geo / realtime / text / numbers / games / knowledge / history / food), and **collision value** — how strange the pairings this API can produce are, per the PRD's creative principles.
 
 | # | id | API | Category | Latency | CORS | Notes |
 |---|----|-----|----------|---------|------|-------|
@@ -26,13 +26,15 @@ Chosen for health, speed, and category diversity (visual / audio / geo / realtim
 | 8 | `radio-browser` | Radio Browser | audio / realtime | 0.98s | `*` | Tested `de1` mirror; production should resolve mirrors properly |
 | 9 | `open-meteo` | Open-Meteo | weather / geo | 1.07s | `*` | Forecast by coordinates, no key |
 | 10 | `frankfurter` | Frankfurter | currency / numbers | 0.75s | `*` | Both `api.frankfurter.dev` (v1) and `.app` healthy |
-| 11 | `opentdb` | Open Trivia DB | trivia / games | 0.84s | `*` | Note `response_code` envelope |
-| 12 | `advice-slip` | Advice Slip | text / playful | 0.82s | `*` | Responses cached ~2s server-side |
-| 13 | `pokeapi` | PokéAPI | game characters / rich data | 0.29s | `*` | ~290KB per Pokémon — must trim/limit fields |
-| 14 | `randomuser` | RandomUser | identity / persona | 0.28s | `*` | Generated fake identities (no real PII) |
-| 15 | `sunrise-sunset` | Sunrise-Sunset | time / geo | 0.28s | `*` | Solar times by coordinates |
+| 11 | `advice-slip` | Advice Slip | text / playful | 0.82s | `*` | Responses cached ~2s server-side |
+| 12 | `pokeapi` | PokéAPI | game characters / rich data | 0.29s | `*` | ~290KB per Pokémon — must trim/limit fields |
+| 13 | `randomuser` | RandomUser | identity / persona | 0.28s | `*` | Generated fake identities (no real PII) |
+| 14 | `wiki-onthisday` | Wikipedia On This Day | history / culture | 0.63s | `*` | ~160KB payloads — sample/trim events server-side |
+| 15 | `usgs-quakes` | USGS Earthquakes | realtime / geo | 0.57s | `*` | `all_day` feed ~190KB; magnitude-filtered feeds are smaller |
+| 16 | `themealdb` | TheMealDB | food / images | 0.60s | `*` | Free dev key `1`; confirm demo-use terms during design pass |
+| 17 | `itunes-search` | iTunes Search | music / audio previews | 0.33s | echo | 30s audio preview URLs; returns JSON with `text/javascript` content type — mediation layer must tolerate this |
 
-## Backup set (9)
+## Backup set (14)
 
 Healthy; use if a primary degrades or more variety is wanted.
 
@@ -47,6 +49,11 @@ Healthy; use if a primary degrades or more variety is wanted.
 | `xkcd` | xkcd | 0.60s | **No CORS** → proxy only |
 | `bored` | Bored API (appbrewery mirror) | 0.43s | **No CORS** → proxy only; rate limit 100 observed |
 | `wheretheiss` | Where The ISS At | 9–10s | See ISS note below |
+| `opentdb` | Open Trivia DB | 0.84s | Demoted from primary: trivia data invites the banned plain-quiz shape; lower collision value. `response_code` envelope |
+| `sunrise-sunset` | Sunrise-Sunset | 0.28s | Demoted from primary: thin single-purpose data |
+| `thecocktaildb` | TheCocktailDB | 0.60s | Same provider and shape as TheMealDB; use for variety only |
+| `dictionaryapi` | Free Dictionary API | 0.59s | Overlaps Datamuse; has pronunciation audio URLs |
+| `open-notify-astros` | Open Notify (people in space) | 0.24s | **HTTP-only** → proxy only; "who is in space right now" |
 
 ## Rejected (4)
 

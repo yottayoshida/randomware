@@ -172,7 +172,7 @@ Every generated app must permanently display an "AI-generated experimental app" 
 ### Registry policy
 
 - Only a curated, pre-verified registry of public APIs is used — no runtime discovery of arbitrary APIs.
-- Launch size: 10–15 APIs. Already satisfied by verified candidates; see Appendix A and [api-candidates/report.md](api-candidates/report.md).
+- Launch size: 12–18 APIs. Already satisfied by verified candidates; see Appendix A and [api-candidates/report.md](api-candidates/report.md).
 - Every registry entry must be: key-free, HTTPS (or explicitly proxied), JSON, acceptable under its terms for demo use, tolerant of demo-level rate limits, and captured with at least one real example response.
 - Per-API health status (healthy / degraded / disabled) must exist and be respected by selection.
 
@@ -203,7 +203,8 @@ Threat framing: the product intentionally runs freshly AI-generated code in visi
 - Generated code must not reach any network destination other than the selected, registry-approved API endpoints, via a mediated channel controlled by the host.
 - Attempts to do otherwise must be blocked and surfaced as a failure cause.
 - Per-creation limits are required: execution time, request count, and response size.
-- API responses must be treated as untrusted content when rendered.
+- Generation abuse control is required: per-visitor rate limits and a global daily cap on model-backed generations — the deployed product spins GPT-5.6 on the owner's API key, so an uncapped public instance is an open wallet. Caps must be generous enough for judging; when a cap is reached the machine degrades gracefully (e.g. a "the machine is resting" state with replayable past creations), never with a raw error.
+- API responses must be treated as untrusted content when rendered, and as untrusted text wherever they enter a model prompt — public API data can contain user-submitted or adversarial content (e.g. Radio Browser station names are community-edited).
 - No secrets may ship to the browser; there is nothing for users to configure or leak.
 - Every creation displays the AI-generated notice and a "do not enter real personal or payment data" warning.
 - Accepted residual risk (explicit): this is a short-lived experimental toy, not a hardened code sandbox. The mediation and containment above are the bar; formal sandbox completeness is not.
@@ -310,9 +311,9 @@ The primary Codex goal must not report completion until: the deployed app is rea
 
 Full verification data, fixtures, and rejection reasons: [api-candidates/report.md](api-candidates/report.md).
 
-Primary set (15): Deck of Cards (games/state), PoetryDB (text/culture), Datamuse (words), Art Institute of Chicago (art/images), Open Library (books), REST Countries (geo/knowledge), Dog CEO (images/animals), Radio Browser (audio/realtime), Open-Meteo (weather/geo), Frankfurter (currency), Open Trivia DB (trivia/games), Advice Slip (text/playful), PokéAPI (game characters/rich data), RandomUser (identity/persona), Sunrise-Sunset (time/geo).
+Primary set (17), rebalanced for collision value on 2026-07-18: Deck of Cards (games/state), PoetryDB (text/culture), Datamuse (words), Art Institute of Chicago (art/images), Open Library (books), REST Countries (geo/knowledge), Dog CEO (images/animals), Radio Browser (audio/realtime), Open-Meteo (weather/geo), Frankfurter (currency), Advice Slip (text/playful), PokéAPI (game characters/rich data), RandomUser (identity/persona), Wikipedia On This Day (history), USGS Earthquakes (realtime/geo), TheMealDB (food/images), iTunes Search (music/audio previews).
 
-Backup set (9): Met Museum, Zippopotam, Nager.Date, TVMaze, Cat Facts, Useless Facts, xkcd (proxy-only), Bored API (proxy-only), Where The ISS At (9–10s latency — demo-path risk; open-notify.org is a fast HTTP-only alternative usable behind a proxy).
+Backup set (14): Met Museum, Zippopotam, Nager.Date, TVMaze, Cat Facts, Useless Facts, xkcd (proxy-only), Bored API (proxy-only), Where The ISS At (9–10s latency — demo-path risk), Open Trivia DB (demoted: invites the banned plain-quiz shape), Sunrise-Sunset (demoted: thin data), TheCocktailDB, Free Dictionary API, Open Notify people-in-space (HTTP-only, proxy-only).
 
 Rejected (4): Numbers API (no HTTPS), Quotable (TLS failure), Jikan (persistent 504), wttr.in (wrong content type, overload-prone).
 

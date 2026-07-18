@@ -1,0 +1,36 @@
+HTTP/2 200 
+server: daiquiri/5
+content-type: text/javascript; charset=utf-8
+x-apple-jingle-correlation-key: GUA3FUITOVHCUSDZEQHS7DDHI4
+x-apple-request-uuid: 3501b2d1-1375-4e2a-4879-240f2f8c6747
+x-apple-translated-wo-url: /WebObjects/MZStoreServices.woa/ws/wsSearch?term=rain&media=music&limit=3&urlDesc=
+apple-tk: false
+x-b3-spanid: 4df53c0a81d3d6e2
+b3: 3501b2d113754e2a4879240f2f8c6747-4df53c0a81d3d6e2
+content-disposition: attachment; filename=1.txt
+x-b3-traceid: 3501b2d113754e2a4879240f2f8c6747
+x-content-type-options: nosniff
+access-control-allow-credentials: true
+x-responding-instance: MZStoreServices:6501662:::
+apple-seq: 0.0
+access-control-allow-origin: https://randomware-check.example
+apple-originating-system: MZStoreServices
+strict-transport-security: max-age=31536000; includeSubDomains
+x-apple-orig-url: https://mzstoreservices-mr.itunes.apple.com/search?term=rain&media=music&limit=3
+x-apple-application-site: MR22
+apple-timing-app: 152 ms
+x-apple-application-instance: 6501662
+x-webobjects-loadaverage: 0
+x-daiquiri-instance: daiquiri:17317002:mr85p00it-hyhk03144801:7987:26HOTFIX26:daiquiri-amp-store-shared-int-001-mr
+x-daiquiri-debug-worker-pid: 36887
+x-daiquiri-instance: daiquiri:12282004:mr47p00it-qujn04120301:7987:26HOTFIX26:daiquiri-amp-store-l7shared-ext-001-mr
+x-daiquiri-debug-worker-pid: 9612
+vary: origin
+cache-control: max-age=86400
+date: Sat, 18 Jul 2026 00:18:43 GMT
+content-length: 4458
+x-cache: TCP_MISS from a23-213-31-15.deploy.akamaitechnologies.com (AkamaiGHost/22.5.5-a99410f5551b72a9d5b9686a67b34630) (-)
+x-true-cache-key: /L/itunes.apple.com/search vcd=2897 ci2=limit=3&media=music&term=rain///
+x-cache-remote: TCP_MISS from a23-41-184-116.deploy.akamaitechnologies.com (AkamaiGHost/22.5.5-a99410f5551b72a9d5b9686a67b34630) (-)
+x-apple-partner: origin.0
+

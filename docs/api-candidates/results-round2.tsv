@@ -1,0 +1,8 @@
+id	http	content_type	time_s	bytes	cors
+open-notify-astros	200	application/json	0.236898	587	*
+itunes-search	200	text/javascript; charset=utf-8	0.332604	4458	https://randomware-check.example
+usgs-quakes	200	application/json; charset=utf-8	0.568735	189254	*
+dictionaryapi	200	application/json; charset=utf-8	0.591737	680	*
+themealdb	200	application/json	0.600886	2712	*
+thecocktaildb	200	application/json	0.604591	1819	*
+wiki-onthisday	200	application/json; charset=utf-8; profile="https://www.mediawiki.org/wiki/Specs/OnThisDay/0.5.0"	0.634682	164029	*
