@@ -1,5 +1,6 @@
 const { createArtifact } = require('../src/core/artifact');
 const { randomUUID } = require('node:crypto');
+const { runSynthetic } = require('./test-synthetic-deployed');
 
 const baseArg = process.argv.find((arg) => arg.startsWith('--base-url='));
 const base = (baseArg ? baseArg.slice('--base-url='.length) : process.env.RANDOMWARE_PUBLIC_URL || '').replace(/\/$/, '');
@@ -34,6 +35,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
     const apiIds = run.selectedApis.map((api) => api.id);
     return {
       runId: run.runId, requestId, appName: `MCP ${label}`, premise: `A bounded collision turns ${label} signals into one theatrical instrument.`, playerAction: `Press the single control to make the ${label} instrument reveal its next state.`, apiIds,
+      runContract: run.runContract, promptVersion: run.promptVersion,
       causalChain: run.selectedApis.map((api, index) => ({ order: index + 1, apiId: api.id, action: `turn ${api.name} into the next ${label} rule` })),
       apiRoles: run.selectedApis.map((api) => ({ apiId: api.id, essentialRole: `${api.name} supplies an essential ${label} signal.`, operations: api.operations.map((operation) => operation.id) })),
       dependency: { fromApiId: apiIds[0], to: 'rules', ...(apiIds[1] ? { toApiId: apiIds[1] } : {}), explanation: `The first ${label} signal determines how the next one is interpreted.` },
@@ -43,13 +45,13 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
       noveltyDelta: `The ${label} collision changes the interaction rules.`
     };
   };
-  const artifactFor = (run, label) => createArtifact({ appName: `MCP ${label}`, selected: run.selectedApis.map((api) => ({ apiId: api.id, operationId: api.operations[0].id })) });
+  const artifactFor = (run, label, requestId, html = createArtifact({ appName: `MCP ${label}`, selected: run.selectedApis.map((api) => ({ apiId: api.id, operationId: api.operations[0].id })) })) => ({ runId: run.runId, requestId, runContract: run.runContract, conceptId: run.conceptId || `${label}-concept`, promptVersion: run.promptVersion, html, declaredApiUses: run.selectedApis.map((api) => ({ apiId: api.id, operations: api.operations.map((operation) => operation.id) })) });
   const testTag = `${Date.now()}-${randomUUID()}`;
   const mounted = await call(6, 'open_randomware'); if (mounted.structuredContent?.ok !== true) throw new Error('open_randomware_result_failed');
   const spun = await call(7, 'spin_apis', { seed: 'randomware-broker-e2e', requestId: `${testTag}-spin-1` }); const run = spun.structuredContent; if (!run?.runId || !run.selectedApis?.length) throw new Error('spin_apis_result_failed');
   const recovered = await call(8, 'get_run', { runId: run.runId }); if (recovered.structuredContent?.runId !== run.runId) throw new Error('get_run_result_failed');
   const concept = await call(9, 'submit_concept', conceptFor(run, 'primary', `${testTag}-primary-concept`)); if (concept.structuredContent?.phase !== 'concept_accepted') throw new Error('submit_concept_result_failed');
-  const artifact = await call(10, 'submit_artifact', { runId: run.runId, requestId: `${testTag}-artifact`, html: artifactFor(run, 'primary') }); if (artifact.structuredContent?.phase !== 'completed') throw new Error('submit_artifact_result_failed');
+  const artifact = await call(10, 'submit_artifact', artifactFor(run, 'primary', `${testTag}-artifact`)); if (artifact.structuredContent?.phase !== 'completed') throw new Error('submit_artifact_result_failed');
   const creationId = artifact.structuredContent.creationId;
   const creation = await fetch(`${base}/c/${creationId}`); const creationHtml = await creation.text(); if (!creation.ok || !creationHtml.includes('sandbox="allow-scripts"') || !creationHtml.includes('href="/creation.css"') || creationHtml.includes('<style') || creationHtml.includes('<script')) throw new Error('creation_surface_failed');
   const creationCsp = creation.headers.get('content-security-policy') || ''; if (!creationCsp.includes("style-src 'self'") || creationCsp.includes('unsafe-inline') || !creationCsp.includes('frame-ancestors https://chatgpt.com https://chat.openai.com')) throw new Error('creation_frame_ancestors_failed');
@@ -67,7 +69,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const requestsAfterResponse = await fetch(`${base}/api/creations/${creationId}/requests`); if (!requestsAfterResponse.ok) throw new Error('runtime_requests_after_failed'); const requestsAfter = await requestsAfterResponse.json(); const latestRequest = requestsAfter[requestsAfter.length - 1];
   if (requestsAfter.length <= requestsBefore.length || latestRequest?.status !== 'ok' || latestRequest.apiId !== selectedApi.id || latestRequest.operationId !== selectedOperation.id) throw new Error('runtime_request_row_failed');
   const mediaSpun = await call(18, 'spin_apis', { seed: 'media-1', requestId: `${testTag}-media-spin` }); const mediaRun = mediaSpun.structuredContent; const audioApis = mediaRun.selectedApis.filter((api) => api.id === 'radio-browser'); if (audioApis.length !== 1) throw new Error(`audio_selection_failed:${mediaRun.selectedApis.map((api) => api.id).join(',')}`);
-  await call(19, 'submit_concept', conceptFor(mediaRun, 'audio', `${testTag}-audio-concept`)); const mediaArtifact = await call(20, 'submit_artifact', { runId: mediaRun.runId, requestId: `${testTag}-audio-artifact`, html: artifactFor(mediaRun, 'audio') }); if (mediaArtifact.structuredContent?.phase !== 'completed') throw new Error('audio_artifact_failed');
+  await call(19, 'submit_concept', conceptFor(mediaRun, 'audio', `${testTag}-audio-concept`)); const mediaArtifact = await call(20, 'submit_artifact', artifactFor(mediaRun, 'audio', `${testTag}-audio-artifact`)); if (mediaArtifact.structuredContent?.phase !== 'completed') throw new Error('audio_artifact_failed');
   const mediaCreationId = mediaArtifact.structuredContent.creationId; const mediaRuntime = await fetch(`${base}/run/${mediaCreationId}`); const mediaRuntimeHtml = await mediaRuntime.text(); const mediaTokenLiteral = mediaRuntimeHtml.match(/capability:("(?:\\.|[^"])*")/); if (!mediaTokenLiteral) throw new Error('audio_capability_missing'); const mediaCapability = JSON.parse(mediaTokenLiteral[1]);
   const mediaRequests = [];
   for (const audioApi of audioApis) {
@@ -77,13 +79,14 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const download = await fetch(`${base}/api/creations/${creationId}/download`); if (!download.ok || !(download.headers.get('content-disposition') || '').includes('attachment') || download.headers.get('x-content-type-options') !== 'nosniff') throw new Error('keeper_download_failed');
   const spec = await fetch(`${base}/api/creations/${creationId}/spec`); if (!spec.ok || !((await spec.text()).toLowerCase()).includes('causal chain')) throw new Error('keeper_spec_failed');
   const specDownload = await fetch(`${base}/api/creations/${creationId}/spec/download`); if (!specDownload.ok || !(specDownload.headers.get('content-disposition') || '').includes('attachment')) throw new Error('keeper_spec_download_failed');
-  const mutation = await call(11, 'mutate_creation', { creationId: artifact.structuredContent.creationId, premise: 'A different bounded collision premise for the same immutable APIs.' }); if (mutation.structuredContent?.ok !== true) throw new Error('mutate_creation_result_failed');
+  const mutation = await call(11, 'mutate_creation', { creationId: artifact.structuredContent.creationId, requestId: `${testTag}-mutation`, premise: 'A different bounded collision premise for the same immutable APIs.' }); if (mutation.structuredContent?.ok !== true) throw new Error('mutate_creation_result_failed');
   const repairSpin = await call(12, 'spin_apis', { seed: `${testTag}-spin-2`, requestId: `${testTag}-spin-2` }); const repairRun = repairSpin.structuredContent;
   await call(13, 'submit_concept', conceptFor(repairRun, 'repair', `${testTag}-repair-concept`));
-  const failedArtifact = await call(14, 'submit_artifact', { runId: repairRun.runId, requestId: `${testTag}-failed-artifact`, html: '<!doctype html><html><body>invalid</body></html>' }); if (!failedArtifact.isError) throw new Error('invalid_artifact_should_error');
-  const repair = await call(15, 'submit_repair', { runId: repairRun.runId, requestId: `${testTag}-repair-artifact`, html: artifactFor(repairRun, 'repair') }); if (repair.structuredContent?.phase !== 'completed') throw new Error('submit_repair_result_failed');
-  const failureSpin = await call(16, 'spin_apis', { seed: `${testTag}-spin-3`, requestId: `${testTag}-spin-3` }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, phase: 'spinned', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
+  const failedArtifact = await call(14, 'submit_artifact', artifactFor(repairRun, 'repair', `${testTag}-failed-artifact`, '<!doctype html><html><body>invalid</body></html>')); if (!failedArtifact.isError) throw new Error('invalid_artifact_should_error');
+  const repair = await call(15, 'submit_repair', { ...artifactFor(repairRun, 'repair', `${testTag}-repair-artifact`), failedRevisionId: '1', diagnosticCodes: ['artifact_schema'] }); if (repair.structuredContent?.phase !== 'completed') throw new Error('submit_repair_result_failed');
+  const failureSpin = await call(16, 'spin_apis', { seed: `${testTag}-spin-3`, requestId: `${testTag}-spin-3` }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, requestId: `${testTag}-failure`, phase: 'spinned', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
   const get = await fetch(`${base}/mcp`, { headers: { accept: 'text/event-stream' } }); if (get.status !== 405) throw new Error(`mcp_get_status:${get.status}`);
   const index = await fetch(base); if (!index.ok || !(await index.text()).includes('Randomware')) throw new Error('public_index_failed');
-  console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType, brokerPreflightStatus: preflight.status, brokerPostStatus: mediated.status, runtimeRequests: requestsAfter.length, mediaRequests }));
+  const synthetic = await runSynthetic(base);
+  console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType, brokerPreflightStatus: preflight.status, brokerPostStatus: mediated.status, runtimeRequests: requestsAfter.length, mediaRequests, synthetic }));
 })().catch((error) => { console.error(`deployed acceptance failed: ${error.message}`); process.exitCode = 1; });

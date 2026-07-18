@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
+const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
   const structuredContent = { ok: true, registry: 18 };
@@ -14,6 +15,25 @@ test('MCP tool annotations keep closed-world control tools closed', () => {
   const byName = Object.fromEntries(tools().map((tool) => [tool.name, tool.annotations]));
   for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) assert.equal(byName[name].openWorldHint, false, `${name} must be closed-world`);
   for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) assert.equal(byName[name].openWorldHint, true, `${name} must be open-world`);
+});
+
+test('MCP schemas describe every concept and artifact nested contract', () => {
+  assert.deepEqual(toolSchemas.submit_concept.properties.apiRoles.items.required, ['apiId', 'essentialRole', 'operations']);
+  assert.deepEqual(toolSchemas.submit_concept.properties.causalChain.items.required, ['order', 'apiId', 'action']);
+  assert.deepEqual(toolSchemas.submit_artifact.properties.declaredApiUses.items.required, ['apiId', 'operations']);
+  assert.deepEqual(toolSchemas.submit_repair.required.slice(-2), ['failedRevisionId', 'diagnosticCodes']);
+  assert.equal(tools().find((tool) => tool.name === 'submit_concept').inputSchema.properties.apiRoles.items.properties.operations.items.type, 'string');
+});
+
+test('MCP argument validation names omitted nested role operations', () => {
+  const result = validateToolArguments('submit_concept', {
+    requestId: 'r', runId: 'run', runContract: 'contract', promptVersion: 'concept-v1', appName: 'Name', premise: 'A premise that is long enough for the contract.', playerAction: 'A player action that is long enough for the contract.', apiIds: ['open-meteo'],
+    causalChain: [{ order: 1, apiId: 'open-meteo', action: 'turn weather into the next rule' }], apiRoles: [{ apiId: 'open-meteo', essentialRole: 'Supplies the weather signal for the collision.' }],
+    dependency: { fromApiId: 'open-meteo', to: 'rules', explanation: 'The weather determines the rule.' }, interaction: { controls: ['reveal'], outcome: 'Reveal one result.' },
+    visualDirection: { style: 'bold', palette: 'cyan', typography: 'serif', motion: 'sweep' }, bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'This is not a generic shape.' }, noveltyDelta: 'A new collision.'
+  });
+  assert.equal(result.code, 'api_role_operations_missing:open-meteo');
+  assert.doesNotMatch(JSON.stringify(result), /TypeError/);
 });
 
 test('widget opens a routable creation in-frame and exposes an openExternal fallback', () => {

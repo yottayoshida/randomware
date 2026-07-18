@@ -16,6 +16,7 @@ const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, wid
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
+const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -40,7 +41,7 @@ async function body(req) {
 
 function runSummary(run) {
   return {
-    runId: run.id, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
+    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
     concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount
   };
 }
@@ -50,15 +51,16 @@ function securityHeaders(csp) {
 }
 
 function createMcpTools(app) {
+  const schema = (name, description) => ({ name, description, inputSchema: toolSchemas[name], annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
   return [
-    { name: 'open_randomware', description: 'Use this to mount the Randomware slot machine.', inputSchema: { type: 'object', properties: {} }, annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false }, _meta: widgetToolMeta() },
-    { name: 'spin_apis', description: 'Use this to select a fresh bounded API collision.', inputSchema: { type: 'object', properties: { seed: { type: 'string' }, requestId: { type: 'string' } } }, annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false } },
-    { name: 'submit_concept', description: 'Use this after spin_apis to submit the concept contract.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, appName: { type: 'string' }, premise: { type: 'string' }, playerAction: { type: 'string' }, apiIds: { type: 'array' }, causalChain: { type: 'array' }, apiRoles: { type: 'array' }, dependency: { type: 'object' }, interaction: { type: 'object' }, visualDirection: { type: 'object' }, bannedShapeAssessment: { type: 'object' }, noveltyDelta: { type: 'string' } }, required: ['runId','requestId','appName','premise','playerAction','apiIds','causalChain','apiRoles','dependency','interaction','visualDirection','bannedShapeAssessment','noveltyDelta'] }, annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false } },
-    { name: 'submit_artifact', description: 'Use this after concept acceptance to submit one complete HTML artifact.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, required: ['runId','requestId','html'] }, annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false } },
-    { name: 'submit_repair', description: 'Use this once after a validation or boot failure to submit one complete replacement artifact.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, required: ['runId','requestId','html'] }, annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false } },
-    { name: 'get_run', description: 'Use this to recover a run snapshot.', inputSchema: { type: 'object', properties: { runId: { type: 'string' } }, required: ['runId'] }, annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false } },
-    { name: 'mutate_creation', description: 'Use this to ask for a different concept while preserving the selected API set.', inputSchema: { type: 'object', properties: { creationId: { type: 'string' }, requestId: { type: 'string' }, premise: { type: 'string' } }, required: ['creationId','requestId','premise'] }, annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false } },
-    { name: 'record_choreography_failure', description: 'Use this to close a silent or noncompliant phase after its absolute deadline.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, phase: { type: 'string' }, code: { type: 'string' } }, required: ['runId','requestId','phase','code'] }, annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false } }
+    { ...schema('open_randomware', 'Use this to mount the Randomware slot machine.'), _meta: widgetToolMeta() },
+    schema('spin_apis', 'Use this to select a fresh bounded API collision.'),
+    schema('submit_concept', 'Use this after spin_apis to submit the complete concept contract.'),
+    schema('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.'),
+    schema('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.'),
+    schema('get_run', 'Use this to recover a run snapshot.'),
+    schema('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.'),
+    schema('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.')
   ];
 }
 
@@ -208,6 +210,7 @@ async function handleMcp(req, res, app) {
   if (method === 'tools/list') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { tools: createMcpTools(app) } });
   if (method === 'tools/call') {
     const name = input.params?.name; const args = input.params?.arguments || {};
+    const contract = validateToolArguments(name, args); if (!contract.ok) return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: contract.code, message: 'invalid_tool_input', data: { diagnostics: contract.diagnostics } } });
     if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
     if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Selected ${run.selectedApis.length} APIs.`) }); }
     if (name === 'get_run') { app.store.noteActivity(args.runId); const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Run ${run.id} is ${run.phase}.`) }); }

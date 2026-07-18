@@ -10,6 +10,7 @@ const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, wid
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
+const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
 
 const headers = (contentType = 'application/json; charset=utf-8', extra = {}) => ({ 'content-type': contentType, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', ...extra });
 const response = (body, status = 200, contentType, extra) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers: headers(contentType, extra) });
@@ -23,7 +24,7 @@ async function readJson(request) {
 }
 
 function summary(run) {
-  return { runId: run.id, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }), concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount };
+  return { runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }), concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount };
 }
 
 function simpleOwnerPage(run, revision) {
@@ -41,15 +42,16 @@ function failure(run) {
 
 function tools() {
   const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
+  const schema = (name, description) => ({ ...base(name, description, toolSchemas[name].properties, toolSchemas[name].required), inputSchema: toolSchemas[name] });
   return [
-    { ...base('open_randomware', 'Use this to mount the Randomware slot machine.', {}), _meta: widgetToolMeta() },
-    base('spin_apis', 'Use this to select a fresh bounded API collision.', { seed: { type: 'string' }, requestId: { type: 'string' } }),
-    base('submit_concept', 'Use this after spin_apis to submit the concept contract.', { runId: { type: 'string' }, requestId: { type: 'string' }, appName: { type: 'string' }, premise: { type: 'string' }, playerAction: { type: 'string' }, apiIds: { type: 'array' }, causalChain: { type: 'array' }, apiRoles: { type: 'array' }, dependency: { type: 'object' }, interaction: { type: 'object' }, visualDirection: { type: 'object' }, bannedShapeAssessment: { type: 'object' }, noveltyDelta: { type: 'string' } }, ['runId', 'requestId', 'appName', 'premise', 'playerAction', 'apiIds', 'causalChain', 'apiRoles', 'dependency', 'interaction', 'visualDirection', 'bannedShapeAssessment', 'noveltyDelta']),
-    base('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']),
-    base('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']),
-    base('get_run', 'Use this to recover a run snapshot.', { runId: { type: 'string' } }, ['runId']),
-    base('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.', { creationId: { type: 'string' }, premise: { type: 'string' } }, ['creationId', 'premise']),
-    base('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.', { runId: { type: 'string' }, phase: { type: 'string' }, code: { type: 'string' } }, ['runId', 'phase', 'code'])
+    { ...schema('open_randomware', 'Use this to mount the Randomware slot machine.'), _meta: widgetToolMeta() },
+    schema('spin_apis', 'Use this to select a fresh bounded API collision.'),
+    schema('submit_concept', 'Use this after spin_apis to submit the complete concept contract.'),
+    schema('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.'),
+    schema('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.'),
+    schema('get_run', 'Use this to recover a run snapshot.'),
+    schema('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.'),
+    schema('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.')
   ];
 }
 
@@ -72,6 +74,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         if (input.method === 'resources/list') return response({ jsonrpc: '2.0', id: input.id, result: { resources: [resourceSummary(url.origin)] } });
         if (input.method === 'resources/read') { if (input.params?.uri !== MCP_RESOURCE_URI) return response(jsonRpcError(input.id, -32602, 'resource_not_found'), 400); return response({ jsonrpc: '2.0', id: input.id, result: widgetResource(url.origin) }); }
         if (input.method === 'tools/list') return response({ jsonrpc: '2.0', id: input.id, result: { tools: tools() } });
+        if (input.method === 'tools/call') { const name = input.params?.name; const contract = validateToolArguments(name, input.params?.arguments || {}); if (!contract.ok) return response({ jsonrpc: '2.0', id: input.id, error: { code: contract.code, message: 'invalid_tool_input', data: { diagnostics: contract.diagnostics } } }, 400); }
         if (input.method === 'tools/call' && input.params?.name === 'open_randomware') return response({ jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
         if (input.method === 'tools/call' && input.params?.name === 'spin_apis') { const args = input.params.arguments || {}; const selected = selectApis({ seed: args.seed || seed(), registry, unhealthy: await unhealthy() }); const run = await callStore('createRun', { requestId: args.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(run), `Selected ${run.selectedApis.length} APIs.`) }); }
         if (input.method === 'tools/call') {
