@@ -20,6 +20,9 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const tools = await mcp({ jsonrpc: '2.0', id: 5, method: 'tools/list' });
   const toolsBody = await tools.json(); if (toolsBody.result?.tools?.length !== 8) throw new Error('mcp_tool_count_failed');
   const open = toolsBody.result.tools.find((tool) => tool.name === 'open_randomware'); if (open?._meta?.ui?.resourceUri !== 'ui://widget/randomware.html' || open?._meta?.['openai/outputTemplate'] !== 'ui://widget/randomware.html') throw new Error('mcp_render_tool_metadata_failed');
+  const annotations = Object.fromEntries(toolsBody.result.tools.map((tool) => [tool.name, tool.annotations]));
+  for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) if (annotations[name]?.openWorldHint !== false) throw new Error(`mcp_${name}_annotation_failed`);
+  for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) if (annotations[name]?.openWorldHint !== true) throw new Error(`mcp_${name}_annotation_failed`);
   const call = async (id, name, args = {}) => {
     const response = await mcp({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
     if (!response.ok) throw new Error(`tool_${name}_status:${response.status}`);

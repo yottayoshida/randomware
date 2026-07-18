@@ -35,7 +35,7 @@ function failure(run) {
 }
 
 function tools() {
-  const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'get_run', 'record_choreography_failure'].includes(name), destructiveHint: false } });
+  const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
   return [
     { ...base('open_randomware', 'Use this to mount the Randomware slot machine.', {}), _meta: widgetToolMeta() },
     base('spin_apis', 'Use this to select a fresh bounded API collision.', { seed: { type: 'string' }, requestId: { type: 'string' } }),

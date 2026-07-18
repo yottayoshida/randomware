@@ -65,6 +65,9 @@ test('MCP surface exposes eight annotated tools', async (t) => {
   assert.equal(result.body.result.tools.length, 8);
   assert.ok(result.body.result.tools.every((tool) => tool.description.startsWith('Use this')));
   assert.ok(result.body.result.tools.every((tool) => tool.annotations && typeof tool.annotations.readOnlyHint === 'boolean'));
+  const annotations = Object.fromEntries(result.body.result.tools.map((tool) => [tool.name, tool.annotations]));
+  for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) assert.equal(annotations[name].openWorldHint, false);
+  for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) assert.equal(annotations[name].openWorldHint, true);
   const open = result.body.result.tools.find((tool) => tool.name === 'open_randomware');
   assert.equal(open._meta.ui.resourceUri, 'ui://widget/randomware.html');
   const openCall = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { name: 'open_randomware', arguments: {} } }) });
