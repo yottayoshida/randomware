@@ -30,6 +30,7 @@ function json(res, status, body, headers = {}) {
 
 const runtimeCors = { 'access-control-allow-origin': 'null', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'access-control-max-age': '600', vary: 'Origin' };
 const publicReadCors = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-max-age': '600' };
+const mediaReadCors = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-allow-headers': 'range', 'access-control-expose-headers': 'accept-ranges, content-length, content-range, content-type', 'access-control-max-age': '600' };
 
 function text(res, status, body, headers = {}) {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...headers }); res.end(body);
@@ -88,6 +89,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         const reader = stream.getReader(); try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); } catch { res.destroy(); } return;
       }
       const mediaMatch = url.pathname.match(/^\/media\/([^/]+)$/);
+      if (mediaMatch && req.method === 'OPTIONS') { res.writeHead(204, mediaReadCors); return res.end(); }
       if (mediaMatch && req.method === 'GET') {
         const mediaToken = signer.verifyMedia(decodeURIComponent(mediaMatch[1]));
         const stored = store.getMediaToken(mediaToken.tokenId);
@@ -100,7 +102,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         const stream = limitedStream(upstream.response.body, remaining, (bytes) => store.finishMediaStream(mediaToken.tokenId, bytes));
         const passHeaders = {}; for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
-        res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'same-origin', ...passHeaders });
+        res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'same-origin', ...passHeaders, ...mediaReadCors });
         const reader = stream.getReader(); const pump = async () => { try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); } catch { res.destroy(); } }; await pump(); return;
       }
       if (url.pathname === '/api/runtime/call') {

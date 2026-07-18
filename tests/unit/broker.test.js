@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Broker, bounded } = require('../../src/core/broker');
+const { Broker, bounded, browserPlayableRadioCodec } = require('../../src/core/broker');
 
 test('broker permits only selected fixed operations and returns bounded JSON', async () => {
   const broker = new Broker({ fixtureMode: true });
@@ -22,6 +22,7 @@ test('audio adapters return metadata and a same-origin media URL, never the upst
   });
   assert.equal(result.data.station.url_resolved, undefined);
   assert.equal(result.data.station.url, undefined);
+  assert.equal(browserPlayableRadioCodec(result.data.station.codec), true, `fixture_default_codec:${result.data.station.codec}`);
   assert.equal(result.data.mediaUrl, 'https://randomware.example/media/signed-media-token');
   assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-media-token');
 });
@@ -44,6 +45,44 @@ test('live radio adapter skips a validated but dead station before minting media
   });
   assert.equal(result.data.station.name, 'alive');
   assert.equal(created[0].resolvedUrl, 'https://alive.example/live.mp3');
+});
+
+test('radio adapter prefers a browser-playable codec over an earlier AAC+ stream', async () => {
+  const created = [];
+  const stations = [
+    { name: 'aac-plus-first', codec: 'AAC+', url_resolved: 'https://aac-plus.example/live' },
+    { name: 'mp3-second', codec: 'MP3', url_resolved: 'https://mp3.example/live' }
+  ];
+  const fetcher = async (target) => {
+    if (String(target).includes('/json/stations/search')) return new Response(JSON.stringify(stations), { headers: { 'content-type': 'application/json' } });
+    if (String(target).startsWith('https://aac-plus.example/')) return new Response(Buffer.from('aacp'), { headers: { 'content-type': 'audio/aacp' } });
+    if (String(target).startsWith('https://mp3.example/')) return new Response(Buffer.from('mp3'), { headers: { 'content-type': 'audio/mpeg' } });
+    throw new Error(`unexpected:${target}`);
+  };
+  const result = await new Broker({ fetcher }).call({
+    selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }], apiId: 'radio-browser', operationId: 'station', params: {},
+    media: { origin: 'https://randomware.example', runId: 'run_codec', creationId: 'creation_codec', revision: 1, tokenSigner: { issueMedia: () => 'codec-token' }, mediaStore: { createMediaToken: async (_runId, record) => created.push(record) } }
+  });
+  assert.equal(result.data.station.name, 'mp3-second');
+  assert.equal(result.data.station.codec, 'MP3');
+  assert.equal(created[0].resolvedUrl, 'https://mp3.example/live');
+});
+
+test('radio adapter falls back to the first valid non-preferred codec', async () => {
+  const stations = [
+    { name: 'aac-plus', codec: 'AAC+', url_resolved: 'https://aac-plus.example/live' },
+    { name: 'opus', codec: 'OPUS', url_resolved: 'https://opus.example/live' }
+  ];
+  const fetcher = async (target) => {
+    if (String(target).includes('/json/stations/search')) return new Response(JSON.stringify(stations), { headers: { 'content-type': 'application/json' } });
+    return new Response(Buffer.from('audio'), { headers: { 'content-type': String(target).includes('aac-plus') ? 'audio/aacp' : 'audio/ogg' } });
+  };
+  const result = await new Broker({ fetcher }).call({
+    selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }], apiId: 'radio-browser', operationId: 'station', params: {},
+    media: { origin: 'https://randomware.example', runId: 'run_codec_fallback', creationId: 'creation_codec_fallback', revision: 1, tokenSigner: { issueMedia: () => 'fallback-token' }, mediaStore: { createMediaToken: async () => {} } }
+  });
+  assert.equal(result.data.station.name, 'aac-plus');
+  assert.equal(result.data.station.codec, 'AAC+');
 });
 
 test('LibriVox adapter returns bounded book metadata and an archive.org media URL', async () => {

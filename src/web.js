@@ -18,6 +18,7 @@ const headers = (contentType = 'application/json; charset=utf-8', extra = {}) =>
 const response = (body, status = 200, contentType, extra) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers: headers(contentType, extra) });
 const runtimeCors = { 'access-control-allow-origin': 'null', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'access-control-max-age': '600', vary: 'Origin' };
 const publicReadCors = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-max-age': '600' };
+const mediaReadCors = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-allow-headers': 'range', 'access-control-expose-headers': 'accept-ranges, content-length, content-range, content-type', 'access-control-max-age': '600' };
 const seed = () => `${Date.now()}-${crypto.randomUUID()}`;
 
 async function readJson(request) {
@@ -103,6 +104,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         return new Response(stream, { status: 200, headers: headers(upstream.contentType, extra) });
       }
       const mediaMatch = url.pathname.match(/^\/media\/([^/]+)$/);
+      if (mediaMatch && request.method === 'OPTIONS') return new Response(null, { status: 204, headers: headers('text/plain; charset=utf-8', mediaReadCors) });
       if (mediaMatch && request.method === 'GET') {
         const mediaToken = signer.verifyMedia(decodeURIComponent(mediaMatch[1]));
         const stored = await callStore('getMediaToken', mediaToken.tokenId);
@@ -120,7 +122,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         const passHeaders = {};
         for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
-        return new Response(stream, { status: upstream.response.status, headers: headers(upstream.contentType, { ...passHeaders, 'cache-control': 'no-store', 'content-disposition': 'inline', 'cross-origin-resource-policy': 'same-origin' }) });
+        return new Response(stream, { status: upstream.response.status, headers: headers(upstream.contentType, { ...passHeaders, ...mediaReadCors, 'cache-control': 'no-store', 'content-disposition': 'inline', 'cross-origin-resource-policy': 'same-origin' }) });
       }
       if (url.pathname === '/api/runtime/call') {
         const origin = request.headers.get('origin');

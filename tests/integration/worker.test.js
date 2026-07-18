@@ -140,9 +140,16 @@ test('Worker media route streams a signed radio response through a validated red
   assert.match(mediatedBody.data.mediaUrl, /^https:\/\/randomware\.example\/media\//);
   assert.doesNotMatch(JSON.stringify(mediatedBody), /stream\.laut\.fm|url_resolved/);
   const mediaUrl = new URL(mediatedBody.data.mediaUrl);
-  const streamed = await fetchHandler(new Request(mediaUrl));
+  const foreignOrigin = 'https://web-sandbox.oaiusercontent.com';
+  const preflight = await fetchHandler(new Request(mediaUrl, { method: 'OPTIONS', headers: { origin: foreignOrigin, 'access-control-request-method': 'GET', 'access-control-request-headers': 'range' } }));
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), '*');
+  assert.match(preflight.headers.get('access-control-allow-methods') || '', /GET/);
+  assert.match(preflight.headers.get('access-control-allow-headers') || '', /range/i);
+  const streamed = await fetchHandler(new Request(mediaUrl, { headers: { origin: foreignOrigin } }));
   assert.equal(streamed.status, 200);
   assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
+  assert.equal(streamed.headers.get('access-control-allow-origin'), '*');
   assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3bounded-audio');
   assert.equal(upstreamCalls, 2);
 });

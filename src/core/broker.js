@@ -2,6 +2,7 @@ const { getRegistryEntry } = require('./registry');
 const crypto = require('node:crypto');
 const { extractLibrivoxAudioUrl, validateMediaUrl, fetchMedia, MEDIA_LIMITS } = require('./media');
 const { ASSET_LIMITS, prepareAssetData, collectAssetCandidates, rewriteAssetCandidates } = require('./asset');
+const BROWSER_PLAYABLE_RADIO_CODECS = new Set(['MP3', 'MPEG', 'AUDIO/MPEG', 'AUDIO-MPEG', 'AAC', 'AUDIO/AAC', 'AUDIO-AAC']);
 
 function rejectParameters(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_parameters');
@@ -19,9 +20,16 @@ function bounded(value, depth = 0, maxDepth = 4) {
   return value;
 }
 
+function browserPlayableRadioCodec(value) {
+  const codec = String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+  return BROWSER_PLAYABLE_RADIO_CODECS.has(codec);
+}
+
 async function radioAdapter(value, { fetcher, fixtureMode }) {
   let station; let resolved; let rejection;
-  for (const candidate of (Array.isArray(value) ? value : [])) {
+  const candidates = Array.isArray(value) ? value : [];
+  const ordered = [...candidates.filter((candidate) => browserPlayableRadioCodec(candidate?.codec)), ...candidates.filter((candidate) => !browserPlayableRadioCodec(candidate?.codec))];
+  for (const candidate of ordered) {
     if (!candidate || typeof candidate.url_resolved !== 'string') continue;
     try {
       resolved = validateMediaUrl(candidate.url_resolved, { kind: 'radio-browser' });
@@ -133,4 +141,4 @@ class Broker {
   }
 }
 
-module.exports = { Broker, rejectParameters, bounded };
+module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec };
