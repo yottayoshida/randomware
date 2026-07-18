@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { callToolResult, widgetResource } = require('../../src/core/mcp');
+const { callToolResult, widgetResource, widgetToolResult } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
@@ -22,4 +22,12 @@ test('widget opens a routable creation in-frame and exposes an openExternal fall
   assert.match(widget, /\/c\//);
   assert.match(widget, /openExternal\(\{href/);
   assert.match(widget, /Download or open the creation/);
+});
+
+test('widget consumes the real CallToolResult envelope and ignores a stale mount result', () => {
+  const run = { runId: 'run-widget', phase: 'spinned', selectedApis: [{ id: 'frankfurter', name: 'Frankfurter', operations: [] }] };
+  const envelope = callToolResult(run, 'Selected 1 API.');
+  assert.deepEqual(widgetToolResult(envelope), { output: run, isError: false });
+  assert.deepEqual(widgetToolResult({ result: envelope }), { output: run, isError: false });
+  assert.equal(widgetToolResult(callToolResult({ ok: true, registry: 18 }, 'Randomware slot mounted.')), null);
 });

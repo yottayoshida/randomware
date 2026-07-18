@@ -108,7 +108,41 @@ def main():
             assert page.locator("script").count() == 0, "inline_script_present"
             assert border_width == "2px", f"unstyled_chrome:border={border_width}"
             assert frame_height >= 390, f"frame_too_short:{frame_height}"
-            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height}))
+
+            widget_page = browser.new_page(viewport={"width": 390, "height": 844})
+            spin_run = {"runId": "widget-run", "phase": "spinned", "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
+            concept_run = {**spin_run, "phase": "concept_accepted"}
+            complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation"}
+            envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
+            mount_output = json.dumps({"ok": True, "registry": 18})
+            init_script = (
+                "window.openai = {toolOutput: " + mount_output + ", widgetState: null, "
+                "setWidgetState: state => window.__widgetState = state, "
+                "callTool: async name => {"
+                "if (name !== 'spin_apis') throw new Error('unexpected tool');"
+                "setTimeout(() => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: " + mount_output + "}}})), 10);"
+                "return " + json.dumps(envelope(spin_run)) + ";"
+                "}, openExternal: () => {}};"
+            )
+            widget_page.add_init_script(init_script)
+            widget_page.goto(BASE, wait_until="domcontentloaded")
+            _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
+            widget_html = widget_body["result"]["contents"][0]["text"]
+            widget_page.set_content(widget_html, wait_until="domcontentloaded")
+            widget_page.locator("#spin").click()
+            widget_page.wait_for_timeout(900)
+            assert widget_page.locator("#status").inner_text() != "The slot is ready.", "widget_reset_to_idle_after_callTool"
+            assert widget_page.locator("#apis li").count() == 1, "widget_reels_not_rendered"
+            assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
+            widget_page.locator("#build").click()
+            assert "Waiting for the model" in widget_page.locator("#status").inner_text(), "widget_concept_transition_missing"
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(concept_run))
+            assert "Concept accepted" in widget_page.locator("#status").inner_text(), "widget_artifact_transition_missing"
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
+            assert widget_page.locator("#creation").is_visible(), "widget_creation_section_missing"
+            assert not widget_page.locator("#creation-frame").get_attribute("hidden"), "widget_creation_frame_not_embedded"
+            assert "/c/widget-creation" in widget_page.locator("#creation-link").get_attribute("href"), "widget_creation_link_missing"
+            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "widgetEnvelope": True, "widgetTransitions": True}))
             browser.close()
     finally:
         if server:
