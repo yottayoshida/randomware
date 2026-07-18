@@ -39,6 +39,29 @@ function prepareAssetData(apiId, value) {
   if (apiId === 'randomuser') {
     return { results: (Array.isArray(data?.results) ? data.results : []).slice(0, 1).map((person) => ({ gender: person?.gender, name: person?.name, nat: person?.nat, picture: person?.picture })) };
   }
+  if (apiId === 'met-museum') {
+    return {
+      objectID: data?.objectID ?? null,
+      title: data?.title ?? null,
+      artistDisplayName: data?.artistDisplayName ?? null,
+      objectDate: data?.objectDate ?? null,
+      medium: data?.medium ?? null,
+      dimensions: data?.dimensions ?? null,
+      classification: data?.classification ?? null,
+      department: data?.department ?? null,
+      culture: data?.culture ?? null,
+      period: data?.period ?? null,
+      dynasty: data?.dynasty ?? null,
+      country: data?.country ?? null,
+      objectName: data?.objectName ?? null,
+      creditLine: data?.creditLine ?? null,
+      repository: data?.repository ?? null,
+      objectURL: data?.objectURL ?? null,
+      isPublicDomain: data?.isPublicDomain ?? null,
+      primaryImage: data?.primaryImage ?? null,
+      primaryImageSmall: data?.primaryImageSmall ?? null
+    };
+  }
   if (apiId === 'rickandmorty') {
     return { id: data?.id, name: data?.name, status: data?.status, species: data?.species, type: data?.type, gender: data?.gender, origin: { name: data?.origin?.name }, location: { name: data?.location?.name }, image: data?.image };
   }

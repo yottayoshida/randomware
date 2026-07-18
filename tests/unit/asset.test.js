@@ -38,6 +38,14 @@ test('every image-bearing operation rewrites all allowlisted fields without leak
   }
 });
 
+test('Met adapter emits a stable fixed-field summary instead of provider-owned nested measurements', () => {
+  const result = prepareAssetData('met-museum', { objectID: 436121, title: 'Wheat Field', artistDisplayName: 'Vincent van Gogh', measurements: [{ elementMeasurements: { Height: 10, Depth: 2 } }], primaryImageSmall: 'https://images.metmuseum.org/CRDImages/ep/web-large/example.jpg' });
+  assert.deepEqual(Object.keys(result).sort(), ['artistDisplayName', 'classification', 'country', 'creditLine', 'culture', 'department', 'dimensions', 'dynasty', 'isPublicDomain', 'medium', 'objectDate', 'objectID', 'objectName', 'objectURL', 'period', 'primaryImage', 'primaryImageSmall', 'repository', 'title'].sort());
+  assert.equal(result.measurements, undefined);
+  assert.equal(result.primaryImage, null);
+  assert.equal(result.classification, null);
+});
+
 test('asset validation rejects credentials, private hosts, non-HTTPS, and hosts outside the registry policy', () => {
   const policy = getRegistryEntry('dog-ceo').assetPolicy;
   assert.throws(() => validateAssetUrl('https://user:pass@images.dog.ceo/a.jpg', policy), /asset_credentials/);

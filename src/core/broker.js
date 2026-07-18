@@ -105,8 +105,15 @@ async function adaptAudio(apiId, value, context) {
   const book = (Array.isArray(value?.books) ? value.books : []).find((candidate) => candidate && candidate.id);
   if (!book) throw new Error('media_audio_source_missing');
   const resolved = await librivoxAudio(book, context);
+  const authors = (Array.isArray(book.authors) ? book.authors : []).slice(0, 20).map((author) => ({
+    id: author?.id ?? null,
+    first_name: author?.first_name ?? null,
+    last_name: author?.last_name ?? null,
+    dob: author?.dob ?? null,
+    dod: author?.dod ?? null
+  }));
   return {
-    data: { book: bounded({ id: book.id, title: book.title, authors: book.authors, language: book.language, copyright_year: book.copyright_year, totaltime: book.totaltime, url_librivox: book.url_librivox, description: book.description }), media: { kind: 'audio', format: 'audio/mpeg' } },
+    data: { book: bounded({ id: book.id ?? null, title: book.title ?? null, authors, language: book.language ?? null, copyright_year: book.copyright_year ?? null, totaltime: book.totaltime ?? null, url_librivox: book.url_librivox ?? null, description: book.description ?? null }), media: { kind: 'audio', format: 'audio/mpeg' } },
     mediaCandidate: { kind: 'librivox', resolvedUrl: resolved.toString() }
   };
 }
@@ -211,4 +218,4 @@ class Broker {
   }
 }
 
-module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec, conformToExample, issueAssetUrl, issueMediaUrl };
+module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec, conformToExample, issueAssetUrl, issueMediaUrl, adaptAudio };

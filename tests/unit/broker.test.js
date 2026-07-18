@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Broker, bounded, browserPlayableRadioCodec } = require('../../src/core/broker');
+const { Broker, bounded, browserPlayableRadioCodec, adaptAudio } = require('../../src/core/broker');
 
 test('broker permits only selected fixed operations and returns bounded JSON', async () => {
   const broker = new Broker({ fixtureMode: true });
@@ -95,6 +95,14 @@ test('LibriVox adapter returns bounded book metadata and an archive.org media UR
   assert.equal(result.data.book.url_zip_file, undefined);
   assert.equal(result.data.mediaUrl, 'https://randomware.example/media/signed-book-media-token');
   assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-book-media-token');
+});
+
+test('LibriVox adapter emits stable nullable book and author fields', async () => {
+  const adapted = await adaptAudio('librivox', { books: [{ id: '47', title: 'Count', authors: [{ first_name: 'Alexandre' }], url_librivox: 'https://librivox.org/count/' }] }, { fixtureMode: true, fetcher: async () => { throw new Error('unexpected_fetch'); } });
+  assert.deepEqual(Object.keys(adapted.data.book).sort(), ['authors', 'copyright_year', 'description', 'id', 'language', 'title', 'totaltime', 'url_librivox'].sort());
+  assert.deepEqual(Object.keys(adapted.data.book.authors[0]).sort(), ['dob', 'dod', 'first_name', 'id', 'last_name'].sort());
+  assert.equal(adapted.data.book.language, null);
+  assert.equal(adapted.data.book.authors[0].last_name, null);
 });
 
 test('image adapters replace raw fields in place with signed same-origin asset URLs', async () => {

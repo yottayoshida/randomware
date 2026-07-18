@@ -406,13 +406,25 @@ module.exports = Object.freeze({
               },
               "maxItems": 20
             },
+            "copyright_year": {
+              "type": "null"
+            },
+            "description": {
+              "type": "null"
+            },
             "id": {
               "type": "string",
               "maxLength": 4000
             },
+            "language": {
+              "type": "null"
+            },
             "title": {
               "type": "string",
               "maxLength": 4000
+            },
+            "totaltime": {
+              "type": "null"
             },
             "url_librivox": {
               "type": "string",
@@ -421,8 +433,12 @@ module.exports = Object.freeze({
           },
           "required": [
             "authors",
+            "copyright_year",
+            "description",
             "id",
+            "language",
             "title",
+            "totaltime",
             "url_librivox"
           ],
           "additionalProperties": false
@@ -470,7 +486,11 @@ module.exports = Object.freeze({
             "dod": "1870"
           }
         ],
-        "url_librivox": "https://librivox.org/the-count-of-monte-cristo-by-alexandre-dumas/"
+        "language": null,
+        "copyright_year": null,
+        "totaltime": null,
+        "url_librivox": "https://librivox.org/the-count-of-monte-cristo-by-alexandre-dumas/",
+        "description": null
       },
       "media": {
         "kind": "audio",
@@ -493,8 +513,12 @@ module.exports = Object.freeze({
       "$.book.authors[].first_name": "scalar",
       "$.book.authors[].id": "scalar",
       "$.book.authors[].last_name": "scalar",
+      "$.book.copyright_year": "scalar",
+      "$.book.description": "scalar",
       "$.book.id": "scalar",
+      "$.book.language": "scalar",
       "$.book.title": "scalar",
+      "$.book.totaltime": "scalar",
       "$.book.url_librivox": "scalar",
       "$.media": "object",
       "$.media.format": "scalar",
@@ -506,113 +530,15 @@ module.exports = Object.freeze({
     "outputSchema": {
       "type": "object",
       "properties": {
-        "accessionNumber": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "accessionYear": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "additionalImages": {
-          "type": "array",
-          "items": {},
-          "maxItems": 20
-        },
-        "artistAlphaSort": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistBeginDate": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistDisplayBio": {
-          "type": "string",
-          "maxLength": 4000
-        },
         "artistDisplayName": {
           "type": "string",
           "maxLength": 4000
         },
-        "artistEndDate": {
+        "classification": {
           "type": "string",
           "maxLength": 4000
         },
-        "artistGender": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistNationality": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistPrefix": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistRole": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistSuffix": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistULAN_URL": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "artistWikidata_URL": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "city": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "constituents": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "constituentID": {
-                "type": "number"
-              },
-              "constituentULAN_URL": {
-                "type": "string",
-                "maxLength": 4000
-              },
-              "constituentWikidata_URL": {
-                "type": "string",
-                "maxLength": 4000
-              },
-              "gender": {
-                "type": "string",
-                "maxLength": 4000
-              },
-              "name": {
-                "type": "string",
-                "maxLength": 4000
-              },
-              "role": {
-                "type": "string",
-                "maxLength": 4000
-              }
-            },
-            "required": [
-              "constituentID",
-              "constituentULAN_URL",
-              "constituentWikidata_URL",
-              "gender",
-              "name",
-              "role"
-            ],
-            "additionalProperties": false
-          },
-          "maxItems": 20
-        },
-        "county": {
+        "country": {
           "type": "string",
           "maxLength": 4000
         },
@@ -636,70 +562,16 @@ module.exports = Object.freeze({
           "type": "string",
           "maxLength": 4000
         },
-        "geographyType": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "isHighlight": {
-          "type": "boolean"
-        },
         "isPublicDomain": {
           "type": "boolean"
-        },
-        "measurements": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "elementDescription": {
-                "type": "null"
-              },
-              "elementMeasurements": {
-                "type": "object",
-                "properties": {
-                  "Depth": {
-                    "type": "number"
-                  },
-                  "Height": {
-                    "type": "number"
-                  },
-                  "Width": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "Height",
-                  "Width"
-                ],
-                "additionalProperties": false
-              },
-              "elementName": {
-                "type": "string",
-                "maxLength": 4000
-              }
-            },
-            "required": [
-              "elementDescription",
-              "elementMeasurements",
-              "elementName"
-            ],
-            "additionalProperties": false
-          },
-          "maxItems": 20
         },
         "medium": {
           "type": "string",
           "maxLength": 4000
         },
-        "objectBeginDate": {
-          "type": "number"
-        },
         "objectDate": {
           "type": "string",
           "maxLength": 4000
-        },
-        "objectEndDate": {
-          "type": "number"
         },
         "objectID": {
           "type": "number"
@@ -708,11 +580,11 @@ module.exports = Object.freeze({
           "type": "string",
           "maxLength": 4000
         },
-        "period": {
+        "objectURL": {
           "type": "string",
           "maxLength": 4000
         },
-        "portfolio": {
+        "period": {
           "type": "string",
           "maxLength": 4000
         },
@@ -724,11 +596,7 @@ module.exports = Object.freeze({
           "type": "string",
           "maxLength": 4000
         },
-        "reign": {
-          "type": "string",
-          "maxLength": 4000
-        },
-        "state": {
+        "repository": {
           "type": "string",
           "maxLength": 4000
         },
@@ -738,144 +606,74 @@ module.exports = Object.freeze({
         }
       },
       "required": [
-        "accessionNumber",
-        "accessionYear",
-        "additionalImages",
-        "artistAlphaSort",
-        "artistBeginDate",
-        "artistDisplayBio",
         "artistDisplayName",
-        "artistEndDate",
-        "artistGender",
-        "artistNationality",
-        "artistPrefix",
-        "artistRole",
-        "artistSuffix",
-        "artistULAN_URL",
-        "artistWikidata_URL",
-        "city",
-        "constituents",
-        "county",
+        "classification",
+        "country",
         "creditLine",
         "culture",
         "department",
         "dimensions",
         "dynasty",
-        "geographyType",
-        "isHighlight",
         "isPublicDomain",
-        "measurements",
         "medium",
-        "objectBeginDate",
         "objectDate",
-        "objectEndDate",
         "objectID",
         "objectName",
+        "objectURL",
         "period",
-        "portfolio",
         "primaryImage",
         "primaryImageSmall",
-        "reign",
-        "state",
+        "repository",
         "title"
       ],
       "additionalProperties": false
     },
     "responseExample": {
       "objectID": 436121,
-      "isHighlight": true,
-      "accessionNumber": "29.100.128",
-      "accessionYear": "1929",
-      "isPublicDomain": true,
-      "primaryImage": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object",
-      "primaryImageSmall": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object",
-      "additionalImages": [],
-      "constituents": [
-        {
-          "constituentID": 161821,
-          "role": "Artist",
-          "name": "Edgar Degas",
-          "constituentULAN_URL": "http://vocab.getty.edu/page/ulan/500115194",
-          "constituentWikidata_URL": "https://www.wikidata.org/wiki/Q46373",
-          "gender": ""
-        }
-      ],
-      "department": "European Paintings",
-      "objectName": "Painting",
       "title": "A Woman Seated beside a Vase of Flowers (Madame Paul Valpinçon?)",
+      "artistDisplayName": "Edgar Degas",
+      "objectDate": "1865",
+      "medium": "Oil on canvas",
+      "dimensions": "29 x 36 1/2 in. (73.7 x 92.7 cm)",
+      "classification": "Paintings",
+      "department": "European Paintings",
       "culture": "",
       "period": "",
       "dynasty": "",
-      "reign": "",
-      "portfolio": "",
-      "artistRole": "Artist",
-      "artistPrefix": "",
-      "artistDisplayName": "Edgar Degas",
-      "artistDisplayBio": "French, Paris 1834–1917 Paris",
-      "artistSuffix": "",
-      "artistAlphaSort": "Degas, Edgar",
-      "artistNationality": "French"
+      "country": "",
+      "objectName": "Painting",
+      "creditLine": "H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929",
+      "repository": "Metropolitan Museum of Art, New York, NY",
+      "objectURL": "https://www.metmuseum.org/art/collection/search/436121",
+      "isPublicDomain": true,
+      "primaryImage": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object",
+      "primaryImageSmall": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object"
     },
     "semanticFieldPaths": [
-      "constituents[0].name",
-      "objectName",
-      "title"
+      "title",
+      "artistDisplayName",
+      "objectName"
     ],
     "shapeSignature": {
       "$": "object",
-      "$.accessionNumber": "scalar",
-      "$.accessionYear": "scalar",
-      "$.additionalImages": "array",
-      "$.artistAlphaSort": "scalar",
-      "$.artistBeginDate": "scalar",
-      "$.artistDisplayBio": "scalar",
       "$.artistDisplayName": "scalar",
-      "$.artistEndDate": "scalar",
-      "$.artistGender": "scalar",
-      "$.artistNationality": "scalar",
-      "$.artistPrefix": "scalar",
-      "$.artistRole": "scalar",
-      "$.artistSuffix": "scalar",
-      "$.artistULAN_URL": "scalar",
-      "$.artistWikidata_URL": "scalar",
-      "$.city": "scalar",
-      "$.constituents": "array",
-      "$.constituents[]": "object",
-      "$.constituents[].constituentID": "scalar",
-      "$.constituents[].constituentULAN_URL": "scalar",
-      "$.constituents[].constituentWikidata_URL": "scalar",
-      "$.constituents[].gender": "scalar",
-      "$.constituents[].name": "scalar",
-      "$.constituents[].role": "scalar",
-      "$.county": "scalar",
+      "$.classification": "scalar",
+      "$.country": "scalar",
       "$.creditLine": "scalar",
       "$.culture": "scalar",
       "$.department": "scalar",
       "$.dimensions": "scalar",
       "$.dynasty": "scalar",
-      "$.geographyType": "scalar",
-      "$.isHighlight": "scalar",
       "$.isPublicDomain": "scalar",
-      "$.measurements": "array",
-      "$.measurements[]": "object",
-      "$.measurements[].elementDescription": "scalar",
-      "$.measurements[].elementMeasurements": "object",
-      "$.measurements[].elementMeasurements.Depth": "scalar",
-      "$.measurements[].elementMeasurements.Height": "scalar",
-      "$.measurements[].elementMeasurements.Width": "scalar",
-      "$.measurements[].elementName": "scalar",
       "$.medium": "scalar",
-      "$.objectBeginDate": "scalar",
       "$.objectDate": "scalar",
-      "$.objectEndDate": "scalar",
       "$.objectID": "scalar",
       "$.objectName": "scalar",
+      "$.objectURL": "scalar",
       "$.period": "scalar",
-      "$.portfolio": "scalar",
       "$.primaryImage": "scalar",
       "$.primaryImageSmall": "scalar",
-      "$.reign": "scalar",
-      "$.state": "scalar",
+      "$.repository": "scalar",
       "$.title": "scalar"
     }
   },

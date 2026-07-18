@@ -14,7 +14,11 @@
           "dod": "1870"
         }
       ],
-      "url_librivox": "https://librivox.org/the-count-of-monte-cristo-by-alexandre-dumas/"
+      "language": null,
+      "copyright_year": null,
+      "totaltime": null,
+      "url_librivox": "https://librivox.org/the-count-of-monte-cristo-by-alexandre-dumas/",
+      "description": null
     },
     "media": {
       "kind": "audio",
@@ -25,7 +29,7 @@
   "fixtureSources": {
     "assets": [],
     "media": {
-      "resolvedUrl": "https://archive.org/download/count_monte_cristo_0711_librivox/count_of_monte_cristo_001_dumas_64kb.mp3"
+      "resolvedUrl": "https://www.archive.org/download/count_monte_cristo_0711_librivox/count_of_monte_cristo_001_dumas_64kb.mp3"
     }
   }
 }
