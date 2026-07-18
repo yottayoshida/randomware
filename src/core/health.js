@@ -1,4 +1,5 @@
 const { registry } = require('./registry');
+const { compareShape } = require('./response-contract');
 
 function transition(previous = {}, result, now = Date.now()) {
   const failures = result.ok ? 0 : (previous.consecutiveFailures || 0) + 1;
@@ -13,7 +14,12 @@ async function runHealthCheck({ broker, entries = registry, previous = new Map()
   const rows = [];
   for (const entry of entries) {
     const operation = entry.operations[0]; const started = Date.now(); let result;
-    try { await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {} }); result = { apiId: entry.id, ok: true, latencyMs: Date.now() - started, latencyLimitMs: operation.timeoutMs }; }
+    try {
+      const response = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {} });
+      const drift = operation.shapeSignature ? compareShape(response?.data, operation.shapeSignature) : { ok: true };
+      if (!drift.ok) throw new Error(`adapted_shape_drift:${[...drift.missing.map((path) => `missing:${path}`), ...drift.extra.map((path) => `extra:${path}`), ...drift.changed.map((change) => `changed:${change.path}`)].slice(0, 8).join('|')}`);
+      result = { apiId: entry.id, ok: true, latencyMs: Date.now() - started, latencyLimitMs: operation.timeoutMs };
+    }
     catch (error) { result = { apiId: entry.id, ok: false, latencyMs: Date.now() - started, reason: error.message, latencyLimitMs: operation.timeoutMs }; }
     rows.push(transition(previous.get(entry.id), result, now));
   }

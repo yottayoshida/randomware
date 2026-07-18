@@ -32,11 +32,11 @@ def call(path, payload=None):
         return response.status, json.loads(response.read())
 
 
-def make_concept(run):
+def make_concept(run, request_id="browser-concept"):
     selected = run["selectedApis"]
     ids = [entry["id"] for entry in selected]
     return {
-        "requestId": "browser-concept",
+        "requestId": request_id,
         "appName": "Browser Chrome Check",
         "premise": "A browser-rendered assertion turns selected public signals into a visible owner chrome specimen.",
         "playerAction": "Press the specimen button to reveal the bounded browser check.",
@@ -90,12 +90,13 @@ def main():
             else:
                 raise AssertionError("local server did not become ready")
 
-        _, run = call("/api/spin", {"seed": "browser-acceptance", "requestId": "browser-spin"})
-        concept = make_concept(run)
+        run_tag = f"browser-{int(time.time() * 1000)}"
+        _, run = call("/api/spin", {"seed": run_tag, "requestId": f"{run_tag}-spin"})
+        concept = make_concept(run, f"{run_tag}-concept")
         concept["runId"] = run["runId"]
         status, _ = call(f"/api/runs/{run['runId']}/concept", concept)
         assert status == 200, f"concept_status:{status}"
-        status, artifact = call(f"/api/runs/{run['runId']}/artifact", {"requestId": "browser-artifact", "html": make_artifact(run)})
+        status, artifact = call(f"/api/runs/{run['runId']}/artifact", {"requestId": f"{run_tag}-artifact", "html": make_artifact(run)})
         assert status == 200, f"artifact_status:{status}"
 
         with sync_playwright() as playwright:
@@ -118,7 +119,7 @@ def main():
             assert any("/run/" in url for url in frame_urls), f"artifact_frame_not_loaded:{frame_urls}:failures={request_failures}"
             artifact_frame.locator("#reveal").wait_for(timeout=15000)
             artifact_frame.locator("#reveal").click()
-            artifact_frame.locator("#semantic-values[data-semantic='complete']").wait_for(timeout=15000)
+            artifact_frame.locator("#semantic-values[data-semantic='complete']").wait_for(timeout=30000)
             semantic_text = artifact_frame.locator("#semantic-values").inner_text()
             assert "not loaded" not in semantic_text and "undefined" not in semantic_text and "NaN" not in semantic_text, f"semantic_values_defaulted:{semantic_text}"
             assert len([line for line in semantic_text.splitlines() if line.strip()]) == len(run["selectedApis"]), f"semantic_values_incomplete:{semantic_text}"

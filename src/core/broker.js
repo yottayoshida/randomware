@@ -20,6 +20,20 @@ function bounded(value, depth = 0, maxDepth = 4) {
   return value;
 }
 
+function conformToExample(value, example) {
+  if (Array.isArray(example)) {
+    if (!example.length) return [];
+    const source = Array.isArray(value) && value.length ? value : example;
+    return source.slice(0, 20).map((item) => conformToExample(item, example[0]));
+  }
+  if (example && typeof example === 'object') {
+    const source = Array.isArray(value) ? value[0] : value;
+    return Object.fromEntries(Object.entries(example).map(([key, item]) => [key, conformToExample(source && typeof source === 'object' ? source[key] : undefined, item)]));
+  }
+  if (value === null || value === undefined || (typeof value === 'object' && value !== null)) return example;
+  return value;
+}
+
 function browserPlayableRadioCodec(value) {
   const codec = String(value || '').trim().toUpperCase().replace(/\s+/g, '');
   return BROWSER_PLAYABLE_RADIO_CODECS.has(codec);
@@ -80,7 +94,17 @@ async function adaptAudio(apiId, value, context) {
 
 class Broker {
   constructor({ fixtureMode = false, fetcher = globalThis.fetch, fixtureRoot = typeof process !== 'undefined' && process.cwd ? process.cwd() : '/' } = {}) {
-    this.fixtureMode = fixtureMode; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
+    this.fixtureMode = Boolean(fixtureMode); this.contractFixtureMode = fixtureMode === true || fixtureMode === 'adapted'; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
+  }
+
+  async finalResult(base, media) {
+    const fixtureExample = base.fixtureExample; const clean = { ...base }; delete clean.fixtureExample;
+    const result = await this.publicResult(clean, media);
+    if (fixtureExample !== undefined) {
+      result.data = conformToExample(result.data, fixtureExample);
+      result.bytes = Buffer.byteLength(JSON.stringify(result.data));
+    }
+    return result;
   }
 
   async call({ selectedApis, apiId, operationId, params = {}, media, onRetry } = {}) {
@@ -90,12 +114,16 @@ class Broker {
     const entry = getRegistryEntry(apiId); const op = entry.operations.find((candidate) => candidate.id === operationId);
     if (!op) throw new Error('operation_not_found');
     const cacheKey = `${apiId}:${operationId}:${JSON.stringify(params)}`;
-    if (this.cache.has(cacheKey)) return this.publicResult({ ...this.cache.get(cacheKey), cached: true }, media);
-    let data; let sourceUrl = `https://${entry.upstreamHosts[0]}${op.pathTemplate}`;
+    if (this.cache.has(cacheKey)) return this.finalResult({ ...this.cache.get(cacheKey), cached: true }, media);
+    let data; let fixtureExample; let sourceUrl = `https://${entry.upstreamHosts[0]}${op.pathTemplate}`;
     if (this.fixtureMode) {
       const fs = require('node:fs'); const path = require('node:path');
       const file = path.join(this.fixtureRoot, 'docs', 'api-candidates', 'samples', op.fixturePath);
       data = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (this.contractFixtureMode) {
+        const adapted = JSON.parse(fs.readFileSync(path.join(this.fixtureRoot, op.adaptedFixturePath), 'utf8'));
+        fixtureExample = adapted.data;
+      }
     } else {
       let response;
       for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -123,10 +151,10 @@ class Broker {
     const adapted = await adaptAudio(apiId, prepared, { fetcher: this.fetcher, fixtureMode: this.fixtureMode });
     data = bounded(adapted.data, 0, apiId === 'wiki-onthisday' ? 6 : 4);
     const assetCandidates = collectAssetCandidates(entry, data);
-    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates };
+    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates, fixtureExample };
     if (result.bytes > 64 * 1024) throw new Error('response_too_large');
     this.cache.set(cacheKey, result);
-    return this.publicResult(result, media);
+    return this.finalResult(result, media);
   }
 
   async publicResult(base, media) {
@@ -153,4 +181,4 @@ class Broker {
   }
 }
 
-module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec };
+module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec, conformToExample };

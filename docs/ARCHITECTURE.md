@@ -237,7 +237,7 @@ Repair receives the immutable concept, selected operation contracts, prior artif
 
 ### 4.5 Output-data minimization
 
-Registry examples are fixed field summaries, not raw untrusted fixture bodies. API response content never enters a choreography prompt. Tool results expose only fields required for the current stage. Source HTML is stored and shown in a text viewer but not echoed into the ChatGPT transcript.
+Registry examples are fixed, bounded `responseExample` summaries generated from committed owner-curated adapted goldens, not live or raw untrusted fixture bodies. Live API response content never enters a choreography prompt. Tool results expose only fields required for the current stage. Source HTML is stored and shown in a text viewer but not echoed into the ChatGPT transcript.
 
 ## 5. Generated-app containment and mediation
 

@@ -35,7 +35,7 @@ async function capture(broker, entry, operation) {
 }
 
 async function main() {
-  const broker = new Broker({ fixtureMode: true, fixtureRoot: root });
+  const broker = new Broker({ fixtureMode: 'raw', fixtureRoot: root });
   for (const entry of registry) {
     for (const operation of entry.operations) {
       const target = path.join(root, operation.adaptedFixturePath);

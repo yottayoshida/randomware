@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { registry } = require('../../src/core/registry');
 const { compareShape, shapeSignature } = require('../../src/core/response-contract');
+const { Broker } = require('../../src/core/broker');
+const { goldenMedia } = require('../../scripts/adapt-fixtures');
 
 test('every registry operation projects a bounded adapted response contract', () => {
   assert.equal(registry.length, 18);
@@ -39,4 +41,14 @@ test('adapted shape comparison detects key and container drift without scalar fa
   assert.ok(drift.missing.includes('$.rate'));
   assert.ok(drift.extra.includes('$.rates'));
   assert.ok(drift.changed.some((change) => change.path === '$.meta'));
+});
+
+test('fixture-mode broker data conforms to every model-visible adapted contract', async () => {
+  const broker = new Broker({ fixtureMode: true });
+  for (const entry of registry) {
+    const operation = entry.operations[0];
+    const result = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {}, media: goldenMedia(entry.id, operation.id) });
+    const drift = compareShape(result.data, operation.shapeSignature);
+    assert.equal(drift.ok, true, `${entry.id}:${JSON.stringify(drift)}`);
+  }
 });

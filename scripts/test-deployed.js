@@ -1,6 +1,8 @@
 const { createArtifact } = require('../src/core/artifact');
 const { randomUUID } = require('node:crypto');
 const { runSynthetic } = require('./test-synthetic-deployed');
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
 
 const baseArg = process.argv.find((arg) => arg.startsWith('--base-url='));
 const base = (baseArg ? baseArg.slice('--base-url='.length) : process.env.RANDOMWARE_PUBLIC_URL || '').replace(/\/$/, '');
@@ -25,6 +27,10 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) if (annotations[name]?.openWorldHint !== false) throw new Error(`mcp_${name}_annotation_failed`);
   for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) if (annotations[name]?.openWorldHint !== true) throw new Error(`mcp_${name}_annotation_failed`);
   const synthetic = await runSynthetic(base);
+  const browserRun = spawnSync(process.env.PYTHON || 'python3', [path.join(__dirname, 'browser-acceptance.py')], { cwd: path.resolve(__dirname, '..'), env: { ...process.env, RANDOMWARE_BROWSER_BASE: base }, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+  if (browserRun.status !== 0) throw new Error(`deployed_browser_semantic_failed:${browserRun.stderr || browserRun.stdout}`);
+  const browserLine = String(browserRun.stdout || '').trim().split('\n').filter(Boolean).at(-1);
+  const browserSemantic = JSON.parse(browserLine); if (browserSemantic.ok !== true || !Array.isArray(browserSemantic.semanticValues) || browserSemantic.semanticValues.some((value) => /undefined|NaN|not loaded/.test(value))) throw new Error(`deployed_browser_semantic_invalid:${browserLine}`);
   const call = async (id, name, args = {}) => {
     const response = await mcp({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
     if (!response.ok) throw new Error(`tool_${name}_status:${response.status}`);
@@ -103,5 +109,5 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const failureSpin = await call(16, 'spin_apis', { seed: `${testTag}-spin-3`, requestId: `${testTag}-spin-3` }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, requestId: `${testTag}-failure`, phase: 'concept', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
   const get = await fetch(`${base}/mcp`, { headers: { accept: 'text/event-stream' } }); if (get.status !== 405) throw new Error(`mcp_get_status:${get.status}`);
   const index = await fetch(base); if (!index.ok || !(await index.text()).includes('Randomware')) throw new Error('public_index_failed');
-  console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType, runStatusCors: crossOriginStatus.headers.get('access-control-allow-origin'), runStatusPreflight: statusPreflight.status, brokerPreflightStatus: preflight.status, brokerPostStatus: mediated.status, runtimeRequests: requestsAfter.length, mediaRequests, asset: { apiId: imageApi.id, status: assetResponse.status, contentType: assetType, bytes: assetBytes }, synthetic }));
+  console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType, runStatusCors: crossOriginStatus.headers.get('access-control-allow-origin'), runStatusPreflight: statusPreflight.status, brokerPreflightStatus: preflight.status, brokerPostStatus: mediated.status, runtimeRequests: requestsAfter.length, mediaRequests, asset: { apiId: imageApi.id, status: assetResponse.status, contentType: assetType, bytes: assetBytes }, browserSemantic, synthetic }));
 })().catch((error) => { console.error(`deployed acceptance failed: ${error.message}`); process.exitCode = 1; });

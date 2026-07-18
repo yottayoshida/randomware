@@ -122,6 +122,13 @@ test('deployed synthetic driver has no source contract mirror', () => {
   assert.match(source, /schemaCompleteness/);
 });
 
+test('deployed e2e invokes the real browser semantic renderer', () => {
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-deployed.js'), 'utf8');
+  assert.match(source, /browser-acceptance\.py/);
+  assert.match(source, /RANDOMWARE_BROWSER_BASE/);
+  assert.match(source, /semanticValues/);
+});
+
 test('repair prompt includes exact diagnostics and the full artifact contract', () => {
   const prompt = widgetRepairPrompt({ runId: 'run_repair_fidelity', diagnostics: ['loading marker missing', 'viewport marker missing'] });
   assert.match(prompt, /loading marker missing/);
