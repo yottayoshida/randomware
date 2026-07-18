@@ -26,6 +26,26 @@ test('audio adapters return metadata and a same-origin media URL, never the upst
   assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-media-token');
 });
 
+test('live radio adapter skips a validated but dead station before minting media', async () => {
+  const created = [];
+  const stations = [
+    { name: 'dead', url_resolved: 'http://dead.example/live' },
+    { name: 'alive', url_resolved: 'https://alive.example/live.mp3' }
+  ];
+  const fetcher = async (target) => {
+    if (String(target).includes('/json/stations/search')) return new Response(JSON.stringify(stations), { headers: { 'content-type': 'application/json' } });
+    if (String(target).startsWith('http://dead.example/')) return new Response('dead', { status: 400 });
+    if (String(target).startsWith('https://alive.example/')) return new Response(Buffer.from('audio'), { headers: { 'content-type': 'audio/mpeg' } });
+    throw new Error(`unexpected:${target}`);
+  };
+  const result = await new Broker({ fetcher }).call({
+    selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }], apiId: 'radio-browser', operationId: 'station', params: {},
+    media: { origin: 'https://randomware.example', runId: 'run_radio', creationId: 'creation_radio', revision: 1, tokenSigner: { issueMedia: () => 'radio-token' }, mediaStore: { createMediaToken: async (_runId, record) => created.push(record) } }
+  });
+  assert.equal(result.data.station.name, 'alive');
+  assert.equal(created[0].resolvedUrl, 'https://alive.example/live.mp3');
+});
+
 test('LibriVox adapter returns bounded book metadata and an archive.org media URL', async () => {
   const broker = new Broker({ fixtureMode: true });
   const result = await broker.call({

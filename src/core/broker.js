@@ -1,6 +1,6 @@
 const { getRegistryEntry } = require('./registry');
 const crypto = require('node:crypto');
-const { extractLibrivoxAudioUrl, validateMediaUrl, MEDIA_LIMITS } = require('./media');
+const { extractLibrivoxAudioUrl, validateMediaUrl, fetchMedia, MEDIA_LIMITS } = require('./media');
 const { ASSET_LIMITS, prepareAssetData, collectAssetCandidates, rewriteAssetCandidates } = require('./asset');
 
 function rejectParameters(value) {
@@ -19,11 +19,19 @@ function bounded(value, depth = 0, maxDepth = 4) {
   return value;
 }
 
-function radioAdapter(value) {
+async function radioAdapter(value, { fetcher, fixtureMode }) {
   let station; let resolved; let rejection;
   for (const candidate of (Array.isArray(value) ? value : [])) {
     if (!candidate || typeof candidate.url_resolved !== 'string') continue;
-    try { resolved = validateMediaUrl(candidate.url_resolved, { kind: 'radio-browser' }); station = candidate; break; } catch (error) { rejection = error; }
+    try {
+      resolved = validateMediaUrl(candidate.url_resolved, { kind: 'radio-browser' });
+      if (!fixtureMode) {
+        const probe = await fetchMedia({ target: resolved.href, request: new Request('https://randomware.invalid/media-probe', { headers: { range: 'bytes=0-0' } }), fetcher, kind: 'radio-browser', timeoutMs: 2500 });
+        resolved = probe.url;
+        await probe.response.body?.cancel('probe_complete');
+      }
+      station = candidate; break;
+    } catch (error) { rejection = error; }
   }
   if (!station || !resolved) throw rejection || new Error('media_audio_source_missing');
   return {
@@ -51,7 +59,7 @@ async function librivoxAudio(book, { fetcher, fixtureMode }) {
 }
 
 async function adaptAudio(apiId, value, context) {
-  if (apiId === 'radio-browser') return radioAdapter(value);
+  if (apiId === 'radio-browser') return radioAdapter(value, context);
   if (apiId !== 'librivox') return { data: bounded(value) };
   const book = (Array.isArray(value?.books) ? value.books : []).find((candidate) => candidate && candidate.id);
   if (!book) throw new Error('media_audio_source_missing');

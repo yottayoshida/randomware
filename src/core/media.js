@@ -48,7 +48,7 @@ function extractLibrivoxAudioUrl(xml) {
   throw new Error('media_audio_source_missing');
 }
 
-async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 'radio-browser' } = {}) {
+async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 'radio-browser', timeoutMs = MEDIA_LIMITS.streamMs } = {}) {
   let current = validateMediaUrl(target, { kind });
   const range = request?.headers?.get('range');
   for (let redirect = 0; redirect <= MEDIA_LIMITS.maxRedirects; redirect += 1) {
@@ -58,7 +58,7 @@ async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 
         method: 'GET',
         redirect: 'manual',
         headers: range ? { range } : {},
-        signal: AbortSignal.timeout(MEDIA_LIMITS.streamMs)
+        signal: AbortSignal.timeout(timeoutMs)
       });
     } catch (error) {
       if (error?.name === 'TimeoutError' || error?.name === 'AbortError') throw new Error('media_timeout');
