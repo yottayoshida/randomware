@@ -2,32 +2,27 @@
   "apiId": "met-museum",
   "operationId": "object",
   "data": {
-    "objectID": 436535,
+    "objectID": 436121,
     "isHighlight": true,
-    "accessionNumber": "1993.132",
-    "accessionYear": "1993",
+    "accessionNumber": "29.100.128",
+    "accessionYear": "1929",
     "isPublicDomain": true,
-    "primaryImage": "https://images.metmuseum.org/CRDImages/ep/original/DP-42549-001.jpg",
-    "primaryImageSmall": "https://images.metmuseum.org/CRDImages/ep/web-large/DP-42549-001.jpg",
-    "additionalImages": [
-      "https://images.metmuseum.org/CRDImages/ep/original/LC-EP_1993_132_suppl_CH-004.jpg",
-      "https://images.metmuseum.org/CRDImages/ep/original/LC-EP_1993_132_suppl_CH-003.jpg",
-      "https://images.metmuseum.org/CRDImages/ep/original/LC-EP_1993_132_suppl_CH-002.jpg",
-      "https://images.metmuseum.org/CRDImages/ep/original/LC-EP_1993_132_suppl_CH-001.jpg"
-    ],
+    "primaryImage": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object",
+    "primaryImageSmall": "https://randomware.example/api/runtime/asset/golden-asset-met-museum-object",
+    "additionalImages": [],
     "constituents": [
       {
-        "constituentID": 161947,
+        "constituentID": 161821,
         "role": "Artist",
-        "name": "Vincent van Gogh",
-        "constituentULAN_URL": "http://vocab.getty.edu/page/ulan/500115588",
-        "constituentWikidata_URL": "https://www.wikidata.org/wiki/Q5582",
+        "name": "Edgar Degas",
+        "constituentULAN_URL": "http://vocab.getty.edu/page/ulan/500115194",
+        "constituentWikidata_URL": "https://www.wikidata.org/wiki/Q46373",
         "gender": ""
       }
     ],
     "department": "European Paintings",
     "objectName": "Painting",
-    "title": "Wheat Field with Cypresses",
+    "title": "A Woman Seated beside a Vase of Flowers (Madame Paul Valpinçon?)",
     "culture": "",
     "period": "",
     "dynasty": "",
@@ -35,40 +30,49 @@
     "portfolio": "",
     "artistRole": "Artist",
     "artistPrefix": "",
-    "artistDisplayName": "Vincent van Gogh",
-    "artistDisplayBio": "Dutch, Zundert 1853–1890 Auvers-sur-Oise",
+    "artistDisplayName": "Edgar Degas",
+    "artistDisplayBio": "French, Paris 1834–1917 Paris",
     "artistSuffix": "",
-    "artistAlphaSort": "Gogh, Vincent van",
-    "artistNationality": "Dutch",
-    "artistBeginDate": "1853",
-    "artistEndDate": "1890",
+    "artistAlphaSort": "Degas, Edgar",
+    "artistNationality": "French",
+    "artistBeginDate": "1834",
+    "artistEndDate": "1917",
     "artistGender": "",
-    "artistWikidata_URL": "https://www.wikidata.org/wiki/Q5582",
-    "artistULAN_URL": "http://vocab.getty.edu/page/ulan/500115588",
-    "objectDate": "1889",
-    "objectBeginDate": 1889,
-    "objectEndDate": 1889,
+    "artistWikidata_URL": "https://www.wikidata.org/wiki/Q46373",
+    "artistULAN_URL": "http://vocab.getty.edu/page/ulan/500115194",
+    "objectDate": "1865",
+    "objectBeginDate": 1865,
+    "objectEndDate": 1865,
     "medium": "Oil on canvas",
-    "dimensions": "28 13/16 × 36 3/4 in. (73.2 × 93.4 cm)",
+    "dimensions": "29 x 36 1/2 in. (73.7 x 92.7 cm)",
     "measurements": [
       {
         "elementName": "Overall",
         "elementDescription": null,
         "elementMeasurements": {
-          "Height": 73.2,
-          "Width": 93.4
+          "Height": 73.7,
+          "Width": 92.7
+        }
+      },
+      {
+        "elementName": "Framed",
+        "elementDescription": null,
+        "elementMeasurements": {
+          "Depth": 12.065,
+          "Height": 97.7902,
+          "Width": 116.2052
         }
       },
       {
         "elementName": "Glazing",
-        "elementDescription": "See Notes in Description",
+        "elementDescription": null,
         "elementMeasurements": {
-          "Height": 75.24765,
-          "Width": 94.93269
+          "Height": 74.93015,
+          "Width": 93.66269
         }
       }
     ],
-    "creditLine": "Purchase, The Annenberg Foundation Gift, 1993",
+    "creditLine": "H. O. Havemeyer Collection, Bequest of Mrs. H. O. Havemeyer, 1929",
     "geographyType": "",
     "city": "",
     "state": "",

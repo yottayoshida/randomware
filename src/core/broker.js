@@ -83,7 +83,7 @@ class Broker {
     this.fixtureMode = fixtureMode; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
   }
 
-  async call({ selectedApis, apiId, operationId, params = {}, media } = {}) {
+  async call({ selectedApis, apiId, operationId, params = {}, media, onRetry } = {}) {
     const selected = (selectedApis || []).find((entry) => entry.apiId === apiId);
     if (!selected || !selected.operationIds.includes(operationId)) throw new Error('operation_not_selected');
     rejectParameters(params);
@@ -98,8 +98,20 @@ class Broker {
       data = JSON.parse(fs.readFileSync(file, 'utf8'));
     } else {
       let response;
-      try { response = await this.fetcher(sourceUrl, { method: 'GET', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(Math.min(op.timeoutMs, 6000)) }); }
-      catch (error) { if (error?.name === 'TimeoutError' || error?.name === 'AbortError') throw new Error('runtime_timeout'); throw new Error('upstream_failure'); }
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          response = await this.fetcher(sourceUrl, { method: 'GET', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(Math.min(op.timeoutMs, 6000)) });
+          break;
+        } catch (error) {
+          const timeout = error?.name === 'TimeoutError' || error?.name === 'AbortError';
+          if (!timeout) throw new Error('upstream_failure');
+          if (attempt === 0) {
+            if (typeof onRetry === 'function') await onRetry({ apiId, operationId, status: 'runtime_timeout_retry', attempt: 1 });
+            continue;
+          }
+          throw new Error('runtime_timeout');
+        }
+      }
       if (!response.ok) throw new Error('upstream_failure');
       const type = response.headers.get('content-type') || '';
       if (!type.includes('json') && !type.includes('javascript')) throw new Error('response_shape_mismatch');

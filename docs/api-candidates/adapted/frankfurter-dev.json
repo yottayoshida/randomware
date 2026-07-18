@@ -2,12 +2,9 @@
   "apiId": "frankfurter",
   "operationId": "rates",
   "data": {
-    "amount": 1,
+    "date": "2026-07-19",
     "base": "USD",
-    "date": "2026-07-17",
-    "rates": {
-      "EUR": 0.87451,
-      "JPY": 162.35
-    }
+    "quote": "JPY",
+    "rate": 162.41
   }
 }

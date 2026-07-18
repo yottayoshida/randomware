@@ -119,6 +119,29 @@ test('Worker broker route handles opaque-origin preflight and records a mediated
   assert.equal(store.findByCreation(run.creationId).runtimeRequests.length, 1);
 });
 
+test('Worker records a bounded runtime timeout retry before the successful request', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-retry-test-secret');
+  let calls = 0;
+  const broker = new Broker({ fetcher: async () => {
+    calls += 1;
+    if (calls === 1) throw new DOMException('timed out', 'TimeoutError');
+    return new Response(JSON.stringify({ date: '2026-07-18', base: 'USD', quote: 'JPY', rate: 162.35 }), { status: 200, headers: { 'content-type': 'application/json' } });
+  } });
+  const fetchHandler = createWebHandler({ store, signer, broker });
+  const run = store.createRun({ requestId: 'runtime-retry-test', selectedApis: [{ apiId: 'frankfurter', operationIds: ['rates'] }] });
+  store.acceptConcept(run.id, { requestId: 'runtime-retry-concept', apiIds: ['frankfurter'] });
+  store.acceptArtifact(run.id, { requestId: 'runtime-retry-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'frankfurter', operationId: 'rates' }] });
+  const response = await fetchHandler(new Request('https://randomware.example/api/runtime/call', {
+    method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' },
+    body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'frankfurter', operationId: 'rates', params: {}, capability })
+  }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).data.rate, 162.35);
+  assert.deepEqual(store.findByCreation(run.creationId).runtimeRequests.map((row) => row.status), ['runtime_timeout_retry', 'ok']);
+});
+
 test('Worker media route streams a signed radio response through a validated redirect', async () => {
   const store = new RunStore();
   const signer = new CapabilitySigner('worker-media-test-secret');

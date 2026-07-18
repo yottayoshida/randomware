@@ -3,20 +3,31 @@
   "operationId": "random",
   "data": [
     {
-      "title": "Autumn",
-      "author": "Walter Savage Landor",
+      "title": "The Daemon of the World",
+      "author": "Percy Bysshe Shelley",
       "lines": [
-        "MILD is the parting year, and sweet",
-        "   The odour of the falling spray;",
-        "Life passes on more rudely fleet,",
-        "   And balmless is its closing day.",
+        "A FRAGMENT.",
         "",
-        "I wait its close, I court its gloom,",
-        "   But mourn that never must there fall",
-        "Or on my breast or on my tomb",
-        "   The tear that would have soothed it all."
+        "PART 1.",
+        "",
+        "Nec tantum prodere vati,",
+        "Quantum scire licet. Venit aetas omnis in unam",
+        "Congeriem, miserumque premunt tot saecula pectus.",
+        "LUCAN, Phars. v. 176.",
+        "",
+        "How wonderful is Death,",
+        "Death and his brother Sleep!",
+        "One pale as yonder wan and horned moon,",
+        "With lips of lurid blue,",
+        "The other glowing like the vital morn,",
+        "When throned on ocean's wave",
+        "It breathes over the world:",
+        "Yet both so passing strange and wonderful!",
+        "",
+        "Hath then the iron-sceptred Skeleton,",
+        "Whose reign is in the tainted sepulchres,"
       ],
-      "linecount": "8"
+      "linecount": "632"
     }
   ]
 }

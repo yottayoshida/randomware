@@ -135,3 +135,29 @@ test('widget inline script is valid JavaScript', () => {
   assert.ok(script);
   assert.doesNotThrow(() => new vm.Script(script, { filename: 'randomware-widget.js' }));
 });
+
+test('artifact-facing prompts teach the broker envelope, adapted payload, and selected examples', () => {
+  const selectedApis = [{
+    id: 'frankfurter',
+    name: 'Frankfurter',
+    operations: [{ id: 'rates', responseExample: { date: '2026-07-18', base: 'USD', quote: 'JPY', rate: 162.35 }, semanticFieldPaths: ['rate'] }]
+  }];
+  const surfaces = [
+    initializeResult().instructions,
+    conceptAcceptedPrompt('run_data_contract', selectedApis),
+    widgetBuildPrompt({ runId: 'run_data_contract', selectedApis }),
+    widgetRepairPrompt({ runId: 'run_data_contract', selectedApis, diagnostics: ['data path missing'] })
+  ];
+  for (const surface of surfaces) {
+    assert.match(surface, /result\.data/);
+    assert.match(surface, /broker_failure/);
+    assert.match(surface, /adapted shape/i);
+    assert.match(surface, /same-origin signed URL/i);
+    assert.match(surface, /signed \/media/i);
+  }
+  for (const surface of surfaces.slice(1)) {
+    assert.match(surface, /"apiId":"frankfurter"/);
+    assert.match(surface, /"rate":162\.35/);
+    assert.match(surface, /"semanticFieldPaths":\["rate"\]/);
+  }
+});

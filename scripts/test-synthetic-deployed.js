@@ -140,9 +140,11 @@ function modelValue(schema, context, path = '', currentApi = null, apiIndex = 0)
 
 function artifactFromVisibleContract(run, manifest) {
   const contract = manifest.artifact;
-  const calls = run.selectedApis.flatMap((api) => api.operations.map((operation) => `window.randomware.call(${JSON.stringify(api.id)},${JSON.stringify(operation.id)},{})`));
+  const operationContracts = run.selectedApis.flatMap((api) => api.operations.map((operation) => ({ apiId: api.id, operationId: operation.id, path: operation.semanticFieldPaths?.[0] })));
+  for (const operation of operationContracts) assert.ok(operation.path, `visible_semantic_path_missing:${operation.apiId}/${operation.operationId}`);
+  const calls = operationContracts.map((operation) => `window.randomware.call(${JSON.stringify(operation.apiId)},${JSON.stringify(operation.operationId)},{})`);
   const markers = Object.fromEntries(contract.markers.map((literal) => [literal.match(/"([^"]+)"/)?.[1], literal]));
-  const script = `const output=document.querySelector('#output');const audio=document.querySelector('#audio');document.querySelector('#go').addEventListener('click',async()=>{output.textContent='Loading bounded signals…';try{const values=await Promise.all([${calls.join(',')}]);output.textContent=values.map((value)=>JSON.stringify(value.data||value)).join('\\n');const media=values.map((value)=>value.data?.mediaUrl).find(Boolean);if(media){audio.src=media;audio.hidden=false}}catch(error){output.textContent='Safe broker failure: '+error.message}});${contract.ready};`;
+  const script = `const output=document.querySelector('#output');const audio=document.querySelector('#audio');const contracts=${JSON.stringify(operationContracts)};const read=(value,path)=>path.replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((current,key)=>current==null?undefined:current[key],value);document.querySelector('#go').addEventListener('click',async()=>{output.textContent='Loading bounded signals…';try{const results=await Promise.all([${calls.join(',')}]);const rendered=results.map((result,index)=>{if(!result||result.ok!==true||!Object.prototype.hasOwnProperty.call(result,'data'))throw new Error('broker_envelope_invalid');const value=read(result.data,contracts[index].path);if(value===undefined||value===null||value===''||Number.isNaN(value))throw new Error('semantic_value_missing:'+contracts[index].apiId);return contracts[index].apiId+': '+(typeof value==='object'?JSON.stringify(value):String(value))});output.textContent=rendered.join('\\n');output.dataset.semantic='complete';const media=results.map((result)=>result.data?.mediaUrl).find(Boolean);if(media){audio.src=media;audio.hidden=false}}catch(error){output.textContent='Safe broker failure: '+error.message}});${contract.ready};`;
   let html = `<!doctype html><html><head><meta charset="utf-8">${contract.viewport} content="width=device-width,initial-scale=1"><title>Signal Opera</title><style>:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px;background:#100c24;color:#fff0c7;font:16px Georgia,serif}main{max-width:780px;margin:auto;border:3px solid #fff0c7;padding:28px;box-shadow:12px 12px 0 #e8614f}h1{font-size:clamp(3rem,12vw,7rem);line-height:.8}button{padding:14px 20px;background:#55e6c1;border:0;font-weight:800}pre{white-space:pre-wrap;border-left:4px solid #e8614f;padding:16px}audio{width:100%;margin-top:18px}</style></head><body><main><section ${markers.loading}>Signals are waiting.</section><h1>Signal Opera</h1><button id="go" type="button">Conduct the collision</button><section ${markers.interactive}><pre id="output" aria-live="polite">The stage is ready.</pre><audio id="audio" controls hidden></audio></section><section ${markers.error}>A bounded failure will be shown in the output.</section><footer ${markers.attribution}>Randomware mediated API specimen.</footer></main><script>${script}</script></body></html>`;
   const target = contract.byteRange.minimum + 768; const bytes = Buffer.byteLength(html, 'utf8');
   if (bytes < target) html = html.replace('</body>', `<!-- ${'bounded collision '.repeat(Math.ceil((target - bytes) / 18))} --></body>`);
@@ -211,6 +213,9 @@ async function runSynthetic(base) {
     if (candidate.selectedApis.map((api) => api.id).sort().join('|') === 'librivox|nager-date|radio-browser') { run = candidate; break; }
   }
   assert.ok(run, 'three_api_audio_selection_failed');
+  for (const api of run.selectedApis) for (const operation of api.operations) {
+    assert.ok(operation.responseExample && operation.outputSchema && operation.semanticFieldPaths?.length, `spin_response_contract_missing:${api.id}/${operation.id}`);
+  }
   const html = artifactFromVisibleContract(run, manifest);
   const conceptArgs = modelValue(byName.submit_concept.inputSchema, { run, tag, requestLabel: 'concept' });
   const concept = await call('submit_concept', conceptArgs); assert.equal(concept.result.structuredContent.phase, 'concept_accepted'); assert.deepEqual(extractManifest(concept.result.content[0].text), manifest, 'concept_result_manifest_drift');
@@ -220,6 +225,17 @@ async function runSynthetic(base) {
   const status = await fetch(completed.statusUrl); assert.equal(status.status, 200); const statusBody = await status.json(); assert.equal(statusBody.creationId, completed.creationId); assert.equal(new URL(statusBody.statusUrl).origin, base); assert.equal(new URL(statusBody.creationUrl).origin, base);
 
   const runtime = await fetch(`${base}/run/${completed.creationId}`); const runtimeHtml = await runtime.text(); const tokenLiteral = runtimeHtml.match(/capability:("(?:\\.|[^"])*")/); assert.ok(tokenLiteral, 'audio_capability_missing'); const capability = JSON.parse(tokenLiteral[1]);
+  const semanticEvidence = [];
+  for (const api of acceptedRun.selectedApis) {
+    for (const operation of api.operations) {
+      const semanticCall = await fetch(`${base}/api/runtime/call`, { method: 'POST', headers: { Origin: 'null', 'Content-Type': 'application/json' }, body: JSON.stringify({ creationId: completed.creationId, revision: 1, apiId: api.id, operationId: operation.id, params: {}, capability }) });
+      if (semanticCall.status !== 200) throw new Error(`semantic_broker_status:${api.id}/${operation.id}:${semanticCall.status}:${await semanticCall.text()}`);
+      const envelope = await semanticCall.json(); assert.equal(envelope.ok, true, `semantic_envelope:${api.id}/${operation.id}`); assert.ok(Object.prototype.hasOwnProperty.call(envelope, 'data'), `semantic_data_missing:${api.id}/${operation.id}`);
+      const path = operation.semanticFieldPaths[0]; const value = parts(path).reduce((current, key) => current == null ? undefined : current[key], envelope.data);
+      assert.ok(value !== undefined && value !== null && value !== '' && !Number.isNaN(value), `semantic_default:${api.id}/${operation.id}:${path}`);
+      semanticEvidence.push({ apiId: api.id, operationId: operation.id, path, value: String(value).slice(0, 80) });
+    }
+  }
   let audioEvidence = null; const audioFailures = [];
   for (const apiId of ['radio-browser', 'librivox']) {
     const audioApi = acceptedRun.selectedApis.find((api) => api.id === apiId); const audioOperation = audioApi.operations[0];
@@ -290,6 +306,7 @@ async function runSynthetic(base) {
     creationId: completed.creationId,
     selectedApis: run.selectedApis.map((api) => api.id),
     audio: audioEvidence,
+    semanticEvidence,
     fuzzCases,
     enumCases,
     constCases,

@@ -1,6 +1,6 @@
 const MCP_PROTOCOL_VERSION = '2025-06-18';
 const { CHOREOGRAPHY_DEADLINES } = require('./choreography');
-const { ARTIFACT_CONTRACT_LITERALS, TOOL_INSTRUCTIONS, artifactContractPrompt, contractPrompt, promptSurface, conceptAcceptedPrompt, artifactRepairPrompt } = require('./artifact-contract');
+const { ARTIFACT_CONTRACT_LITERALS, TOOL_INSTRUCTIONS, artifactContractPrompt, contractPrompt, promptSurface, conceptAcceptedPrompt, artifactRepairPrompt, selectedExamplesPrompt } = require('./artifact-contract');
 const { companionOrigin } = require('./urls');
 const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze(['2025-06-18', '2025-03-26', '2024-11-05']);
 const MCP_RESOURCE_URI = 'ui://widget/randomware.html';
@@ -18,12 +18,12 @@ function widgetToolResult(value) {
 
 function widgetBuildPrompt(run) {
   const runId = String(run?.runId || 'unknown');
-  return promptSurface(`Use Randomware run ${runId}: call get_run, then submit_concept, then submit the complete artifact via submit_artifact.`);
+  return promptSurface(`Use Randomware run ${runId}: call get_run, then submit_concept, then submit the complete artifact via submit_artifact.`, selectedExamplesPrompt(run?.selectedApis));
 }
 
 function widgetRepairPrompt(run, diagnostics) {
   const input = run && typeof run === 'object' && Array.isArray(run.diagnostics) ? run : { runId: run?.runId, diagnostics };
-  return artifactRepairPrompt({ runId: String(input?.runId || 'unknown'), diagnostics: input?.diagnostics });
+  return artifactRepairPrompt({ runId: String(input?.runId || 'unknown'), diagnostics: input?.diagnostics, selectedApis: input?.selectedApis });
 }
 
 function toolDescription(name) {
@@ -40,7 +40,8 @@ function clearTimer(){if(timer)clearTimeout(timer);timer=null;timerState=null;sa
 function pauseTimer(){if(timer)clearTimeout(timer);timer=null;if(timerState)timerState.paused=true;save()}
 function scheduleTimer(){if(!timerState||timerState.paused)return;const phase=timerState.phase;const target=Math.min(timerState.reSteered?timerState.finalAt:timerState.firstAt,timerState.absoluteAt||Infinity);timer=setTimeout(()=>{timer=null;if(!timerState||timerState.paused)return;if(!timerState.reSteered&&Date.now()<(timerState.absoluteAt||Infinity)){timerState.reSteered=true;timerState.finalAt=Math.min(timerState.absoluteAt||Infinity,Date.now()+(${JSON.stringify(CHOREOGRAPHY_DEADLINES)}[phase]?.finalMs||0));status.textContent='Still waiting for the '+phase+'…';save();void sendFollowUp(phase).catch((error)=>showFollowUpFallback(phase,error)).finally(()=>scheduleTimer())}else void recordTimeout()},Math.max(0,target-Date.now()))}
 function resumeTimer(){if(!timerState)return;timerState.paused=false;status.textContent='The model follow-up is pending…';scheduleTimer();save()}
-function followUpPrompt(phase){const runId=run?.runId||'unknown';if(phase==='concept')return ['Use Randomware run '+runId+': call get_run, then submit_concept, then submit the complete artifact via submit_artifact.',artifactContractPrompt].join(String.fromCharCode(10,10));const diagnostics=Array.isArray(run?.failure?.diagnostics)&&run.failure.diagnostics.length?run.failure.diagnostics:[run?.failure?.code||'the validator supplied no diagnostic detail'];return ['Artifact rejected for Randomware run '+runId+'. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: '+diagnostics.map(text).join('; '),artifactContractPrompt].join(String.fromCharCode(10,10))}
+function selectedExamples(){const examples=(run?.selectedApis||[]).map(api=>({apiId:api.id||api.apiId,operations:(api.operations||[]).map(operation=>({operationId:operation.id,responseExample:operation.responseExample,outputSchema:operation.outputSchema,semanticFieldPaths:operation.semanticFieldPaths}))})).filter(api=>api.apiId&&api.operations.length);return examples.length?'SELECTED_ADAPTED_RESPONSE_EXAMPLES='+JSON.stringify(examples):''}
+function followUpPrompt(phase){const runId=run?.runId||'unknown';const examples=selectedExamples();if(phase==='concept')return ['Use Randomware run '+runId+': call get_run, then submit_concept, then submit the complete artifact via submit_artifact.',artifactContractPrompt,examples].filter(Boolean).join(String.fromCharCode(10,10));const diagnostics=Array.isArray(run?.failure?.diagnostics)&&run.failure.diagnostics.length?run.failure.diagnostics:[run?.failure?.code||'the validator supplied no diagnostic detail'];return ['Artifact rejected for Randomware run '+runId+'. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: '+diagnostics.map(text).join('; '),artifactContractPrompt,examples].filter(Boolean).join(String.fromCharCode(10,10))}
 function logFollowUpApi(context){const api=bridge();const detail={context,sendFollowUpMessage:typeof api.sendFollowUpMessage,parentPostMessage:typeof window.parent?.postMessage,keys:Object.keys(api)};console.info('[Randomware] follow-up API',detail);return detail}
 async function sendFollowUp(phase){const prompt=followUpPrompt(phase);const api=bridge();const detail=logFollowUpApi(phase);if(detail.sendFollowUpMessage!=='function')throw new Error('sendFollowUpMessage unavailable');const result=await api.sendFollowUpMessage({prompt});if(result&&((result.ok===false)||(result.success===false)||result.error))throw new Error(text(result.error||'sendFollowUpMessage returned an unsuccessful result'));status.textContent=phase==='concept'?'Waiting for the model to build the specimen…':'Still waiting for the '+phase+'…';return result}
 function showFollowUpFallback(phase,error){const prompt=followUpPrompt(phase);fallback.hidden=false;fallbackStatus.textContent='Follow-up unavailable: '+text(error?.message||error)+'. Copy this prompt into the conversation, then resume the timer when you have pasted it.';buildPrompt.value=prompt;pauseTimer();status.textContent='The model follow-up could not be posted. Manual paste is ready.';save()}

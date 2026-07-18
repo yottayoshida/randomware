@@ -203,6 +203,8 @@ The code prompt repeats the immutable accepted concept and gives a compact runti
 
 - Return one UTF-8 HTML5 document, 10,000–40,000 bytes, with all CSS and JavaScript inline.
 - Use only literal `window.randomware.call(apiId, operationId, params)` calls from the supplied operations. Never use a network primitive or external URL.
+- Treat each call result as the fixed broker envelope `{ ok: true, apiId, operationId, data, bytes, sourceUrl, cached }`; on an HTTP failure the harness rejects with `Error("broker_failure")`. The app payload is exactly `result.data`, not a raw public-API top-level field.
+- Read `result.data` only by the selected operation's supplied adapted `outputSchema` and bounded `responseExample`. Adapted values may be bounded/truncated; image fields are already same-origin signed URLs for verbatim `img.src` assignment, and audio is available only through a signed `/media` URL.
 - Call `window.randomware.ready()` after interactive controls are bound.
 - Provide visible loading, error, interactive, and attribution regions using exact `data-randomware` markers.
 - Render response text with safe DOM APIs; never use HTML string sinks.
@@ -413,6 +415,9 @@ type RegistryEntry = {
     pathTemplate: string;
     paramsSchema: ZodType;
     outputSchema: ZodType;
+    responseExample: BoundedAdaptedExample;
+    semanticFieldPaths: string[];
+    shapeSignature: Record<string, JsonType>;
     timeoutMs: number;
     maxRawBytes: number;
     cacheTtlSeconds: number;
@@ -423,7 +428,7 @@ type RegistryEntry = {
 
 D1 `api_health` holds `api_id`, `registry_version`, `status` (`healthy`, `degraded`, `disabled`), consecutive successes/failures, last HTTP/content/schema result, latency, checked time, and operator reason. Only `healthy` entries are selectable. A cron check runs the smallest representative operation. One failure or latency over the entry threshold marks degraded; three consecutive failures, terms uncertainty, unexpected content, or schema failure disables. Two consecutive successes restore degraded to healthy; disabled requires an explicit owner action.
 
-`npm run registry:verify` validates source definitions and fixtures without network. `npm run registry:verify:live` performs bounded live checks and writes a timestamped report. `npm run registry:health:publish` updates D1 only after a successful report. Implementation must preserve the preparation fixtures as goldens and add adapted-output fixtures; it must never overwrite the source evidence.
+`npm run registry:verify` validates source definitions and fixtures without network. Adapted goldens generate each operation's bounded `responseExample`, structural `outputSchema`, semantic leaf paths, and deterministic key/type signature. `npm run registry:verify:live` runs the production adapter against every fixed live operation, compares that adapted key/type structure with the committed golden, and records shape drift as unhealthy before writing a timestamped report. `npm run registry:health:publish` updates D1 only after a successful report. Live recapture writes only the adapted-output goldens; it never overwrites the preparation/source evidence under `samples/`.
 
 ### 7.2 Launch set and recorded changes
 

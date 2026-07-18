@@ -160,3 +160,33 @@ test('broker adapters strip markup and bound untrusted nested output', () => {
   assert.equal(data.html, 'alert(1)clean');
   assert.equal(data.nested.deep.deeper.deepest.value, '[truncated]');
 });
+
+test('broker retries one idempotent GET timeout and emits one retry audit event', async () => {
+  let calls = 0;
+  const retries = [];
+  const fetcher = async () => {
+    calls += 1;
+    if (calls === 1) throw new DOMException('timed out', 'TimeoutError');
+    return new Response(JSON.stringify({ date: '2026-07-18', base: 'USD', quote: 'JPY', rate: 162.35 }), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  const result = await new Broker({ fetcher }).call({
+    selectedApis: [{ apiId: 'frankfurter', operationIds: ['rates'] }],
+    apiId: 'frankfurter', operationId: 'rates', params: {},
+    onRetry: (event) => retries.push(event)
+  });
+  assert.equal(calls, 2);
+  assert.equal(result.data.rate, 162.35);
+  assert.deepEqual(retries, [{ apiId: 'frankfurter', operationId: 'rates', status: 'runtime_timeout_retry', attempt: 1 }]);
+});
+
+test('broker stops after the single timeout retry', async () => {
+  let calls = 0;
+  const retries = [];
+  const broker = new Broker({ fetcher: async () => { calls += 1; throw new DOMException('timed out', 'TimeoutError'); } });
+  await assert.rejects(() => broker.call({
+    selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }],
+    apiId: 'dog-ceo', operationId: 'random', params: {}, onRetry: (event) => retries.push(event)
+  }), /runtime_timeout/);
+  assert.equal(calls, 2);
+  assert.equal(retries.length, 1);
+});

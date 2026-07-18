@@ -3,13 +3,20 @@
   "operationId": "product",
   "data": {
     "code": "3017624010701",
+    "errors": [],
     "product": {
       "brands": "Ferrero",
-      "image_url": "https://images.openfoodfacts.org/images/products/301/762/401/0701/front_en.100.400.jpg",
+      "code": "3017624010701",
+      "image_url": "https://randomware.example/api/runtime/asset/golden-asset-open-food-facts-product",
       "nutriscore_grade": "e",
       "product_name": "Nutella"
     },
-    "status": 1,
-    "status_verbose": "product found"
+    "result": {
+      "id": "product_found",
+      "lc_name": "Product found",
+      "name": "Product found"
+    },
+    "status": "success",
+    "warnings": []
   }
 }

@@ -63,10 +63,12 @@ def make_concept(run):
 
 def make_artifact(run):
     calls = []
+    contracts = []
     for entry in run["selectedApis"]:
         operation = entry["operations"][0]
         calls.append(f'window.randomware.call("{entry["id"]}","{operation["id"]}",{{}})')
-    html = f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Browser check</title></head><body><section data-randomware="loading" hidden>loading</section><h1>Browser chrome check</h1><button type="button" onclick="reveal()">Reveal</button><section data-randomware="interactive"><p>owner chrome must remain visible</p></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">attribution</footer><script>window.randomware.ready();async function reveal(){{await Promise.all([{','.join(calls)}]);}}</script><!-- {'browser-check ' * 1800} --></body></html>'''
+        contracts.append({"apiId": entry["id"], "path": operation["semanticFieldPaths"][0]})
+    html = f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Browser check</title></head><body><section data-randomware="loading" hidden>loading</section><h1>Browser chrome check</h1><button id="reveal" type="button">Reveal</button><section data-randomware="interactive"><p>owner chrome must remain visible</p><pre id="semantic-values">not loaded</pre></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">attribution</footer><script>const contracts={json.dumps(contracts)};const read=(value,path)=>path.replace(/\\[(\\d+)\\]/g,'.$1').split('.').filter(Boolean).reduce((current,key)=>current==null?undefined:current[key],value);document.querySelector('#reveal').addEventListener('click',async()=>{{const results=await Promise.all([{','.join(calls)}]);const values=results.map((result,index)=>{{if(!result||result.ok!==true||!Object.prototype.hasOwnProperty.call(result,'data'))throw new Error('broker_envelope_invalid');const value=read(result.data,contracts[index].path);if(value===undefined||value===null||value===''||Number.isNaN(value))throw new Error('semantic_value_missing');return contracts[index].apiId+': '+String(value)}});const output=document.querySelector('#semantic-values');output.textContent=values.join('\\n');output.dataset.semantic='complete'}});window.randomware.ready();</script><!-- {'browser-check ' * 1800} --></body></html>'''
     return html
 
 
@@ -99,6 +101,8 @@ def main():
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, executable_path=CHROME if Path(CHROME).exists() else None)
             page = browser.new_page(viewport={"width": 390, "height": 844})
+            request_failures = []
+            page.on("requestfailed", lambda request: request_failures.append({"url": request.url, "failure": request.failure}))
             response = page.goto(f"{BASE}/c/{artifact['creationId']}", wait_until="networkidle")
             csp = response.headers.get("content-security-policy", "")
             border_width = page.locator(".rw-chrome").evaluate("element => getComputedStyle(element).borderTopWidth")
@@ -108,6 +112,16 @@ def main():
             assert page.locator("script").count() == 0, "inline_script_present"
             assert border_width == "2px", f"unstyled_chrome:border={border_width}"
             assert frame_height >= 390, f"frame_too_short:{frame_height}"
+            artifact_frame = page.frame_locator("iframe.rw-frame")
+            page.wait_for_timeout(500)
+            frame_urls = [frame.url for frame in page.frames]
+            assert any("/run/" in url for url in frame_urls), f"artifact_frame_not_loaded:{frame_urls}:failures={request_failures}"
+            artifact_frame.locator("#reveal").wait_for(timeout=15000)
+            artifact_frame.locator("#reveal").click()
+            artifact_frame.locator("#semantic-values[data-semantic='complete']").wait_for(timeout=15000)
+            semantic_text = artifact_frame.locator("#semantic-values").inner_text()
+            assert "not loaded" not in semantic_text and "undefined" not in semantic_text and "NaN" not in semantic_text, f"semantic_values_defaulted:{semantic_text}"
+            assert len([line for line in semantic_text.splitlines() if line.strip()]) == len(run["selectedApis"]), f"semantic_values_incomplete:{semantic_text}"
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
@@ -174,7 +188,7 @@ def main():
             widget_page.locator("#creation-link").dispatch_event("click")
             opened_external = widget_page.evaluate("window.__openedExternal")
             assert opened_external == f"{BASE}/c/widget-creation", f"widget_open_external_wrong_origin:{opened_external}"
-            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "widgetEnvelope": True, "widgetTransitions": True}))
+            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "semanticValues": semantic_text.splitlines(), "widgetEnvelope": True, "widgetTransitions": True}))
             browser.close()
     finally:
         if server:

@@ -64,6 +64,19 @@ const CAPABILITY_CONTRACT = deepFreeze({
   semanticRules: ['signed token required', 'expiration required', 'selected operation binding required', 'asset and media URLs must be the exact server-resolved URL']
 });
 
+const RUNTIME_DATA_CONTRACT = deepFreeze({
+  resolvedEnvelope: { ok: true, apiId: 'API_ID', operationId: 'OPERATION_ID', data: 'ADAPTED_OPERATION_PAYLOAD', bytes: 0, sourceUrl: 'FIXED_REGISTRY_URL', cached: false },
+  payloadExpression: 'result.data',
+  failure: 'Error("broker_failure")',
+  semanticRules: [
+    'window.randomware.call resolves the envelope {ok:true, apiId, operationId, data, bytes, sourceUrl, cached}',
+    'the app payload is exactly result.data, never result.current or another top-level public API field',
+    'result.data has the operation adapted shape shown in responseExample, never the public API raw shape; deep values may be bounded or truncated',
+    'image-bearing fields are rewritten to same-origin signed URLs and must be assigned verbatim to img.src',
+    'audio is available only through a signed /media URL in result.data.mediaUrl'
+  ]
+});
+
 const BANNED_SHAPE_PHRASES = deepFreeze([
   'plain dashboard',
   'plain search',
@@ -209,7 +222,8 @@ const CONTRACT_MANIFEST = deepFreeze({
   conceptSemanticRules: CONCEPT_SEMANTIC_RULES,
   toolInstructions: TOOL_INSTRUCTIONS,
   artifact: ARTIFACT_CONTRACT,
-  capability: CAPABILITY_CONTRACT
+  capability: CAPABILITY_CONTRACT,
+  runtimeData: RUNTIME_DATA_CONTRACT
 });
 
 const ARTIFACT_CONTRACT_LITERALS = deepFreeze([
@@ -229,7 +243,9 @@ const CONTRACT_PROMPT_LITERALS = deepFreeze([
   '"minimum":10000,"maximum":40000',
   '"jsonCalls":30',
   '"concurrentJson":2',
-  '"adaptedBytes":1048576'
+  '"adaptedBytes":1048576',
+  '"payloadExpression":"result.data"',
+  'Error(\\"broker_failure\\")'
 ]);
 
 function artifactContractPrompt() {
@@ -239,7 +255,9 @@ function artifactContractPrompt() {
     `${ARTIFACT_CONTRACT.ready};`,
     `one literal ${ARTIFACT_CONTRACT.call} per selected operation`,
     `${ARTIFACT_CONTRACT.bytes};`,
-    `include a viewport tag beginning ${ARTIFACT_CONTRACT.viewport}`
+    `include a viewport tag beginning ${ARTIFACT_CONTRACT.viewport}`,
+    'Runtime data contract: window.randomware.call resolves {ok:true, apiId, operationId, data, bytes, sourceUrl, cached}; on any HTTP failure it rejects with Error("broker_failure"). The app payload is exactly result.data.',
+    'result.data uses the operation ADAPTED shape from responseExample, never the public API raw shape; deep values may be bounded/truncated. Image-bearing fields are same-origin signed URLs: use them verbatim in img.src. Audio is exposed only by a signed /media URL in result.data.mediaUrl.'
   ].join(' ');
 }
 
@@ -251,13 +269,25 @@ function promptSurface(instruction, extra = '') {
   return `${instruction}\n\n${contractPrompt()}${extra ? `\n\n${extra}` : ''}`;
 }
 
-function conceptAcceptedPrompt(runId) {
-  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact.`);
+function selectedOperationExamples(selectedApis = []) {
+  return (Array.isArray(selectedApis) ? selectedApis : []).map((api) => ({
+    apiId: api.id || api.apiId,
+    operations: (api.operations || []).map((operation) => ({ operationId: operation.id, responseExample: operation.responseExample, outputSchema: operation.outputSchema, semanticFieldPaths: operation.semanticFieldPaths }))
+  })).filter((api) => api.apiId && api.operations.length);
 }
 
-function artifactRepairPrompt({ runId = 'unknown', diagnostics = [] } = {}) {
+function selectedExamplesPrompt(selectedApis) {
+  const examples = selectedOperationExamples(selectedApis);
+  return examples.length ? `SELECTED_ADAPTED_RESPONSE_EXAMPLES=${JSON.stringify(examples)}` : '';
+}
+
+function conceptAcceptedPrompt(runId, selectedApis = []) {
+  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact.`, selectedExamplesPrompt(selectedApis));
+}
+
+function artifactRepairPrompt({ runId = 'unknown', diagnostics = [], selectedApis = [] } = {}) {
   const exactDiagnostics = Array.isArray(diagnostics) && diagnostics.length ? diagnostics : ['the validator supplied no diagnostic detail'];
-  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`);
+  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`, selectedExamplesPrompt(selectedApis));
 }
 
 module.exports = {
@@ -266,6 +296,7 @@ module.exports = {
   ARTIFACT_BLOCKED_PATTERN_SOURCES,
   BANNED_SHAPE_PHRASES,
   CAPABILITY_CONTRACT,
+  RUNTIME_DATA_CONTRACT,
   CONCEPT_SEMANTIC_RULES,
   CONTRACT_MANIFEST,
   CONTRACT_PROMPT_LITERALS,
@@ -276,5 +307,7 @@ module.exports = {
   promptSurface,
   conceptAcceptedPrompt,
   artifactRepairPrompt,
+  selectedOperationExamples,
+  selectedExamplesPrompt,
   deepFreeze
 };

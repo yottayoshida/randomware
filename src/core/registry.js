@@ -4,10 +4,13 @@ const deepFreeze = (value) => {
   return Object.freeze(value);
 };
 
-const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000) => ({
+const responseContracts = require('./response-contracts.generated');
+
+const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000, maxRawBytes = 200_000) => ({
   id, description, method: 'GET', pathTemplate, fixturePath, adaptedFixturePath: `docs/api-candidates/adapted/${fixturePath}`, timeoutMs,
-  paramsSchema: { type: 'object', additionalProperties: false }, outputSchema: { type: 'object' },
-  maxRawBytes: 200_000, cacheTtlSeconds: 30, adapt: 'bounded-json'
+  paramsSchema: { type: 'object', additionalProperties: false },
+  ...responseContracts[fixturePath],
+  maxRawBytes, cacheTtlSeconds: 30, adapt: 'bounded-json'
 });
 
 const assetPolicies = {
@@ -33,9 +36,9 @@ const rows = [
   ['open-meteo', 'Open-Meteo', 'geo', 'https://open-meteo.com/en/docs', 'https://open-meteo.com/en/terms', ['api.open-meteo.com'], operation('forecast', 'get weather', '/v1/forecast?latitude=35.68&longitude=139.76&current=temperature_2m,weather_code', 'open-meteo.json')],
   ['frankfurter', 'Frankfurter', 'numbers', 'https://frankfurter.dev/', 'https://frankfurter.dev/', ['api.frankfurter.dev'], operation('rates', 'get exchange rates', '/v2/rate/USD/JPY', 'frankfurter-dev.json')],
   ['randomuser', 'RandomUser', 'identity', 'https://randomuser.me/documentation', 'https://randomuser.me/terms', ['randomuser.me'], operation('person', 'get a fictional person', '/api/?inc=name,gender,nat,picture&results=1', 'randomuser.json')],
-  ['wiki-onthisday', 'Wikipedia On This Day', 'history', 'https://www.mediawiki.org/wiki/API:On_this_day', 'https://www.mediawiki.org/wiki/API:REST_API/Policies', ['api.wikimedia.org'], operation('events', 'get an event from today', '/feed/onthisday/2024/07/18', 'wiki-onthisday.json')],
+  ['wiki-onthisday', 'Wikipedia On This Day', 'history', 'https://www.mediawiki.org/wiki/API:On_this_day', 'https://www.mediawiki.org/wiki/API:REST_API/Policies', ['api.wikimedia.org'], operation('events', 'get an event from today', '/feed/v1/wikipedia/en/onthisday/events/07/18', 'wiki-onthisday.json', 4000, 512_000)],
   ['usgs-quakes', 'USGS Earthquakes', 'geo', 'https://earthquake.usgs.gov/fdsnws/event/1/', 'https://earthquake.usgs.gov/data/comcat/', ['earthquake.usgs.gov'], operation('recent', 'get recent earthquakes', '/fdsnws/event/1/query?format=geojson&limit=5&orderby=time-asc', 'usgs-quakes.json')],
-  ['met-museum', 'Met Museum', 'visual', 'https://www.metmuseum.org/about-the-met/policies-and-documents/open-access', 'https://www.metmuseum.org/about-the-met/policies-and-documents/open-access', ['collectionapi.metmuseum.org'], operation('object', 'get a public-domain object', '/public/objects/1', 'met-museum.json')],
+  ['met-museum', 'Met Museum', 'visual', 'https://www.metmuseum.org/about-the-met/policies-and-documents/open-access', 'https://www.metmuseum.org/about-the-met/policies-and-documents/open-access', ['collectionapi.metmuseum.org'], operation('object', 'get a public-domain object', '/public/collection/v1/objects/436121', 'met-museum.json')],
   ['nager-date', 'Nager.Date', 'dates', 'https://github.com/nager/Nager.Date', 'https://github.com/nager/Nager.Date', ['date.nager.at'], operation('holidays', 'get public holidays', '/api/v3/PublicHolidays/2024/JP', 'nager-date.json')],
   ['tvmaze', 'TVMaze', 'culture', 'https://www.tvmaze.com/api', 'https://www.tvmaze.com/api', ['api.tvmaze.com'], operation('show', 'find a TV show', '/search/shows?q=space', 'tvmaze.json')],
   ['rickandmorty', 'Rick and Morty API', 'characters', 'https://rickandmortyapi.com/documentation', 'https://rickandmortyapi.com/about', ['rickandmortyapi.com'], operation('character', 'get a character', '/api/character/1', 'rickandmorty.json')],

@@ -9,7 +9,7 @@ for (const entry of registry) {
   if (!entry.semanticTags?.length) throw new Error(`missing_semantic_tags:${entry.id}`);
   if (!entry.upstreamHosts.length) throw new Error(`missing_hosts:${entry.id}`);
   for (const op of entry.operations) {
-    if (op.method !== 'GET' || !op.fixturePath || !op.paramsSchema || !op.outputSchema || !/^\//.test(op.pathTemplate)) throw new Error(`invalid_operation:${entry.id}/${op.id}`);
+    if (op.method !== 'GET' || !op.fixturePath || !op.paramsSchema || !op.outputSchema || !op.responseExample || !op.semanticFieldPaths?.length || !op.shapeSignature || !/^\//.test(op.pathTemplate)) throw new Error(`invalid_operation:${entry.id}/${op.id}`);
     const fixture = path.join(root, 'docs', 'api-candidates', 'samples', op.fixturePath);
     if (!fs.existsSync(fixture)) throw new Error(`missing_fixture:${entry.id}:${fixture}`);
     JSON.parse(fs.readFileSync(fixture, 'utf8'));

@@ -25,7 +25,7 @@ function prepareAssetData(apiId, value) {
   }
   if (apiId === 'wiki-onthisday') {
     return {
-      selected: (Array.isArray(data?.selected) ? data.selected : []).slice(0, 3).map((event) => ({
+      selected: (Array.isArray(data?.selected) ? data.selected : (Array.isArray(data?.events) ? data.events : [])).slice(0, 3).map((event) => ({
         text: event?.text, year: event?.year,
         pages: (Array.isArray(event?.pages) ? event.pages : []).slice(0, 1).map((page) => ({
           title: page?.title, normalizedtitle: page?.normalizedtitle, description: page?.description,

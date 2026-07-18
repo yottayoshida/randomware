@@ -20,6 +20,8 @@
     "db:migrate": "npx --yes wrangler d1 migrations apply randomware",
     "registry:verify": "node scripts/registry-verify.js",
     "registry:adapt": "node scripts/adapt-fixtures.js",
+    "registry:adapt:live": "node scripts/recapture-adapted-live.js",
+    "registry:contracts": "node scripts/generate-response-contracts.js",
     "registry:verify:live": "node scripts/registry-live.js",
     "registry:health:publish": "node scripts/registry-health-publish.js",
     "feasibility:local": "node scripts/feasibility-local.js",

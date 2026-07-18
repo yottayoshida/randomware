@@ -3,8 +3,19 @@
   "operationId": "draw",
   "data": {
     "success": true,
-    "deck_id": "mj525m3mr8kr",
-    "remaining": 52,
-    "shuffled": true
+    "deck_id": "3z49p16bwxgk",
+    "cards": [
+      {
+        "code": "4C",
+        "image": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
+        "images": {
+          "svg": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
+          "png": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw"
+        },
+        "value": "4",
+        "suit": "CLUBS"
+      }
+    ],
+    "remaining": 51
   }
 }

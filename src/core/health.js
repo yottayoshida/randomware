@@ -13,8 +13,8 @@ async function runHealthCheck({ broker, entries = registry, previous = new Map()
   const rows = [];
   for (const entry of entries) {
     const operation = entry.operations[0]; const started = Date.now(); let result;
-    try { await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {} }); result = { apiId: entry.id, ok: true, latencyMs: Date.now() - started, latencyLimitMs: 6000 }; }
-    catch (error) { result = { apiId: entry.id, ok: false, latencyMs: Date.now() - started, reason: error.message, latencyLimitMs: 6000 }; }
+    try { await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {} }); result = { apiId: entry.id, ok: true, latencyMs: Date.now() - started, latencyLimitMs: operation.timeoutMs }; }
+    catch (error) { result = { apiId: entry.id, ok: false, latencyMs: Date.now() - started, reason: error.message, latencyLimitMs: operation.timeoutMs }; }
     rows.push(transition(previous.get(entry.id), result, now));
   }
   return rows;

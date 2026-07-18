@@ -3,43 +3,24 @@
   "operationId": "words",
   "data": [
     {
-      "word": "sea",
-      "score": 40041792,
-      "tags": [
-        "syn",
-        "n",
-        "results_type:primary_rel"
-      ]
+      "word": "life",
+      "score": 1001
     },
     {
-      "word": "expanse",
-      "score": 30041645,
-      "tags": [
-        "n"
-      ]
+      "word": "place",
+      "score": 1000
     },
     {
-      "word": "oceanic",
-      "score": 30041524,
-      "tags": [
-        "adj",
-        "n",
-        "prop"
-      ]
+      "word": "voice",
+      "score": 999
     },
     {
-      "word": "seabed",
-      "score": 30040935,
-      "tags": [
-        "n"
-      ]
+      "word": "man",
+      "score": 998
     },
     {
-      "word": "seafloor",
-      "score": 30040708,
-      "tags": [
-        "n"
-      ]
+      "word": "way",
+      "score": 997
     }
   ]
 }
