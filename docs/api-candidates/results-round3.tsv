@@ -1,0 +1,7 @@
+id	http	content_type	time_s	bytes	cors
+rickandmorty	200	application/json; charset=utf-8	0.389782	2719	*
+deezer	200	application/json; charset=utf-8	0.389927	4292	-
+librivox	200	application/json	0.436897	3084	-
+foodish	200	application/json; charset=utf-8	0.567147	58	*
+open-food-facts	000	-	-	0	-
+gutendex	200	application/json	8.456242	67269	*

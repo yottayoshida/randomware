@@ -1,0 +1,39 @@
+HTTP/1.1 301 Moved Permanently
+Date: Sat, 18 Jul 2026 02:03:48 GMT
+Content-Type: text/html; charset=utf-8
+Connection: keep-alive
+Server: cloudflare
+Location: /books/?search=moon
+Vary: origin
+access-control-allow-origin: *
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=vmkVm59sJ6wB34aYNyup9VxXBs4PkBuaF7y%2FcV2S7%2BNx8A5lsHVLDFn3i%2BK7fbb%2BaaoI%2BAZm4swcZNTr5hDqjdqha6P7v3cazOqdzeHdLdyyhCVQhsUE4tzlTfhDnjI%3D"}]}
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Cache-Control: max-age=14400
+cf-cache-status: MISS
+CF-RAY: a1cde97bab2d5eb9-NRT
+Transfer-Encoding: chunked
+
+HTTP/1.1 200 OK
+Date: Sat, 18 Jul 2026 02:03:56 GMT
+Content-Type: application/json
+Connection: keep-alive
+Server: cloudflare
+Nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+Allow: GET, POST, HEAD, OPTIONS
+X-Frame-Options: DENY
+Vary: origin,Cookie
+access-control-allow-origin: *
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+Report-To: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=h%2BB8a1jBK3nVWQ0izpSI8OgJNDM8lYXOGKM0U9NCKIcVb9Q%2B9CulwfJo4J3SVjzCa6dWMEg7nDgAMQsPVuWBbddkv%2FQbJ1VFJsugPkBoCmxp87z0H7hFlvWjSNPi2VM%3D"}]}
+Accept-Ranges: bytes
+last-modified: Sat, 18 Jul 2026 02:03:56 GMT
+Cache-Control: max-age=14400
+cf-cache-status: MISS
+CF-RAY: a1cde97dfbf75eb9-NRT
+Content-Length: 67269
+

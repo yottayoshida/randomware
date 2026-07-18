@@ -82,3 +82,16 @@ Recommendation: if ISS stays in the registry, serve it via open-notify behind th
 - Single-shot checks from one network on one day. Health must be rechecked at implementation time and reflected in the registry's verification status.
 - Latency figures are indicative only (single sample, one location).
 - Terms-of-service and attribution review per API is still open and must be completed during the design pass.
+
+## Round 3 — replacement-axis candidates (2026-07-18)
+
+After the design pass excluded several primaries on terms/safety grounds, six candidates were live-checked to recover the lost collision axes (food, fictional characters, books, second audio source). Raw results: [`results-round3.tsv`](results-round3.tsv); fixtures in [`samples/`](samples/).
+
+| id | API | Axis | Latency | CORS | Verdict / notes |
+|----|-----|------|---------|------|-----------------|
+| `rickandmorty` | Rick and Morty API | characters | 0.39s | `*` | Healthy; images on its own domain (bounded assets). Terms verification pending |
+| `open-food-facts` | Open Food Facts | food | 0.70s | — | Healthy via light product endpoints with `fields`; the heavy v2 search endpoint returned an empty reply — avoid it. Images on `images.openfoodfacts.org` (bounded). ODbL attribution required |
+| `foodish` | Foodish | food images | 0.57s | `*` | Healthy but data-thin (random food image URL only); own-domain images |
+| `librivox` | LibriVox | books + audio | 0.44s | none | Healthy; public-domain audiobooks with audio files on `archive.org` (bounded). Proxy-only (no CORS) |
+| `deezer` | Deezer search/previews | audio | 0.39s | none | Healthy; 30s preview URLs. Music-preview terms risk is the same class that excluded iTunes — expect rejection |
+| `gutendex` | Gutendex (Project Gutenberg) | books | 6.3–13.8s uncached, 0.1s cached | `*` | Reject for the core path: uncached queries are slower than the Open Library latency that caused its exclusion |
