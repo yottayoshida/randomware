@@ -10,7 +10,7 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
 Run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. The zero-setup companion path uses fixture mode, visibly labels generated output, and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
 
-The live submission URL and `/mcp` endpoint are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md) when deployed. The current repository includes a Cloudflare Worker entrypoint, Static Assets binding, and D1 migration; deployment remains an owner-gated external step. A short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+The deployed showcase is available at [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/); its Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp). Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md). A short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 ## Pitch
 
@@ -22,11 +22,13 @@ The companion UI is the canonical zero-setup demo. No private media or credentia
 
 ## Deployed showcase URL
 
-Pending the owner-authorized Cloudflare deployment; the final HTTPS origin and `/mcp` URL will be recorded here and in `docs/BUILD_LOG.md` before submission.
+[https://randomware.randomware.workers.dev/](https://randomware.randomware.workers.dev/)
+
+MCP endpoint: [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp)
 
 ## ChatGPT prerequisites and connect
 
-The owner path requires ChatGPT developer mode and a deployed HTTPS `/mcp` URL. Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. The local companion does not require ChatGPT.
+The owner path requires ChatGPT developer mode and the deployed HTTPS `/mcp` URL above. Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. The local companion does not require ChatGPT.
 
 ## Architecture
 
