@@ -25,6 +25,28 @@ test('live broker enforces JSON content type and bounded bytes', async () => {
   await assert.rejects(() => broker.call({ selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }], apiId: 'open-meteo', operationId: 'forecast' }), /response_shape_mismatch/);
 });
 
+test('live broker invokes the platform fetch with its global receiver', async () => {
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = function fetchWithGlobalReceiver() {
+    assert.equal(this, globalThis);
+    return Promise.resolve({
+      ok: true,
+      headers: new Headers({ 'content-type': 'application/json' }),
+      arrayBuffer: async () => Buffer.from('{"ok":true}')
+    });
+  };
+  try {
+    const broker = new Broker();
+    const result = await broker.call({
+      selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }],
+      apiId: 'open-meteo', operationId: 'forecast'
+    });
+    assert.equal(result.ok, true);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
 test('broker rejects nested URL parameters', async () => {
   const broker = new Broker({ fixtureMode: true });
   await assert.rejects(() => broker.call({ selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }], apiId: 'open-meteo', operationId: 'forecast', params: { nested: { endpoint: 'https://evil.example' } } }), /invalid_parameters/);

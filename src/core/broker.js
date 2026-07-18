@@ -18,7 +18,7 @@ function bounded(value, depth = 0) {
 
 class Broker {
   constructor({ fixtureMode = false, fetcher = globalThis.fetch, fixtureRoot = typeof process !== 'undefined' && process.cwd ? process.cwd() : '/' } = {}) {
-    this.fixtureMode = fixtureMode; this.fetcher = fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
+    this.fixtureMode = fixtureMode; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
   }
 
   async call({ selectedApis, apiId, operationId, params = {} }) {
