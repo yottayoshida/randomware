@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { CAPABILITY_CONTRACT } = require('./artifact-contract');
 
 const b64 = (value) => Buffer.from(value).toString('base64url');
 const unb64 = (value) => Buffer.from(value, 'base64url').toString('utf8');
@@ -8,12 +9,12 @@ class CapabilitySigner {
 
   sign(payload) { return crypto.createHmac('sha256', this.secret).update(payload).digest('base64url'); }
 
-  issue({ creationId, revision, selected, now = Date.now(), ttlMs = 600000, quotas = {} }) {
-    const payload = JSON.stringify({ creationId, revision, selected, issuedAt: now, expiresAt: now + ttlMs, nonce: crypto.randomBytes(12).toString('hex'), quotas: { jsonCalls: quotas.jsonCalls || 30, concurrentJson: quotas.concurrentJson || 2, adaptedBytes: quotas.adaptedBytes || 1024 * 1024 } });
+  issue({ creationId, revision, selected, now = Date.now(), ttlMs = CAPABILITY_CONTRACT.ttlMs, quotas = {} }) {
+    const payload = JSON.stringify({ creationId, revision, selected, issuedAt: now, expiresAt: now + ttlMs, nonce: crypto.randomBytes(12).toString('hex'), quotas: { jsonCalls: quotas.jsonCalls || CAPABILITY_CONTRACT.quotas.jsonCalls, concurrentJson: quotas.concurrentJson || CAPABILITY_CONTRACT.quotas.concurrentJson, adaptedBytes: quotas.adaptedBytes || CAPABILITY_CONTRACT.quotas.adaptedBytes } });
     return `${b64(payload)}.${this.sign(payload)}`;
   }
 
-  issueMedia({ tokenId, creationId, revision, apiId, operationId, resolvedUrl, now = Date.now(), ttlMs = 5 * 60 * 1000, maxBytes = 8 * 1024 * 1024 }) {
+  issueMedia({ tokenId, creationId, revision, apiId, operationId, resolvedUrl, now = Date.now(), ttlMs = CAPABILITY_CONTRACT.media.ttlMs, maxBytes = CAPABILITY_CONTRACT.media.maxBytes }) {
     const payload = JSON.stringify({ kind: 'media', tokenId, creationId, revision, apiId, operationId, resolvedUrl, issuedAt: now, expiresAt: now + ttlMs, maxBytes });
     return `${b64(payload)}.${this.sign(payload)}`;
   }

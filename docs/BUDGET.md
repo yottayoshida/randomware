@@ -112,6 +112,7 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Sol design end | 2026-07-18 11:21 JST | 33% of weekly limit used (ChatGPT Plus) | 2,500 | 0 | — | Design pass + three bounded addenda ran entirely on plan-included usage; grant untouched |
 | Luna `/goal` start | 2026-07-18 11:21 JST (same snapshot as design end) | 33% of weekly limit used (ChatGPT Plus) | 2,500 | 0 | 1,400 | ChatGPT sign-in and auto top-up off confirmed by owner; `/goal` starts immediately after this snapshot |
 | Milestone 0 feasibility end | 2026-07-18 12:31 JST | 99% of the weekly limit remaining (ChatGPT Plus) | 2,500 | 0 | 1,200 | Owner-transcribed snapshot recorded; real ChatGPT Apps SDK feasibility evidence remains pending |
+| Primary model escalation: Luna → Sol high | 2026-07-18 JST | Not re-measured at switch | Not re-measured at switch | — | 500 verification | Owner-directed escalation in the same primary session after 13+ real-client defects, including three schema/validator-drift defects; no meter value is inferred |
 | Milestone 1 vertical slice end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 850 | Preserve first runnable path |
 | Milestone 2 safe runtime end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 500 | All security Must checks pass |
 | Milestone 3 experience end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 250 | Apply optional-work threshold |

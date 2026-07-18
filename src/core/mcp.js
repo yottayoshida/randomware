@@ -1,6 +1,6 @@
 const MCP_PROTOCOL_VERSION = '2025-06-18';
 const { CHOREOGRAPHY_DEADLINES } = require('./choreography');
-const { ARTIFACT_CONTRACT_LITERALS, artifactContractPrompt, promptSurface, conceptAcceptedPrompt, artifactRepairPrompt } = require('./artifact-contract');
+const { ARTIFACT_CONTRACT_LITERALS, TOOL_INSTRUCTIONS, artifactContractPrompt, contractPrompt, promptSurface, conceptAcceptedPrompt, artifactRepairPrompt } = require('./artifact-contract');
 const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze(['2025-06-18', '2025-03-26', '2024-11-05']);
 const MCP_RESOURCE_URI = 'ui://widget/randomware.html';
 const MCP_RESOURCE_MIME = 'text/html;profile=mcp-app';
@@ -25,22 +25,11 @@ function widgetRepairPrompt(run, diagnostics) {
   return artifactRepairPrompt({ runId: String(input?.runId || 'unknown'), diagnostics: input?.diagnostics });
 }
 
-const TOOL_DESCRIPTION_BASES = Object.freeze({
-  open_randomware: 'Use this to mount the Randomware slot machine.',
-  spin_apis: 'Use this to select a fresh bounded API collision.',
-  submit_concept: 'Use this after spin_apis to submit the complete concept contract.',
-  submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact.',
-  submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact.',
-  get_run: 'Use this to recover a run snapshot.',
-  mutate_creation: 'Use this to ask for a different concept while preserving the selected API set.',
-  record_choreography_failure: 'Use this to close a silent or noncompliant phase after its absolute deadline.'
-});
-
 function toolDescription(name) {
-  return promptSurface(TOOL_DESCRIPTION_BASES[name] || `Use the ${name} tool.`);
+  return promptSurface(TOOL_INSTRUCTIONS[name] || `Use the ${name} tool.`);
 }
 
-const WIDGET_CONTRACT_PROMPT = artifactContractPrompt();
+const WIDGET_CONTRACT_PROMPT = contractPrompt();
 const WIDGET_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Randomware</title><style>
 :root{color-scheme:dark;font-family:Georgia,serif}body{margin:0;background:linear-gradient(135deg,#120b32,#081a24);color:#ffe7c7;padding:18px}main{border:2px solid #ffe7c7;padding:20px;box-shadow:8px 8px 0 #e8614f}h1{font-size:clamp(2rem,8vw,4rem);line-height:.9;margin:0 0 12px;text-transform:uppercase}p{line-height:1.45}button,.rw-link{background:#ffe7c7;color:#120b32;border:0;padding:11px 16px;font:700 1rem Georgia;cursor:pointer;margin:4px 4px 4px 0;text-decoration:none;display:inline-block}button:focus-visible,.rw-link:focus-visible{outline:3px solid #55e6c1}button[disabled]{opacity:.55;cursor:wait}ul{padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px;min-height:34px}li{border:1px solid #55e6c1;padding:6px 9px}#status{color:#55e6c1;min-height:1.4em}#fallback{margin-top:18px;border:1px solid #e8614f;padding:12px}#fallback textarea{box-sizing:border-box;width:100%;min-height:110px;background:#080a14;color:#ffe7c7;border:1px solid #55e6c1;padding:10px;font:14px ui-monospace,monospace}#creation{margin-top:18px;border-top:1px solid #55e6c1;padding-top:14px}#creation-frame{display:block;width:100%;height:min(78vh,720px);min-height:390px;border:2px solid #ffe7c7;background:#080a14;margin-top:10px}small{display:block;margin-top:16px;opacity:.8}</style></head><body><main><p>AI-generated experimental app</p><h1>Randomware</h1><p id="status">Choose nothing. Make something.</p><p>Sequential reveal, bounded APIs, honest failure.</p><ul id="apis" aria-live="polite"></ul><button id="spin" type="button">Spin the slot</button><button id="build" type="button" hidden>Ask the model to build</button><section id="fallback" hidden><p id="fallback-status">The model follow-up could not be posted. Copy this prompt into the conversation.</p><textarea id="build-prompt" readonly aria-label="Build prompt"></textarea><button id="copy-prompt" type="button">Copy build prompt</button><button id="resume-timer" type="button">Resume concept timer</button></section><section id="creation" hidden><p id="creation-status">The creation is ready.</p><iframe id="creation-frame" title="Randomware creation" hidden></iframe><a id="creation-link" class="rw-link" href="#" target="_blank" rel="noopener noreferrer">Download or open the creation</a></section><small>Real APIs go in. Random apps come out. Embedded execution is primary; link-out remains available.</small></main><script>
 (()=>{const status=document.querySelector('#status');const list=document.querySelector('#apis');const spin=document.querySelector('#spin');const build=document.querySelector('#build');const fallback=document.querySelector('#fallback');const fallbackStatus=document.querySelector('#fallback-status');const buildPrompt=document.querySelector('#build-prompt');const copyPrompt=document.querySelector('#copy-prompt');const resumeTimerButton=document.querySelector('#resume-timer');const creation=document.querySelector('#creation');const creationStatus=document.querySelector('#creation-status');const creationFrame=document.querySelector('#creation-frame');const creationLink=document.querySelector('#creation-link');const artifactContractPrompt=${JSON.stringify(WIDGET_CONTRACT_PROMPT)};let run=null;let timer=null;let timerState=null;let pollTimer=null;let activeWidgetRunId=null;let revealToken=0;const bridge=()=>window.openai||{};const text=(value)=>String(value??'');function save(){try{bridge().setWidgetState?.({runId:run?.runId||null,creationId:run?.creationId||null,selectedApis:run?.selectedApis||[],phase:run?.phase||null,statusUrl:run?.statusUrl||null,choreography:run?.choreography||null,deadlineAt:timerState?.finalAt||null,reSteered:Boolean(timerState?.reSteered),paused:Boolean(timerState?.paused)})}catch{}}
@@ -54,7 +43,7 @@ function followUpPrompt(phase){const runId=run?.runId||'unknown';if(phase==='con
 function logFollowUpApi(context){const api=bridge();const detail={context,sendFollowUpMessage:typeof api.sendFollowUpMessage,parentPostMessage:typeof window.parent?.postMessage,keys:Object.keys(api)};console.info('[Randomware] follow-up API',detail);return detail}
 async function sendFollowUp(phase){const prompt=followUpPrompt(phase);const api=bridge();const detail=logFollowUpApi(phase);if(detail.sendFollowUpMessage!=='function')throw new Error('sendFollowUpMessage unavailable');const result=await api.sendFollowUpMessage({prompt});if(result&&((result.ok===false)||(result.success===false)||result.error))throw new Error(text(result.error||'sendFollowUpMessage returned an unsuccessful result'));status.textContent=phase==='concept'?'Waiting for the model to build the specimen…':'Still waiting for the '+phase+'…';return result}
 function showFollowUpFallback(phase,error){const prompt=followUpPrompt(phase);fallback.hidden=false;fallbackStatus.textContent='Follow-up unavailable: '+text(error?.message||error)+'. Copy this prompt into the conversation, then resume the timer when you have pasted it.';buildPrompt.value=prompt;pauseTimer();status.textContent='The model follow-up could not be posted. Manual paste is ready.';save()}
-async function recordTimeout(){const phase=timerState?.phase;clearTimer();stopStatusPolling();status.textContent='The '+phase+' phase ended honestly: choreography timeout.';try{if(typeof bridge().callTool==='function'&&run?.runId)await bridge().callTool('record_choreography_failure',{runId:run.runId,phase,code:'choreography_timeout'})}catch{}}
+async function recordTimeout(){const phase=timerState?.phase;clearTimer();stopStatusPolling();status.textContent='The '+phase+' phase ended honestly: choreography timeout.';try{if(typeof bridge().callTool==='function'&&run?.runId)await bridge().callTool('record_choreography_failure',{runId:run.runId,requestId:crypto.randomUUID(),phase,code:'choreography_timeout'})}catch{}}
 function startTimer(phase){const limits=${JSON.stringify(CHOREOGRAPHY_DEADLINES)}[phase];if(!limits||!run?.runId)return;clearTimer();const now=Date.now();timerState={phase,firstAt:now+limits.firstMs,finalAt:now+limits.finalMs,absoluteAt:now+limits.absoluteMs,lastActivityAt:now,reSteered:false,paused:false};scheduleTimer();save()}
 function updateTimerForRun(){if(run?.choreography){syncTimerFromServer();return}if(run?.phase==='concept_accepted')startTimer('artifact');else if(run?.phase==='repair_requested')startTimer('repair');else if(run?.phase==='completed'||run?.phase==='failed')clearTimer()}
 function syncTimerFromServer(){const choreography=run?.choreography;const limits=choreography&&${JSON.stringify(CHOREOGRAPHY_DEADLINES)}[choreography.phase];if(!choreography||!limits)return;if(run.phase==='completed'||run.phase==='failed'){clearTimer();return}const activity=Number(choreography.lastActivityAt)||0;const changed=!timerState||timerState.phase!==choreography.phase||activity>(timerState.lastActivityAt||0);if(changed){if(timer)clearTimeout(timer);timer=null;timerState={phase:choreography.phase,firstAt:Number(choreography.idleDeadlineAt)||Date.now()+limits.firstMs,finalAt:Math.min(Number(choreography.absoluteDeadlineAt)||Infinity,(Number(choreography.idleDeadlineAt)||Date.now()+limits.firstMs)+limits.finalMs),absoluteAt:Number(choreography.absoluteDeadlineAt)||Date.now()+limits.absoluteMs,lastActivityAt:activity,reSteered:Boolean(choreography.reSteered),paused:Boolean(timerState?.paused)};if(!timerState.paused)scheduleTimer();save()}else{timerState.absoluteAt=Number(choreography.absoluteDeadlineAt)||timerState.absoluteAt;save()}}
@@ -131,6 +120,7 @@ module.exports = {
   conceptAcceptedPrompt,
   artifactRepairPrompt,
   artifactContractPrompt,
+  contractPrompt,
   toolDescription,
   ARTIFACT_CONTRACT_LITERALS,
   widgetResource,

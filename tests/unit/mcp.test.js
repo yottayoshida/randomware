@@ -4,6 +4,7 @@ const vm = require('node:vm');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
+const { CONTRACT_PROMPT_LITERALS } = require('../../src/core/artifact-contract');
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
   const structuredContent = { ok: true, registry: 18 };
@@ -24,6 +25,29 @@ test('MCP schemas describe every concept and artifact nested contract', () => {
   assert.deepEqual(toolSchemas.submit_artifact.properties.declaredApiUses.items.required, ['apiId', 'operations']);
   assert.deepEqual(toolSchemas.submit_repair.required.slice(-2), ['failedRevisionId', 'diagnosticCodes']);
   assert.equal(tools().find((tool) => tool.name === 'submit_concept').inputSchema.properties.apiRoles.items.properties.operations.items.type, 'string');
+  const concept = toolSchemas.submit_concept.properties;
+  assert.deepEqual(concept.dependency.properties.to.enum, ['api_input', 'rules', 'interface_state']);
+  assert.deepEqual([concept.appName.minLength, concept.appName.maxLength], [4, 48]);
+  assert.deepEqual([concept.interaction.properties.controls.minItems, concept.interaction.properties.controls.maxItems], [1, 4]);
+  assert.equal(concept.bannedShapeAssessment.properties.plainDashboard.const, false);
+  assert.deepEqual(toolSchemas.submit_artifact.properties.html['x-randomware-utf8-bytes'], { minimum: 10000, maximum: 40000 });
+  assert.equal(toolSchemas.submit_artifact.properties.html['x-randomware-max-nodes'], 2000);
+  assert.equal(toolSchemas.submit_artifact['x-randomware-capability'].jsonCalls, 30);
+});
+
+test('MCP validation enforces generated enum, range, and literal constraints', () => {
+  const base = {
+    requestId: 'r', runId: 'run', runContract: 'contract', promptVersion: 'concept-v1', appName: 'Name', premise: 'A premise that is long enough for the contract.', playerAction: 'A player action that is long enough for the contract.', apiIds: ['open-meteo', 'librivox'],
+    causalChain: [{ order: 1, apiId: 'open-meteo', action: 'turn weather into the next rule' }, { order: 2, apiId: 'librivox', action: 'turn audio into the next rule' }], apiRoles: [{ apiId: 'open-meteo', essentialRole: 'Supplies the weather signal for the collision.', operations: ['forecast'] }, { apiId: 'librivox', essentialRole: 'Supplies the audio signal for the collision.', operations: ['book'] }],
+    dependency: { fromApiId: 'open-meteo', to: 'rules', explanation: 'The weather determines the rule.' }, interaction: { controls: ['reveal'], outcome: 'Reveal one result.' },
+    visualDirection: { style: 'bold', palette: 'cyan', typography: 'serif', motion: 'sweep' }, bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'This is not a generic shape.' }, noveltyDelta: 'A new collision.'
+  };
+  const badEnum = structuredClone(base); badEnum.dependency.to = 'api_output';
+  assert.equal(validateToolArguments('submit_concept', badEnum).code, 'arguments_dependency_to_enum');
+  const badRange = structuredClone(base); badRange.appName = 'x';
+  assert.equal(validateToolArguments('submit_concept', badRange).code, 'arguments_appName_length');
+  const badConst = structuredClone(base); badConst.bannedShapeAssessment.plainDashboard = true;
+  assert.equal(validateToolArguments('submit_concept', badConst).code, 'arguments_bannedShapeAssessment_plainDashboard_const');
 });
 
 test('MCP argument validation names omitted nested role operations', () => {
@@ -51,6 +75,7 @@ test('widget refreshes server-owned choreography deadlines and clears stale phas
   assert.match(widget, /setInterval/);
   assert.match(widget, /syncTimerFromServer/);
   assert.match(widget, /phase:'repair_requested',choreography:null/);
+  assert.match(widget, /record_choreography_failure.*requestId:crypto\.randomUUID\(\)/);
 });
 
 test('widget consumes the real CallToolResult envelope and ignores a stale mount result', () => {
@@ -80,6 +105,15 @@ test('every prompt surface carries the shared artifact contract literals', () =>
     widgetResource('https://randomware.example').contents[0].text
   ];
   for (const [index, surface] of surfaces.entries()) for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(surface.includes(literal), `prompt_surface_${index}_missing:${literal}`);
+  for (const [index, surface] of surfaces.entries()) for (const literal of CONTRACT_PROMPT_LITERALS) assert.ok(surface.includes(literal), `contract_surface_${index}_missing:${literal}`);
+});
+
+test('deployed synthetic driver has no source contract mirror', () => {
+  const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-synthetic-deployed.js'), 'utf8');
+  assert.doesNotMatch(source, /require\(['"]\.\.\/src\//);
+  assert.match(source, /tools\/list/);
+  assert.match(source, /enumCases/);
+  assert.match(source, /schemaCompleteness/);
 });
 
 test('repair prompt includes exact diagnostics and the full artifact contract', () => {

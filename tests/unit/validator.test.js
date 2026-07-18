@@ -47,3 +47,11 @@ test('validator rejects an artifact above the hard byte cap', () => {
   const result = validateArtifact(`${artifact()}${'x'.repeat(30000)}`, { selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
   assert.equal(result.code, 'artifact_schema');
 });
+
+test('validator compares declared API uses with the selected operation contract', () => {
+  const selectedApis = [{ apiId: 'open-meteo', operationIds: ['forecast'] }];
+  assert.equal(validateArtifact(artifact(), { selectedApis, declaredApiUses: [{ apiId: 'open-meteo', operations: ['forecast'] }] }).ok, true);
+  const mismatch = validateArtifact(artifact(), { selectedApis, declaredApiUses: [{ apiId: 'open-meteo', operations: ['not-selected'] }] });
+  assert.equal(mismatch.code, 'artifact_schema');
+  assert.deepEqual(mismatch.diagnostics, ['declared_api_uses_must_match_selection']);
+});

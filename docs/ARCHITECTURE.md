@@ -138,6 +138,8 @@ Initialization instructions say, in this order:
 
 Tool descriptions start with “Use this when…” and name their single predecessor and successor. They do not rely on conversational memory for IDs.
 
+All model-visible tool fields, required paths, enums, literal values, string/array/numeric bounds, artifact literals, semantic cross-field rules, and runtime capability quotas are projections of one executable contract definition. The server validators, `tools/list` input schemas, initialize instructions, tool descriptions, concept-result guidance, widget build/repair prompts, artifact generator, and capability signer consume that definition; none may restate a contract number or enum independently.
+
 ### 4.2 Concept prompt
 
 The concept prompt includes the selected API contracts (names, capability descriptions, allowed operations, response field summaries, attribution), prior concept summaries for this API set, and the creative rules from PRD §4 and §10. It requires sincere collision naming, one understandable player action, an essential role for every API, at least one causal dependency, one extreme visual direction, and an honest banned-shape assessment. It ends with: call `submit_concept` and emit no code.
@@ -153,29 +155,30 @@ type ConceptSubmission = {
   appName: string;                 // 2–4 words, 4–48 chars
   premise: string;                 // 20–180 chars
   playerAction: string;            // 20–180 chars
+  apiIds: string[];                // every selected API exactly once
   causalChain: Array<{
-    order: number;
+    order: number;                 // one-based; one item per selected API
     apiId: string;
     action: string;                // 8–120 chars
   }>;
   apiRoles: Array<{
     apiId: string;
     essentialRole: string;         // 15–180 chars
-    operations: string[];
+    operations: string[];          // one or more allowed selected operations
   }>;
   dependency: {
     fromApiId: string;
     to: "api_input" | "rules" | "interface_state";
     toApiId?: string;
-    explanation: string;
+    explanation: string;           // 1–240 chars
   };
   interaction: {
     controls: string[];             // 1–4 concrete controls
-    outcome: string;
+    outcome: string;               // 8–180 chars
   };
   visualDirection: {
     style: string;                  // extreme, not minimal SaaS
-    palette: string;
+    palette: string;               // each visual field 4–100 chars
     typography: string;
     motion: string;
   };
@@ -186,9 +189,9 @@ type ConceptSubmission = {
     randomFactDisplay: false;
     thinClone: false;
     plausibleStartupPitch: false;
-    explanation: string;
+    explanation: string;           // 12–240 chars
   };
-  noveltyDelta: string;
+  noveltyDelta: string;            // 8–180 chars
 };
 ```
 
@@ -219,7 +222,7 @@ type ArtifactSubmission = {
   html: string;                     // 10,000–40,000 UTF-8 bytes
   declaredApiUses: Array<{
     apiId: string;
-    operations: string[];
+    operations: string[];          // one or more; exact selected coverage
   }>;
 };
 ```
