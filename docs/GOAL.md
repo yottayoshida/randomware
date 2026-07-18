@@ -14,13 +14,13 @@ Read completely, in this order:
 2. `docs/api-candidates/report.md`
 3. `docs/api-candidates/results.tsv`
 4. `docs/api-candidates/results-round2.tsv`
-5. the captured files under `docs/api-candidates/samples/`
+5. consult `docs/api-candidates/samples/` fixtures on demand while implementing each registry entry; do not read them all upfront
 6. `docs/ARCHITECTURE.md`
 7. `docs/PLAN.md`
 8. `docs/ACCEPTANCE.md`
 9. `docs/BUDGET.md`
 10. `docs/BUILD_LOG.md`
-11. the current official Apps SDK MCP server, ChatGPT UI, reference, state, security, deploy, connect, and testing documentation linked from `ARCHITECTURE.md`
+11. read the current official Apps SDK MCP server, ChatGPT UI, and reference pages linked from `ARCHITECTURE.md` upfront; consult the state, security, deploy, connect, and testing pages as needed per milestone
 
 Then inspect `git status --short --branch`, recent commits, and the repository tree. Preserve unrelated owner changes and competition history.
 
