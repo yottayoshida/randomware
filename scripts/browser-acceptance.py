@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import ssl
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -14,8 +15,9 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 PORT = int(os.environ.get("RANDOMWARE_BROWSER_PORT", "8799"))
-BASE = f"http://127.0.0.1:{PORT}"
+BASE = os.environ.get("RANDOMWARE_BROWSER_BASE", f"http://127.0.0.1:{PORT}").rstrip("/")
 CHROME = os.environ.get("RANDOMWARE_BROWSER_EXECUTABLE", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+SSL_CONTEXT = ssl._create_unverified_context() if os.environ.get("RANDOMWARE_BROWSER_BASE") else None
 
 
 def call(path, payload=None):
@@ -23,10 +25,10 @@ def call(path, payload=None):
     request = urllib.request.Request(
         f"{BASE}{path}",
         data=body,
-        headers={"content-type": "application/json"} if body else {},
+        headers={"content-type": "application/json", "user-agent": "Mozilla/5.0 RandomwareBrowserAcceptance"} if body else {"user-agent": "Mozilla/5.0 RandomwareBrowserAcceptance"},
         method="POST" if body else "GET",
     )
-    with urllib.request.urlopen(request, timeout=10) as response:
+    with urllib.request.urlopen(request, timeout=10, context=SSL_CONTEXT) as response:
         return response.status, json.loads(response.read())
 
 
@@ -71,17 +73,20 @@ def make_artifact(run):
 def main():
     env = os.environ.copy()
     env.update({"PORT": str(PORT), "RANDOMWARE_FIXTURES": "1"})
-    server = subprocess.Popen(["node", "src/server.js"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    server = None
+    if not os.environ.get("RANDOMWARE_BROWSER_BASE"):
+        server = subprocess.Popen(["node", "src/server.js"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        for _ in range(50):
-            try:
-                status, body = call("/healthz")
-                if status == 200 and body.get("ok"):
-                    break
-            except Exception:
-                time.sleep(0.1)
-        else:
-            raise AssertionError("local server did not become ready")
+        if server:
+            for _ in range(50):
+                try:
+                    status, body = call("/healthz")
+                    if status == 200 and body.get("ok"):
+                        break
+                except Exception:
+                    time.sleep(0.1)
+            else:
+                raise AssertionError("local server did not become ready")
 
         _, run = call("/api/spin", {"seed": "browser-acceptance", "requestId": "browser-spin"})
         concept = make_concept(run)
@@ -106,8 +111,9 @@ def main():
             print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height}))
             browser.close()
     finally:
-        server.terminate()
-        server.wait(timeout=5)
+        if server:
+            server.terminate()
+            server.wait(timeout=5)
 
 
 if __name__ == "__main__":
