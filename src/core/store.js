@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { startChoreography, noteChoreographyActivity, advanceChoreography } = require('./choreography');
 
 const phases = Object.freeze({ SPINNED: 'spinned', CONCEPT_ACCEPTED: 'concept_accepted', BUILDING: 'building', REPAIR_REQUESTED: 'repair_requested', COMPLETED: 'completed', FAILED: 'failed' });
 
@@ -18,9 +19,11 @@ class RunStore {
 
   createRun({ requestId, selectedApis, history = [] }) {
     if (this.requestIndex.has(requestId)) return this.runs.get(this.requestIndex.get(requestId));
+    const now = Date.now();
     const run = {
       id: id('run'), requestId, phase: phases.SPINNED, selectedApis: structuredClone(selectedApis), history: structuredClone(history),
-      concept: null, conceptHistory: [], revisions: [], repairCount: 0, failure: null, events: [{ type: 'spin_received', at: Date.now() }], createdAt: Date.now(),
+      concept: null, conceptHistory: [], revisions: [], repairCount: 0, failure: null, events: [{ type: 'spin_received', at: now }], createdAt: now,
+      choreography: startChoreography(phases.SPINNED, now),
       creationId: null, runtimeRequests: []
     };
     this.runs.set(run.id, run); this.requestIndex.set(requestId, run.id); return run;
@@ -29,6 +32,12 @@ class RunStore {
   getRun(runId) {
     const run = this.runs.get(runId);
     if (!run) throw new Error('run_not_found');
+    return run;
+  }
+
+  noteActivity(runId, now = Date.now(), expectedPhases = null) {
+    const run = this.getRun(runId);
+    if (run.phase !== phases.COMPLETED && run.phase !== phases.FAILED && (!expectedPhases || expectedPhases.includes(run.phase))) noteChoreographyActivity(run, now);
     return run;
   }
 
@@ -44,7 +53,7 @@ class RunStore {
     const selectedIds = run.selectedApis.map((api) => api.apiId).sort();
     if (JSON.stringify(selectedIds) !== JSON.stringify([...concept.apiIds].sort())) throw new Error('immutable_api_set');
     run.concept = structuredClone(concept); run.phase = phases.CONCEPT_ACCEPTED;
-    run.events.push({ type: 'concept_accepted', at: Date.now() }); return run;
+    run.events.push({ type: 'concept_accepted', at: Date.now() }); advanceChoreography(run); return run;
   }
 
   rerollConcept(runId, { requestId, appName = '', premise = '' } = {}) {
@@ -61,14 +70,14 @@ class RunStore {
     if (run.phase !== phases.CONCEPT_ACCEPTED && run.phase !== phases.BUILDING) throw new Error('phase_or_idempotency');
     run.phase = phases.COMPLETED; run.creationId = run.creationId || id('creation');
     run.revisions.push({ revision: 1, requestId, html, sha256, bytes, status: 'accepted', at: Date.now() });
-    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); return run;
+    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); advanceChoreography(run); return run;
   }
 
   recordArtifactFailure(runId, { requestId, code, html, bytes = Buffer.byteLength(String(html || ''), 'utf8'), sha256 = html == null ? null : crypto.createHash('sha256').update(String(html)).digest('hex') }) {
     const run = this.getRun(runId);
     if (run.phase !== phases.CONCEPT_ACCEPTED && run.phase !== phases.BUILDING) throw new Error('phase_or_idempotency');
     run.phase = phases.REPAIR_REQUESTED; run.creationId = run.creationId || id('creation'); run.failure = { code, requestId, html }; run.revisions.push({ revision: 1, requestId, html, bytes, sha256, status: 'failed', at: Date.now() });
-    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'repair_requested', at: Date.now() }); return run;
+    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'repair_requested', at: Date.now() }); advanceChoreography(run); return run;
   }
 
   acceptRepair(runId, { requestId, html, sha256, bytes }) {
@@ -76,7 +85,7 @@ class RunStore {
     if (run.revisions.some((revision) => revision.requestId === requestId)) return run;
     if (run.phase !== phases.REPAIR_REQUESTED || run.repairCount >= 1) throw new Error('repair_limit');
     run.repairCount += 1; run.phase = phases.COMPLETED; run.revisions.push({ revision: 2, requestId, html, sha256, bytes, status: 'accepted', at: Date.now() });
-    run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); return run;
+    run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); advanceChoreography(run); return run;
   }
 
   recordRepairFailure(runId, { requestId, code, html, bytes = Buffer.byteLength(String(html || ''), 'utf8'), sha256 = html == null ? null : crypto.createHash('sha256').update(String(html)).digest('hex') }) {
@@ -84,7 +93,7 @@ class RunStore {
     if (run.phase !== phases.REPAIR_REQUESTED || run.repairCount >= 1) throw new Error('repair_limit');
     run.repairCount += 1; run.phase = phases.FAILED; run.creationId = run.creationId || id('creation'); run.failure = { code: code || 'repair_failed', requestId, html };
     run.revisions.push({ revision: 2, requestId, html, bytes, sha256, status: 'failed', at: Date.now() });
-    run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'failed', code: 'repair_failed', at: Date.now() }); return run;
+    run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'failed', code: 'repair_failed', at: Date.now() }); advanceChoreography(run); return run;
   }
 
   fail(runId, code, detail = '') {

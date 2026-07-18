@@ -110,15 +110,15 @@ Every mutating tool accepts `requestId` and is idempotent. `spin_apis` and `muta
 
 ### 3.3 Choreography timeouts
 
-Timers live in widget state as absolute timestamps so refresh/remount cannot restart them.
+The server owns a phase clock and exposes its `lastActivityAt`, inactivity deadline, absolute backstop, and `statusUrl` in every run snapshot. The widget polls `statusUrl` and treats persisted timestamps as recoverable display state only. Any received tool call for the current phase—including a validation-rejected `submit_concept` or artifact call—updates `lastActivityAt` and resets the inactivity countdown. A phase transition starts a fresh clock; a status GET does not count as activity. The absolute backstop is measured from phase start and cannot be extended by activity.
 
-| Phase | First deadline | Action | Final deadline | Terminal result |
-|---|---:|---|---:|---|
-| concept | 60 s | send one concise re-steer | 120 s | `choreography_timeout` |
-| artifact | 300 s | send one concise re-steer | 900 s | `choreography_timeout` |
-| repair | 300 s | send one concise re-steer | 900 s | `choreography_timeout` |
+| Phase | Idle before re-steer | Action | Idle after re-steer | Absolute backstop | Terminal result |
+|---|---:|---|---:|---:|---|
+| concept | 180 s | send one concise re-steer | 300 s | 600 s | `choreography_timeout` |
+| artifact | 300 s | send one concise re-steer | 600 s | 1200 s | `choreography_timeout` |
+| repair | 300 s | send one concise re-steer | 600 s | 1200 s | `choreography_timeout` |
 
-The owner-demo timing targets are measured separately; deadlines are not claims about model progress. These values are a live-evidence correction: the real 10 KB composition and repair took minutes, while the larger run crossed ten minutes before its repair fragment arrived. The widget therefore gives concept composition a 60-second first steer and 120-second terminal ceiling, and gives artifact/repair composition a 300-second first steer and 900-second terminal ceiling. Each timer is wall-clock, re-steers once, and records the stable `choreography_timeout` cause; it does not claim token-level progress. A tool call outside its expected phase is rejected with `{code, expectedTool, currentPhase, retryable}`. An artifact printed in prose does not count. Silence never leaves a blank widget: the widget calls `record_choreography_failure` and renders the death certificate locally even if that write fails.
+These values are a live-evidence correction: the 10 KB composition and repair took minutes, and a larger run crossed ten minutes while an active repair fragment was arriving. The concept window is extended beyond the former 120-second ceiling so one rejection cycle is not mistaken for abandonment; artifact and repair receive five minutes of silence before the first steer, ten minutes after it, and a twenty-minute hard stop. Activity can never create an unbounded rejection loop. A tool call outside its expected phase is rejected with `{code, expectedTool, currentPhase, retryable}`. An artifact printed in prose does not count. True silence never leaves a blank widget: it calls `record_choreography_failure` at the server-owned deadline and renders the death certificate locally even if that write fails.
 
 ## 4. Prompt and schema contracts
 
@@ -500,7 +500,7 @@ The core D1 tables are:
 
 No table stores ChatGPT prompt text, conversation content, IP address, real user identity, API response body, owner model credential, or arbitrary media URL beyond the short TTL needed for a signed media token. Public IDs use nonsequential 128-bit random values. Signed contracts/capabilities use HMAC-SHA-256 with a rotated Worker secret; only hashes/nonces are stored when possible.
 
-Widget state contains the current run snapshot, the last three spin sets, normalized same-combination concept summaries, UI panel state, and absolute deadlines. It is bounded to 32 KiB and is never authoritative for repair limits or publication. Cross-session creations live in D1; no `localStorage` is core state.
+Widget state contains the current run snapshot, the last three spin sets, normalized same-combination concept summaries, UI panel state, and the latest server-owned choreography snapshot for timer recovery. It is bounded to 32 KiB and is never authoritative for deadlines, repair limits, or publication; `statusUrl` polling refreshes the clock. Cross-session creations live in D1; no `localStorage` is core state.
 
 ## 9. Threat model
 

@@ -40,7 +40,7 @@ async function body(req) {
 
 function runSummary(run) {
   return {
-    runId: run.id, phase: run.phase, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
+    runId: run.id, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
     concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount
   };
 }
@@ -103,24 +103,24 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         return json(res, 200, { ...runSummary(run), runId: run.id, statusUrl: `/api/runs/${run.id}`, disclosure: 'Building publishes this experimental AI-generated app at a public URL.' });
       }
       const rerollMatch = url.pathname.match(/^\/api\/runs\/([^/]+)\/reroll$/);
-      if (req.method === 'POST' && rerollMatch) { const input = await body(req); return json(res, 200, runSummary(store.rerollConcept(rerollMatch[1], input))); }
+      if (req.method === 'POST' && rerollMatch) { const input = await body(req); store.noteActivity(rerollMatch[1]); return json(res, 200, runSummary(store.rerollConcept(rerollMatch[1], input))); }
       const runMatch = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(concept|artifact|repair))?$/);
       if (runMatch) {
         const runId = runMatch[1]; const action = runMatch[2];
         if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId)));
         if (req.method === 'POST' && action === 'concept') {
-          const input = await body(req); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) };
+          const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) };
           const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
           if (!check.ok) return json(res, 422, check);
           const accepted = store.acceptConcept(runId, concept); return json(res, 200, runSummary(accepted));
         }
         if (req.method === 'POST' && action === 'artifact') {
-          const input = await body(req); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
+          const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
           if (!result.ok) { const failed = store.recordArtifactFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: result.code, diagnostics: result.diagnostics, ...runSummary(failed) }); }
           const accepted = store.acceptArtifact(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
         }
         if (req.method === 'POST' && action === 'repair') {
-          const input = await body(req); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
+          const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
           if (!result.ok) { const failed = store.recordRepairFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: 'repair_failed', diagnostics: result.diagnostics, ...runSummary(failed) }); }
           const accepted = store.acceptRepair(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
         }
@@ -210,14 +210,14 @@ async function handleMcp(req, res, app) {
     const name = input.params?.name; const args = input.params?.arguments || {};
     if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
     if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Selected ${run.selectedApis.length} APIs.`) }); }
-    if (name === 'get_run') { const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Run ${run.id} is ${run.phase}.`) }); }
+    if (name === 'get_run') { app.store.noteActivity(args.runId); const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Run ${run.id} is ${run.phase}.`) }); }
     if (name === 'submit_concept') {
-      const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
+      app.store.noteActivity(args.runId, Date.now(), [phases.SPINNED]); const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
       if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) });
       const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `Concept accepted for ${args.runId}.`) });
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
-      const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis });
+      app.store.noteActivity(args.runId, Date.now(), name === 'submit_repair' ? [phases.REPAIR_REQUESTED] : [phases.CONCEPT_ACCEPTED, phases.BUILDING]); const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis });
       if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, failureArgs); else app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
       return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });

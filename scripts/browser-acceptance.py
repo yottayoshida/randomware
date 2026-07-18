@@ -110,7 +110,8 @@ def main():
             assert frame_height >= 390, f"frame_too_short:{frame_height}"
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
-            spin_run = {"runId": "widget-run", "phase": "spinned", "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
+            now_ms = int(time.time() * 1000)
+            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
             concept_run = {**spin_run, "phase": "concept_accepted"}
             complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
@@ -126,6 +127,8 @@ def main():
             )
             widget_page.add_init_script(init_script)
             widget_page.goto(BASE, wait_until="domcontentloaded")
+            refreshed_run = {**spin_run, "choreography": {**spin_run["choreography"], "lastActivityAt": now_ms + 1000, "idleDeadlineAt": now_ms + 181000 + 1000}}
+            widget_page.route(f"{BASE}/api/runs/widget-run", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(refreshed_run)))
             _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
             widget_html = widget_body["result"]["contents"][0]["text"]
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
@@ -140,6 +143,8 @@ def main():
             assert "Use Randomware run widget-run:" in fallback_prompt, "widget_fallback_run_id_missing"
             assert "submit the complete artifact via submit_artifact" in fallback_prompt, "widget_fallback_prompt_incomplete"
             assert widget_page.evaluate("window.__widgetState?.paused") is True, "widget_concept_timer_not_paused"
+            widget_page.wait_for_timeout(3200)
+            assert widget_page.evaluate("window.__widgetState?.choreography?.lastActivityAt") == now_ms + 1000, "widget_status_refresh_not_applied"
             widget_page.evaluate("window.openai.sendFollowUpMessage = async arg => { window.__followUpPrompt = arg && arg.prompt; return {ok: false, error: 'host refused'}; }")
             widget_page.locator("#build").click()
             assert widget_page.locator("#fallback").is_visible(), "widget_unsuccessful_follow_up_not surfaced"

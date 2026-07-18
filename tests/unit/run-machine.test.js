@@ -12,6 +12,16 @@ test('run store enforces concept before artifact and immutable selected APIs', (
   assert.throws(() => store.acceptConcept(run.id, { requestId: 'c2', appName: 'Other', premise: 'Other', apiIds: ['deck-of-cards'] }), /phase_or_idempotency/);
 });
 
+test('rejected-phase activity refreshes the inactivity deadline but not the absolute backstop', () => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'activity', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  const absolute = run.choreography.absoluteDeadlineAt;
+  store.noteActivity(run.id, run.createdAt + 240000);
+  assert.equal(run.choreography.lastActivityAt, run.createdAt + 240000);
+  assert.equal(run.choreography.idleDeadlineAt, run.createdAt + 420000);
+  assert.equal(run.choreography.absoluteDeadlineAt, absolute);
+});
+
 test('concept reroll records history without creating an artifact', () => {
   const store = new RunStore();
   const run = store.createRun({ requestId: 'rr1', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
