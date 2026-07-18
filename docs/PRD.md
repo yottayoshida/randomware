@@ -229,7 +229,7 @@ The way Randomware is built mirrors what it does, and this is part of the submis
 2. One GPT-5.6 Sol session (high reasoning effort) converts the PRD into the full technical design and implementation plan — documents only, no code: `ARCHITECTURE.md`, `PLAN.md`, `ACCEPTANCE.md`, `BUDGET.md`, `GOAL.md`.
 3. The session model is switched to GPT-5.6 Luna (max reasoning effort), and the implementation is executed as a single Codex `/goal` run driven by `GOAL.md`.
 4. The majority of core functionality must be implemented in that one Codex session; its `/feedback` Session ID is part of the submission.
-5. Hard budget: the $100 credit grant covers the design pass, the implementation session, and all GPT-5.6 calls used during development and demo preparation. Post-submission public usage is out of scope. Auto-recharge stays off. A reserve must be protected for deployment fixes, README completion, verification, and demo recording; concrete stop conditions live in `BUDGET.md`.
+5. Hard budget: the $100 credit grant covers the design pass, the implementation session, and all GPT-5.6 calls used during development and demo preparation. Post-submission public usage is out of scope. Auto-recharge stays off. Hosting must add zero incremental cost — a free tier or a service already bundled in an existing plan; paid hosting is out. A reserve must be protected for deployment fixes, README completion, verification, and demo recording; concrete stop conditions live in `BUDGET.md`.
 6. The finished product must be publicly deployed; judges must be able to play without local setup.
 
 ## 14. Reserved for the technical design pass
