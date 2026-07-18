@@ -6,7 +6,7 @@ const { RunStore } = require('../../src/core/store');
 
 const cases = {
   'deck-of-cards': { cards: [{ image: 'https://deckofcardsapi.com/static/img/AS.png', images: { png: 'https://deckofcardsapi.com/static/img/AS.png' } }] },
-  artic: { data: [{ image_id: '0431a3a2-e470-677e-671a-b4dacf14468d' }], config: { iiif_url: 'https://www.artic.edu/iiif/2' } },
+  artic: { data: [{ image_id: '0431a3a2-e470-677e-671a-b4dacf14468d', thumbnail: { lqip: 'data:image/gif;base64,aW1hZ2U=' } }], config: { iiif_url: 'https://www.artic.edu/iiif/2' } },
   'dog-ceo': { message: 'https://images.dog.ceo/breeds/terrier/test.jpg' },
   randomuser: { results: [{ picture: { large: 'https://randomuser.me/api/portraits/women/51.jpg', thumbnail: 'https://randomuser.me/api/portraits/thumb/women/51.jpg' } }] },
   'wiki-onthisday': { selected: [{ text: 'event', year: 2024, pages: [{ title: 'Example', thumbnail: { source: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a.jpg/330px-a.jpg' } }] }] },
@@ -24,15 +24,16 @@ test('every image-bearing operation rewrites all allowlisted fields without leak
     const data = prepareAssetData(apiId, raw);
     const candidates = collectAssetCandidates(entry, data);
     assert.ok(candidates.length > 0, `${apiId}:asset_candidate_missing`);
-    for (const candidate of candidates) assert.equal(validateAssetUrl(candidate.resolvedUrl, entry.assetPolicy).hostname, new URL(candidate.resolvedUrl).hostname);
+    for (const candidate of candidates) assert.equal(validateAssetUrl(candidate.resolvedUrl, entry.assetPolicy).href, new URL(candidate.resolvedUrl).href);
     let minted = 0;
     const rewritten = await rewriteAssetCandidates(data, candidates, () => `https://randomware.randomware.workers.dev/api/runtime/asset/signed-${minted++}`);
     const serialized = JSON.stringify(rewritten);
     assert.match(serialized, /https:\/\/randomware\.randomware\.workers\.dev\/api\/runtime\/asset\/signed-/i, `${apiId}:signed_asset_missing`);
     for (const candidate of candidates) {
-      assert.equal(serialized.includes(new URL(candidate.resolvedUrl).hostname), false, `${apiId}:raw_asset_host_leaked`);
+      const upstreamHost = new URL(candidate.resolvedUrl).hostname;
+      if (upstreamHost) assert.equal(serialized.includes(upstreamHost), false, `${apiId}:raw_asset_host_leaked`);
       const served = await fetchAsset({ target: candidate.resolvedUrl, policy: entry.assetPolicy, fetcher: async () => new Response(Buffer.from('image'), { headers: { 'content-type': 'image/png', 'content-length': '5' } }) });
-      assert.equal(served.contentType, 'image/png', `${apiId}:image_content_type_missing`);
+      assert.match(served.contentType, /^image\//, `${apiId}:image_content_type_missing`);
     }
   }
 });
@@ -43,6 +44,14 @@ test('asset validation rejects credentials, private hosts, non-HTTPS, and hosts 
   assert.throws(() => validateAssetUrl('https://127.0.0.1/a.jpg', policy), /asset_private_host/);
   assert.throws(() => validateAssetUrl('http://images.dog.ceo/a.jpg', policy), /asset_scheme/);
   assert.throws(() => validateAssetUrl('https://evil.example/a.jpg', policy), /asset_host_rejected/);
+  assert.throws(() => validateAssetUrl('data:image/gif;base64,aW1hZ2U=', policy), /asset_scheme/);
+});
+
+test('ArtIC inline thumbnail is served through the same bounded image route without an upstream fetch', async () => {
+  const policy = getRegistryEntry('artic').assetPolicy;
+  const result = await fetchAsset({ target: 'data:image/gif;base64,aW1hZ2U=', policy, fetcher: async () => { throw new Error('unexpected_upstream_fetch'); } });
+  assert.equal(result.contentType, 'image/gif');
+  assert.equal(Buffer.from(await result.response.arrayBuffer()).toString(), 'image');
 });
 
 test('asset fetch enforces image MIME, per-asset bytes, and validated redirects', async () => {

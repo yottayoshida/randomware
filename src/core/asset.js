@@ -3,12 +3,24 @@ const { isIpLiteral, isLocalHostname } = require('./media');
 const ASSET_LIMITS = Object.freeze({ ttlMs: 10 * 60 * 1000, bytesEach: 2 * 1024 * 1024, bytesPerPage: 8 * 1024 * 1024, maxRedirects: 2, timeoutMs: 6000 });
 const IMAGE_TYPES = Object.freeze(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml']);
 
+function inlineImage(value) {
+  const match = String(value).match(/^data:(image\/(?:jpeg|png|gif|webp|avif|svg\+xml));base64,([A-Za-z0-9+/]+={0,2})$/i);
+  if (!match || !imageMimeAllowed(match[1])) throw new Error('asset_data_invalid');
+  const bytes = Buffer.from(match[2], 'base64');
+  if (!bytes.byteLength || bytes.byteLength > ASSET_LIMITS.bytesEach) throw new Error('asset_bytes_cap');
+  return { contentType: match[1].toLowerCase(), bytes };
+}
+
 function prepareAssetData(apiId, value) {
   const data = structuredClone(value);
   if (apiId === 'artic') {
     const base = typeof data?.config?.iiif_url === 'string' ? data.config.iiif_url.replace(/\/$/, '') : null;
     const items = Array.isArray(data?.data) ? data.data : (data?.data && typeof data.data === 'object' ? [data.data] : []);
-    for (const item of items) if (base && item?.image_id) item.image_url = `${base}/${encodeURIComponent(item.image_id)}/full/843,/0/default.jpg`;
+    for (const item of items) {
+      if (typeof item?.thumbnail?.lqip === 'string') item.image_url = item.thumbnail.lqip;
+      else if (base && item?.image_id) item.image_url = `${base}/${encodeURIComponent(item.image_id)}/full/843,/0/default.jpg`;
+      if (item?.thumbnail) delete item.thumbnail;
+    }
     if (data?.config) delete data.config.iiif_url;
   }
   if (apiId === 'wiki-onthisday') {
@@ -42,6 +54,11 @@ function patternMatches(pattern, path) {
 function validateAssetUrl(value, policy) {
   let url;
   try { url = new URL(value); } catch { throw new Error('asset_url_invalid'); }
+  if (url.protocol === 'data:') {
+    if (!policy?.allowDataImages) throw new Error('asset_scheme_rejected');
+    inlineImage(url.href);
+    return url;
+  }
   if (url.protocol !== 'https:') throw new Error('asset_scheme_rejected');
   if (url.username || url.password) throw new Error('asset_credentials_rejected');
   if (isIpLiteral(url.hostname) || isLocalHostname(url.hostname)) throw new Error('asset_private_host_rejected');
@@ -83,6 +100,10 @@ function imageMimeAllowed(value) {
 
 async function fetchAsset({ target, policy, fetcher = globalThis.fetch }) {
   let current = validateAssetUrl(target, policy);
+  if (current.protocol === 'data:') {
+    const inline = inlineImage(current.href);
+    return { response: new Response(inline.bytes, { status: 200, headers: { 'content-type': inline.contentType, 'content-length': String(inline.bytes.byteLength) } }), url: current, contentType: inline.contentType, contentLength: inline.bytes.byteLength };
+  }
   for (let redirect = 0; redirect <= ASSET_LIMITS.maxRedirects; redirect += 1) {
     let response;
     try {
@@ -125,4 +146,4 @@ function limitedAssetStream(body, limit, onComplete) {
   });
 }
 
-module.exports = { ASSET_LIMITS, prepareAssetData, collectAssetCandidates, setAtPath, rewriteAssetCandidates, validateAssetUrl, imageMimeAllowed, fetchAsset, limitedAssetStream };
+module.exports = { ASSET_LIMITS, prepareAssetData, collectAssetCandidates, setAtPath, rewriteAssetCandidates, validateAssetUrl, imageMimeAllowed, inlineImage, fetchAsset, limitedAssetStream };

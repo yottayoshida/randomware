@@ -12,7 +12,7 @@ const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000)
 
 const assetPolicies = {
   'deck-of-cards': { allowedHosts: ['deckofcardsapi.com', 'images.deckofcards.io'], resolvedPaths: ['cards.*.image', 'cards.*.images.png', 'cards.*.images.svg'] },
-  artic: { allowedHosts: ['www.artic.edu'], resolvedPaths: ['data.image_url', 'data.*.image_url'] },
+  artic: { allowedHosts: ['www.artic.edu'], resolvedPaths: ['data.image_url', 'data.*.image_url'], allowDataImages: true },
   'dog-ceo': { allowedHosts: ['images.dog.ceo'], resolvedPaths: ['message'] },
   randomuser: { allowedHosts: ['randomuser.me'], resolvedPaths: ['results.*.picture.large', 'results.*.picture.medium', 'results.*.picture.thumbnail'] },
   'wiki-onthisday': { allowedHosts: ['upload.wikimedia.org'], resolvedPaths: ['selected.*.pages.*.thumbnail.source', 'selected.*.pages.*.originalimage.source'] },
@@ -27,7 +27,7 @@ const rows = [
   ['deck-of-cards', 'Deck of Cards', 'games', 'https://deckofcardsapi.com/', 'https://deckofcardsapi.com/', ['deckofcardsapi.com'], operation('draw', 'draw a card', '/api/deck/new/draw/?count=1', 'deck-of-cards.json')],
   ['poetrydb', 'PoetryDB', 'text', 'https://github.com/thundercomb/poetrydb', 'https://github.com/thundercomb/poetrydb', ['poetrydb.org'], operation('random', 'get a poem', '/random', 'poetrydb.json')],
   ['datamuse', 'Datamuse', 'text', 'https://www.datamuse.com/api/', 'https://www.datamuse.com/api/', ['api.datamuse.com'], operation('words', 'find related words', '/words?rel_jja=quiet&max=5', 'datamuse.json')],
-  ['artic', 'Art Institute of Chicago', 'visual', 'https://api.artic.edu/docs/', 'https://www.artic.edu/policies', ['api.artic.edu', 'www.artic.edu'], operation('artwork', 'get an artwork', '/api/v1/artworks/4?fields=id,title,image_id,artist_display,date_display', 'artic.json')],
+  ['artic', 'Art Institute of Chicago', 'visual', 'https://api.artic.edu/docs/', 'https://www.artic.edu/policies', ['api.artic.edu', 'www.artic.edu'], operation('artwork', 'get an artwork', '/api/v1/artworks/4?fields=id,title,image_id,thumbnail,artist_display,date_display', 'artic.json')],
   ['dog-ceo', 'Dog CEO', 'visual', 'https://dog.ceo/dog-api/about', 'https://dog.ceo/dog-api/about', ['dog.ceo', 'images.dog.ceo'], operation('random', 'get a dog image', '/api/breeds/image/random', 'dog-ceo.json')],
   ['radio-browser', 'Radio Browser', 'audio', 'https://docs.radio-browser.info/', 'https://docs.radio-browser.info/', ['de1.api.radio-browser.info'], operation('station', 'find a radio station', '/json/stations/search?limit=8&order=random&hidebroken=true', 'radio-browser-de1.json')],
   ['open-meteo', 'Open-Meteo', 'geo', 'https://open-meteo.com/en/docs', 'https://open-meteo.com/en/terms', ['api.open-meteo.com'], operation('forecast', 'get weather', '/v1/forecast?latitude=35.68&longitude=139.76&current=temperature_2m,weather_code', 'open-meteo.json')],
