@@ -46,6 +46,7 @@ npm run typecheck
 npm run test:unit
 npm run test:integration
 npm run test:e2e
+npm run test:e2e:deployed -- --base-url=https://your-worker.example
 npm run build
 npm run registry:verify
 npm run security:scan
