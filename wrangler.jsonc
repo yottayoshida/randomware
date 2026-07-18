@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "randomware",
-  "main": "src/worker.js",
+  "main": "src/worker.mjs",
   "compatibility_date": "2026-07-18",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./public", "binding": "ASSETS" },
