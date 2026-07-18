@@ -39,7 +39,7 @@ function boundedResponseExample(value, depth = 0) {
 
 function shapeSignature(value, path = '$', output = {}) {
   const type = valueType(value);
-  output[path] = type;
+  output[path] = type === 'object' || type === 'array' ? type : 'scalar';
   if (type === 'object') for (const key of Object.keys(value).sort()) shapeSignature(value[key], `${path}.${key}`, output);
   if (type === 'array' && value.length) shapeSignature(value[0], `${path}[]`, output);
   return output;

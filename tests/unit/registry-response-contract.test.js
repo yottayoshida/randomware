@@ -31,11 +31,12 @@ test('Frankfurter adapted golden and visible contract use the v2 flat rate shape
   assert.equal(operation.outputSchema.properties.rates, undefined);
 });
 
-test('adapted shape comparison detects missing, extra, and changed fields', () => {
-  const expected = shapeSignature({ date: '2026-07-18', base: 'USD', quote: 'JPY', rate: 162.35 });
-  assert.equal(compareShape({ date: '2026-07-19', base: 'USD', quote: 'JPY', rate: 162.41 }, expected).ok, true);
-  const drift = compareShape({ date: '2026-07-19', base: 'USD', rates: { JPY: 162.41 } }, expected);
+test('adapted shape comparison detects key and container drift without scalar false positives', () => {
+  const expected = shapeSignature({ date: '2026-07-18', base: 'USD', quote: 'JPY', rate: 162.35, meta: { source: 'ECB' } });
+  assert.equal(compareShape({ date: null, base: 'USD', quote: 'JPY', rate: '162.41', meta: { source: 'ECB' } }, expected).ok, true);
+  const drift = compareShape({ date: '2026-07-19', base: 'USD', rates: { JPY: 162.41 }, meta: [] }, expected);
   assert.equal(drift.ok, false);
   assert.ok(drift.missing.includes('$.rate'));
   assert.ok(drift.extra.includes('$.rates'));
+  assert.ok(drift.changed.some((change) => change.path === '$.meta'));
 });
