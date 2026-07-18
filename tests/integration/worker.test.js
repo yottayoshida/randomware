@@ -14,4 +14,9 @@ test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a lis
   assert.equal(spin.status, 200);
   const spinBody = await spin.json();
   assert.equal(spinBody.selectedApis.length === 2 || spinBody.selectedApis.length === 3, true);
+  const mcpSpin = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'spin_apis', arguments: { seed: 'mcp-worker', requestId: 'mcp-worker-spin' } } }) }));
+  const mcpSpinBody = await mcpSpin.json();
+  const mcpRunId = mcpSpinBody.result.structuredContent.runId;
+  const mcpGet = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'get_run', arguments: { runId: mcpRunId } } }) }));
+  assert.equal((await mcpGet.json()).result.structuredContent.runId, mcpRunId);
 });
