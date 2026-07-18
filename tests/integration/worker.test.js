@@ -53,7 +53,7 @@ test('MCP lifecycle negotiates, accepts initialized notifications, and exposes t
   const resource = (await read.json()).result.contents[0];
   assert.equal(resource.mimeType, 'text/html;profile=mcp-app');
   assert.match(resource.text, /sequential/i);
-  assert.equal(resource._meta.ui.csp.frameDomains, undefined);
+  assert.deepEqual(resource._meta.ui.csp.frameDomains, ['https://randomware.example']);
   assert.deepEqual(resource._meta.ui.csp.connectDomains, ['https://randomware.example']);
 
   const tools = await post({ jsonrpc: '2.0', id: 5, method: 'tools/list' });

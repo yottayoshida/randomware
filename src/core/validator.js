@@ -18,29 +18,34 @@ const BLOCKED_PATTERNS = [
   /\b(?:on[a-z]+|action)\s*=\s*["'][^"']*(?:https?:|javascript:|\/\/)/i
 ];
 
-function fail(code, diagnostics) {
-  return { ok: false, code, diagnostics };
+function fingerprint(html) {
+  if (typeof html !== 'string') return { bytes: 0, sha256: null };
+  return { bytes: Buffer.byteLength(html, 'utf8'), sha256: crypto.createHash('sha256').update(html).digest('hex') };
+}
+
+function fail(code, diagnostics, html) {
+  return { ok: false, code, diagnostics, ...fingerprint(html) };
 }
 
 function validateArtifact(html, { selectedApis = [] } = {}) {
-  if (typeof html !== 'string') return fail('artifact_missing', ['html must be a string']);
+  if (typeof html !== 'string') return fail('artifact_missing', ['html must be a string'], html);
   const bytes = Buffer.byteLength(html, 'utf8');
-  if (bytes < 10000 || bytes > 40000) return fail('artifact_schema', [`artifact bytes ${bytes} outside 10000..40000`]);
+  if (bytes < 10000 || bytes > 40000) return fail('artifact_schema', [`artifact bytes ${bytes} outside 10000..40000`], html);
   if (!/^<!doctype html>/i.test(html.trim()) || !/<html[\s>]/i.test(html) || !/<head[\s>]/i.test(html) || !/<body[\s>]/i.test(html)) {
-    return fail('html_parse', ['doctype/html/head/body required']);
+    return fail('html_parse', ['doctype/html/head/body required'], html);
   }
-  if ((html.match(/<\/?[a-z][^>]*>/gi) || []).length > 2000) return fail('artifact_schema', ['node count exceeds 2000']);
-  if (!/<meta[^>]+name=["']viewport["']/i.test(html)) return fail('artifact_schema', ['viewport marker missing']);
-  for (const pattern of BLOCKED_PATTERNS) if (pattern.test(html)) return fail('policy_blocked', [`blocked pattern ${pattern}`]);
+  if ((html.match(/<\/?[a-z][^>]*>/gi) || []).length > 2000) return fail('artifact_schema', ['node count exceeds 2000'], html);
+  if (!/<meta[^>]+name=["']viewport["']/i.test(html)) return fail('artifact_schema', ['viewport marker missing'], html);
+  for (const pattern of BLOCKED_PATTERNS) if (pattern.test(html)) return fail('policy_blocked', [`blocked pattern ${pattern}`], html);
   for (const marker of ['loading', 'error', 'interactive', 'attribution']) {
-    if (!new RegExp(`data-randomware=["']${marker}["']`, 'i').test(html)) return fail('artifact_schema', [`${marker} marker missing`]);
+    if (!new RegExp(`data-randomware=["']${marker}["']`, 'i').test(html)) return fail('artifact_schema', [`${marker} marker missing`], html);
   }
-  if (!/window\.randomware\.ready\s*\(\s*\)/.test(html)) return fail('artifact_schema', ['ready marker missing']);
-  if (!/<(?:button|input|select|textarea)\b/i.test(html)) return fail('artifact_schema', ['interactive control missing']);
+  if (!/window\.randomware\.ready\s*\(\s*\)/.test(html)) return fail('artifact_schema', ['ready marker missing'], html);
+  if (!/<(?:button|input|select|textarea)\b/i.test(html)) return fail('artifact_schema', ['interactive control missing'], html);
   for (const selected of selectedApis) {
     for (const operationId of selected.operationIds) {
       const call = new RegExp(`window\\.randomware\\.call\\(\\s*["']${selected.apiId}["']\\s*,\\s*["']${operationId}["']`);
-      if (!call.test(html)) return fail('artifact_schema', [`missing broker call ${selected.apiId}/${operationId}`]);
+      if (!call.test(html)) return fail('artifact_schema', [`missing broker call ${selected.apiId}/${operationId}`], html);
     }
   }
   const sha256 = crypto.createHash('sha256').update(html).digest('hex');

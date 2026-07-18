@@ -63,10 +63,10 @@ class RunStore {
     run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); return run;
   }
 
-  recordArtifactFailure(runId, { requestId, code, html }) {
+  recordArtifactFailure(runId, { requestId, code, html, bytes = Buffer.byteLength(String(html || ''), 'utf8'), sha256 = html == null ? null : crypto.createHash('sha256').update(String(html)).digest('hex') }) {
     const run = this.getRun(runId);
     if (run.phase !== phases.CONCEPT_ACCEPTED && run.phase !== phases.BUILDING) throw new Error('phase_or_idempotency');
-    run.phase = phases.REPAIR_REQUESTED; run.creationId = run.creationId || id('creation'); run.failure = { code, requestId, html }; run.revisions.push({ revision: 1, requestId, html, status: 'failed', at: Date.now() });
+    run.phase = phases.REPAIR_REQUESTED; run.creationId = run.creationId || id('creation'); run.failure = { code, requestId, html }; run.revisions.push({ revision: 1, requestId, html, bytes, sha256, status: 'failed', at: Date.now() });
     run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'repair_requested', at: Date.now() }); return run;
   }
 
@@ -78,11 +78,11 @@ class RunStore {
     run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'deployed', at: Date.now() }); return run;
   }
 
-  recordRepairFailure(runId, { requestId, code, html }) {
+  recordRepairFailure(runId, { requestId, code, html, bytes = Buffer.byteLength(String(html || ''), 'utf8'), sha256 = html == null ? null : crypto.createHash('sha256').update(String(html)).digest('hex') }) {
     const run = this.getRun(runId);
     if (run.phase !== phases.REPAIR_REQUESTED || run.repairCount >= 1) throw new Error('repair_limit');
     run.repairCount += 1; run.phase = phases.FAILED; run.creationId = run.creationId || id('creation'); run.failure = { code: code || 'repair_failed', requestId, html };
-    run.revisions.push({ revision: 2, requestId, html, status: 'failed', at: Date.now() });
+    run.revisions.push({ revision: 2, requestId, html, bytes, sha256, status: 'failed', at: Date.now() });
     run.events.push({ type: 'repair_artifact_received', at: Date.now() }, { type: 'failed', code: 'repair_failed', at: Date.now() }); return run;
   }
 

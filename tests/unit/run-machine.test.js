@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const { RunStore, phases } = require('../../src/core/store');
 
 test('run store enforces concept before artifact and immutable selected APIs', () => {
@@ -52,4 +53,20 @@ test('invalid repair becomes a terminal failed creation after one received repai
   assert.equal(failed.repairCount, 1);
   assert.equal(failed.revisions.length, 2);
   assert.throws(() => store.recordRepairFailure(run.id, { requestId: 'repair-fail-again', code: 'policy_blocked', html: '<again>' }), /repair_limit/);
+});
+
+test('failed artifact revisions retain bounded source bytes and hashes', () => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'inspect-failure', selectedApis: [{ apiId: 'deck', operationIds: ['draw'] }] });
+  store.acceptConcept(run.id, { requestId: 'inspect-concept', apiIds: ['deck'] });
+  const firstSource = '<!doctype html><html><head></head><body>rejected first</body></html>';
+  store.recordArtifactFailure(run.id, { requestId: 'inspect-artifact', code: 'artifact_schema', html: firstSource, bytes: Buffer.byteLength(firstSource), sha256: crypto.createHash('sha256').update(firstSource).digest('hex') });
+  const secondSource = '<!doctype html><html><head></head><body>rejected repair</body></html>';
+  const failed = store.recordRepairFailure(run.id, { requestId: 'inspect-repair', code: 'artifact_schema', html: secondSource, bytes: Buffer.byteLength(secondSource), sha256: crypto.createHash('sha256').update(secondSource).digest('hex') });
+  assert.equal(failed.revisions[0].html, firstSource);
+  assert.equal(failed.revisions[0].bytes, Buffer.byteLength(firstSource));
+  assert.equal(failed.revisions[0].sha256, crypto.createHash('sha256').update(firstSource).digest('hex'));
+  assert.equal(failed.revisions[1].html, secondSource);
+  assert.equal(failed.revisions[1].bytes, Buffer.byteLength(secondSource));
+  assert.equal(failed.revisions[1].sha256, crypto.createHash('sha256').update(secondSource).digest('hex'));
 });

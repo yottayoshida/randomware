@@ -14,7 +14,7 @@ The implementation uses:
 - `@modelcontextprotocol/sdk`, `@modelcontextprotocol/ext-apps`, and Cloudflare's `agents` package with the web-standard `createMcpHandler` for stateless Streamable HTTP on `/mcp`.
 - Cloudflare Workers Static Assets for the widget/site bundles, D1 for durable records, Worker Cache API for cacheable API responses, and a Cron Trigger for health checks.
 - Cloudflare Workers Free and D1 Free for production. The implementation must not enable a paid plan. Free-tier limits are application limits, not capacity targets.
-- The companion origin as the only production `connectDomains` entry. `frameDomains` contains that same origin only if the feasibility spike succeeds. Link-out through `window.openai.openExternal` is always implemented.
+- The companion origin as the only production `connectDomains` entry. The widget also declares that same companion origin in `frameDomains` for the owner-authorized embedding retest; link-out through `window.openai.openExternal` remains the fallback. The current exact ancestor allowlist used by both companion documents is `https://chatgpt.com https://chat.openai.com`; wildcard ancestors are prohibited and the owner records any observed platform error.
 
 This is a deliberately server-refereed architecture. There is no owner model call, OpenAI API key, arbitrary-URL proxy, dynamic package installation, user account, or generated backend.
 
@@ -67,6 +67,8 @@ The companion site serves:
 - `/mcp` — the stateless remote MCP endpoint.
 - `/healthz` — deployment health without secrets or raw internal state.
 
+Keeper exports are explicit download/view surfaces, never alternate execution surfaces. `/api/creations/:id/download` serves only the accepted revision with `Content-Disposition: attachment` and `X-Content-Type-Options: nosniff`; raw artifact HTML is never rendered same-origin outside the sandboxed `/run/:id` iframe. `/api/creations/:id/spec` renders a safe human-readable concept contract, and `/api/creations/:id/spec/download` downloads the same text. Failed and accepted source revisions remain inspectable through the revision-qualified source route.
+
 Persistence means a saved creation URL remains loadable through the competition and judging period. `RETENTION_UNTIL` is not assigned a guessed date; deletion is disabled until the owner explicitly records that judging has ended. The owner may unpublish any creation immediately.
 
 ### 2.3 Why Cloudflare, not the alternatives
@@ -112,11 +114,11 @@ Timers live in widget state as absolute timestamps so refresh/remount cannot res
 
 | Phase | First deadline | Action | Final deadline | Terminal result |
 |---|---:|---|---:|---|
-| concept | 15 s | send one concise re-steer | 30 s | `choreography_timeout:concept` |
-| artifact | 75 s | send one concise re-steer | 120 s | `choreography_timeout:artifact` |
-| repair | 60 s | send one concise re-steer | 90 s | `choreography_timeout:repair` |
+| concept | 60 s | send one concise re-steer | 120 s | `choreography_timeout` |
+| artifact | 300 s | send one concise re-steer | 900 s | `choreography_timeout` |
+| repair | 300 s | send one concise re-steer | 900 s | `choreography_timeout` |
 
-The owner-demo timing targets are measured separately; deadlines are not claims about model progress. A tool call outside its expected phase is rejected with `{code, expectedTool, currentPhase, retryable}`. An artifact printed in prose does not count. Silence never leaves a blank widget: the widget calls `record_choreography_failure` and renders the death certificate locally even if that write fails.
+The owner-demo timing targets are measured separately; deadlines are not claims about model progress. These values are a live-evidence correction: the real 10 KB composition and repair took minutes, while the larger run crossed ten minutes before its repair fragment arrived. The widget therefore gives concept composition a 60-second first steer and 120-second terminal ceiling, and gives artifact/repair composition a 300-second first steer and 900-second terminal ceiling. Each timer is wall-clock, re-steers once, and records the stable `choreography_timeout` cause; it does not claim token-level progress. A tool call outside its expected phase is rejected with `{code, expectedTool, currentPhase, retryable}`. An artifact printed in prose does not count. Silence never leaves a blank widget: the widget calls `record_choreography_failure` and renders the death certificate locally even if that write fails.
 
 ## 4. Prompt and schema contracts
 
@@ -255,13 +257,13 @@ It also reports boot, uncaught error, unhandled rejection, and policy events. It
 
 ### 5.2 CSP
 
-The Must link-out version uses these policies, substituting the exact HTTPS companion origin:
+The deployed draft-app retest uses these policies, substituting the exact HTTPS companion origin:
 
 ```text
 /c/:id:
 default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;
 connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none';
-form-action 'none'; frame-ancestors 'none'
+form-action 'none'; frame-ancestors https://chatgpt.com https://chat.openai.com
 
 /run/:id:
 default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline';
@@ -269,12 +271,12 @@ img-src data: blob: https://<companion-origin>;
 media-src blob: https://<companion-origin>;
 connect-src https://<companion-origin>;
 font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none';
-base-uri 'none'; form-action 'none'; frame-ancestors https://<companion-origin>
+base-uri 'none'; form-action 'none'; frame-ancestors https://<companion-origin> https://chatgpt.com https://chat.openai.com
 ```
 
 The response also sets `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a restrictive `Permissions-Policy`, `Cross-Origin-Resource-Policy: same-site` where compatible, and no cookies.
 
-If milestone 0 proves nested embedding, the exact observed ChatGPT ancestor origins are added to `frame-ancestors` for both documents and the companion origin is added to the widget's `frameDomains`. Wildcard ancestor origins are prohibited. If exact ancestor policy cannot be proven, embedding stays off.
+The owner-authorized embedding retest declares the companion origin in `frameDomains` and uses the exact current allowlist above for both documents. The owner records the browser's observed ancestor/error verbatim; if the platform rejects this exact policy, the allowlist is narrowed to the observed origin and the retest is repeated. Wildcard ancestor origins are prohibited. Link-out remains available throughout.
 
 The production widget resource declares:
 
@@ -282,7 +284,7 @@ The production widget resource declares:
 _meta.ui.csp = {
   connectDomains: [COMPANION_ORIGIN],
   resourceDomains: [COMPANION_ORIGIN],
-  // frameDomains: [COMPANION_ORIGIN] only after spike success
+  frameDomains: [COMPANION_ORIGIN],
 };
 _meta["openai/widgetCSP"].redirect_domains = [COMPANION_ORIGIN];
 _meta.ui.domain = COMPANION_ORIGIN;
@@ -373,7 +375,7 @@ The stable causes are:
 - `choreography_timeout`
 - `capacity_reached`
 
-The death certificate is generated from deterministic copy templates, not a hidden model. It displays cause, plain technical detail, epitaph, inherited API traits, elapsed survival time, specimen ID, and both artifact revisions when present. No failure path renders a raw error page.
+The death certificate is generated from deterministic copy templates, not a hidden model. It displays cause, plain technical detail, epitaph, inherited API traits, elapsed survival time, specimen ID, and both artifact revisions when present. Failed artifact and repair revisions retain their bounded source HTML, exact UTF-8 byte count, and SHA-256 so the failed code remains inspectable; the acceptance contract's both-revisions requirement therefore applies to rejected as well as accepted submissions. No failure path renders a raw error page.
 
 ## 7. Registry and API selection
 

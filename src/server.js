@@ -13,6 +13,8 @@ const { validateConcept } = require('./core/concept');
 const { escapeHtml } = require('./core/artifact');
 const { deathCertificate } = require('./core/failure');
 const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult } = require('./core/mcp');
+const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
+const { specHtml, specText } = require('./core/keeper');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -87,12 +89,12 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         }
         if (req.method === 'POST' && action === 'artifact') {
           const input = await body(req); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
-          if (!result.ok) { store.recordArtifactFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html }); return json(res, 422, { ok: false, code: result.code, diagnostics: result.diagnostics }); }
+          if (!result.ok) { const failed = store.recordArtifactFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: result.code, diagnostics: result.diagnostics, ...runSummary(failed) }); }
           const accepted = store.acceptArtifact(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
         }
         if (req.method === 'POST' && action === 'repair') {
           const input = await body(req); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis });
-          if (!result.ok) { const failed = store.recordRepairFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html }); return json(res, 422, { ok: false, code: 'repair_failed', diagnostics: result.diagnostics, ...runSummary(failed) }); }
+          if (!result.ok) { const failed = store.recordRepairFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: 'repair_failed', diagnostics: result.diagnostics, ...runSummary(failed) }); }
           const accepted = store.acceptRepair(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
         }
       }
@@ -102,19 +104,27 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
         if (!revision) return text(res, 200, failurePage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
         if (creationMatch[1] === 'c') {
-          const csp = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
+          const csp = `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
           const html = ownerPage(run, revision); return text(res, 200, html, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8' });
         }
         run.lastCapabilityExpiresAt = Date.now() + 600000; const token = signer.issue({ creationId: run.creationId, revision: revision.revision, selected: run.selectedApis.flatMap((entry) => entry.operationIds.map((operationId) => ({ apiId: entry.apiId, operationId }))) });
         const harness = `<script>window.randomware=Object.freeze({call:async(a,o,p)=>{const r=await fetch('/api/runtime/call',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({creationId:${JSON.stringify(run.creationId)},revision:${revision.revision},apiId:a,operationId:o,params:p,capability:${JSON.stringify(token)}})});if(!r.ok)throw new Error('broker_failure');return r.json()},ready:()=>parent.postMessage({channel:'randomware',type:'ready'},'*')});</script>`;
-        const csp = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: 'self'; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'";
+        const csp = `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: 'self'; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://${req.headers.host || 'localhost'} ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
         return text(res, 200, `${harness}${revision.html}`, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': 'null' });
+      }
+      const keeperMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/(download|spec|spec\/download)$/);
+      if (keeperMatch && req.method === 'GET') {
+        const run = store.findByCreation(keeperMatch[1]);
+        if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
+        if (keeperMatch[2] === 'download') { const accepted = [...run.revisions].reverse().find((item) => item.status === 'accepted'); if (!accepted) return text(res, 409, failurePage(run), { 'content-type': 'text/html; charset=utf-8' }); return text(res, 200, accepted.html, { 'content-type': 'text/html; charset=utf-8', 'content-disposition': `attachment; filename="randomware-${run.creationId}.html"`, 'x-content-type-options': 'nosniff' }); }
+        if (keeperMatch[2] === 'spec/download') return text(res, 200, specText(run), { 'content-type': 'text/plain; charset=utf-8', 'content-disposition': `attachment; filename="randomware-${run.creationId}-spec.txt"` });
+        return text(res, 200, specHtml(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
       }
       const sourceMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/(source|requests)$/);
       if (sourceMatch && req.method === 'GET') {
         const run = store.findByCreation(sourceMatch[1]);
         if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
-        if (sourceMatch[2] === 'source') return text(res, 200, [...run.revisions].reverse()[0]?.html || '', { 'content-type': 'text/plain; charset=utf-8' });
+        if (sourceMatch[2] === 'source') { const requested = Number(new URL(req.url, `http://${req.headers.host || 'localhost'}`).searchParams.get('revision')); const revision = Number.isInteger(requested) && requested > 0 ? run.revisions.find((item) => item.revision === requested) : [...run.revisions].reverse()[0]; return text(res, 200, revision?.html || '', { 'content-type': 'text/plain; charset=utf-8' }); }
         return json(res, 200, run.runtimeRequests || []);
       }
       const dataflowMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/dataflow$/);
@@ -149,7 +159,8 @@ function cryptoSeed() { return `${Date.now()}-${crypto.randomBytes(16).toString(
 function ownerPage(run, revision) {
   const apiList = run.selectedApis.map((entry) => `<li>${escapeHtml(entry.apiId)}</li>`).join('');
   const name = escapeHtml(run.concept?.appName || 'Untitled collision'); const premise = escapeHtml(run.concept?.premise || 'A generated collision.');
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title></head><body><header><strong>AI-generated experimental app</strong><p>Do not enter real personal, payment, authentication, or secret data.</p><a href="/api/creations/${run.creationId}/source">Inspect source</a> · <a href="/api/creations/${run.creationId}/requests">Inspect requests</a> · <a href="/api/creations/${run.creationId}/dataflow">Inspect dataflow</a></header><main><h1>${name}</h1><p>${premise}</p><ul>${apiList}</ul><iframe title="Generated app" sandbox="allow-scripts" credentialless referrerpolicy="no-referrer" src="/run/${run.creationId}"></iframe></main><footer>Specimen ${run.creationId} · revision ${revision.revision} · <a href="/api/creations/${run.creationId}/report">Report/remove</a></footer></body></html>`;
+  const revisions = run.revisions.map((item) => `<li><a href="/api/creations/${run.creationId}/source?revision=${item.revision}">Revision ${item.revision}</a> · ${item.status} · ${item.bytes || 0} bytes</li>`).join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name} — Randomware</title><style>:root{color-scheme:dark}body{margin:0;background:#101326;color:#f6e9ce;font:16px/1.5 Georgia,serif}.rw-shell{max-width:1180px;margin:auto;padding:clamp(20px,5vw,64px)}.rw-chrome{border:2px solid #6ee7c8;padding:clamp(20px,4vw,42px);box-shadow:12px 12px 0 #ff765e;background:#171b33}.rw-kicker{text-transform:uppercase;letter-spacing:.14em;color:#6ee7c8;font:700 .74rem system-ui,sans-serif}.rw-chrome h1{font-size:clamp(2.2rem,8vw,6rem);line-height:.9;margin:.2em 0}.rw-chrome a{color:#6ee7c8}.rw-chrome ul{display:flex;gap:10px;flex-wrap:wrap;padding:0;list-style:none}.rw-chrome li{border-left:3px solid #ff765e;padding:6px 10px;background:#0003}.rw-frame{display:block;width:100%;height:min(78vh,720px);min-height:390px;margin-top:28px;border:2px solid #f6e9ce;background:#080a14}.rw-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}@media(max-width:520px){.rw-frame{height:560px;min-height:390px}}</style></head><body><main class="rw-shell"><section class="rw-chrome"><p class="rw-kicker">AI-generated experimental app</p><h1>${name}</h1><p>${premise}</p><p><strong>Do not enter real personal, payment, authentication, or secret data.</strong></p><p>Selected APIs:</p><ul>${apiList}</ul><div class="rw-actions"><a href="/api/creations/${run.creationId}/download">Download HTML</a><a href="/api/creations/${run.creationId}/spec">Keeper spec</a><a href="/api/creations/${run.creationId}/spec/download">Download spec</a><a href="/api/creations/${run.creationId}/requests">Inspect requests</a><a href="/api/creations/${run.creationId}/dataflow">Inspect dataflow</a><a href="/api/creations/${run.creationId}/report">Report/remove</a></div><p class="rw-kicker">Source revisions</p><ul>${revisions}</ul></section><iframe class="rw-frame" title="Generated app" sandbox="allow-scripts" credentialless referrerpolicy="no-referrer" src="/run/${run.creationId}"></iframe><footer>Specimen ${run.creationId} · accepted revision ${revision.revision}</footer></main></body></html>`;
 }
 
 function failurePage(run) {
@@ -185,7 +196,7 @@ async function handleMcp(req, res, app) {
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
       const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis });
-      if (!check.ok) { if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); else app.store.recordArtifactFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); }
+      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, failureArgs); else app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
       return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
     }
