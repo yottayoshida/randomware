@@ -37,15 +37,15 @@ const fixtureLibrivoxAudio = Object.freeze({
 });
 
 async function librivoxAudio(book, { fetcher, fixtureMode }) {
+  if (fixtureMode && fixtureLibrivoxAudio[book.id]) return validateMediaUrl(fixtureLibrivoxAudio[book.id], { kind: 'librivox' });
   if (book.url_rss) {
     let response;
-    try { response = await fetcher(book.url_rss, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(4000) }); } catch { throw new Error('upstream_failure'); }
+    try { response = await fetcher(book.url_rss, { method: 'GET', redirect: 'manual', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(6000) }); } catch { throw new Error('upstream_failure'); }
     if (!response.ok) throw new Error('upstream_failure');
     const raw = Buffer.from(await response.arrayBuffer());
     if (raw.byteLength > 256 * 1024) throw new Error('response_too_large');
     return validateMediaUrl(extractLibrivoxAudioUrl(raw.toString('utf8')), { kind: 'librivox' });
   }
-  if (fixtureMode && fixtureLibrivoxAudio[book.id]) return validateMediaUrl(fixtureLibrivoxAudio[book.id], { kind: 'librivox' });
   throw new Error('media_audio_source_missing');
 }
 

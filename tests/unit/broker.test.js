@@ -26,6 +26,18 @@ test('audio adapters return metadata and a same-origin media URL, never the upst
   assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-media-token');
 });
 
+test('LibriVox adapter returns bounded book metadata and an archive.org media URL', async () => {
+  const broker = new Broker({ fixtureMode: true });
+  const result = await broker.call({
+    selectedApis: [{ apiId: 'librivox', operationIds: ['book'] }],
+    apiId: 'librivox', operationId: 'book', params: {},
+    media: { origin: 'https://randomware.example', creationId: 'creation_book', revision: 1, tokenSigner: { issueMedia: () => 'signed-book-media-token' }, mediaStore: { createMediaToken: async () => {} } }
+  });
+  assert.equal(result.data.book.url_zip_file, undefined);
+  assert.equal(result.data.mediaUrl, 'https://randomware.example/media/signed-book-media-token');
+  assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-book-media-token');
+});
+
 test('broker rejects unknown API operations and arbitrary URL parameters', async () => {
   const broker = new Broker({ fixtureMode: true });
   await assert.rejects(() => broker.call({ selectedApis: [], apiId: 'open-meteo', operationId: 'nope', params: {} }), /operation_not_selected/);
