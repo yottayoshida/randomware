@@ -119,10 +119,13 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Milestone 4 registry end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 500 verification | At least 10 healthy entries |
 | Pre-deployment | 2026-07-18 12:31 JST | 99% of the weekly limit remaining (ChatGPT Plus) | 2,500 | 0 | 500 verification | Owner snapshot immediately before remote D1/deployment; free-plan path directed by owner |
 | Post-deployment E2E | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Stop non-reserve work |
+| Owner meter update | 2026-07-19 JST | 0% of the weekly limit remaining | 2,111 | 389 since the 2,500-credit snapshot | 300 reserve | Owner-transcribed memo; weekly plan allowance is exhausted, so no non-reserve work starts |
 | Pre-demo/submission | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Reserve-eligible blockers only |
 | Final after `/feedback` | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 0 | Record total, remaining balance, final plan meter |
 
 Meter continuity note (2026-07-18 12:31 JST, owner-transcribed): the ChatGPT Plus weekly plan meter **reset** between the Luna `/goal` start snapshot and Milestone 0 closure. Current snapshot: plan usage **99% of the weekly limit remaining** (fresh weekly window); grant credit balance **2,500** (delta 0 since redemption). Plan-usage percentages are comparable only within one weekly window — do not compare post-reset values against the pre-reset 33% figure. The Milestone 0 end row must be filled from this or a fresher owner-transcribed snapshot.
+
+Meter update note (2026-07-19 JST, owner-transcribed): the weekly plan now shows **0% remaining** and the grant balance is **2,111** (a 389-credit decrease from the prior 2,500 snapshot). The hard-stop/reserve policy applies; do not begin non-reserve work or optional iteration.
 
 ## 9. Checkpoint calculation
 
