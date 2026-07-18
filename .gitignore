@@ -16,6 +16,7 @@ build/
 out/
 coverage/
 .wrangler/
+.runtime/
 
 # Logs
 *.log
