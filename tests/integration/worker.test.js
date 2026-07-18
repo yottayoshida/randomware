@@ -68,6 +68,27 @@ test('MCP lifecycle negotiates, accepts initialized notifications, and exposes t
   assert.equal(get.status, 405);
 });
 
+test('public run status permits foreign-origin widget reads and preflight', async () => {
+  const store = new RunStore();
+  const fetchHandler = createWebHandler({ store, broker: new Broker({ fixtureMode: true }) });
+  const run = store.createRun({ requestId: 'widget-status-cors', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  const url = `https://randomware.example/api/runs/${run.id}`;
+  const origin = 'https://web-sandbox.oaiusercontent.com';
+
+  const status = await fetchHandler(new Request(url, { headers: { origin } }));
+  assert.equal(status.status, 200);
+  assert.equal(status.headers.get('access-control-allow-origin'), '*');
+  assert.equal((await status.json()).runId, run.id);
+
+  const preflight = await fetchHandler(new Request(url, {
+    method: 'OPTIONS',
+    headers: { origin, 'access-control-request-method': 'GET' }
+  }));
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), '*');
+  assert.match(preflight.headers.get('access-control-allow-methods') || '', /GET/);
+});
+
 test('Worker broker route handles opaque-origin preflight and records a mediated request', async () => {
   const store = new RunStore();
   const signer = new CapabilitySigner('worker-route-test-secret');

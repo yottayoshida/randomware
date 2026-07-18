@@ -73,6 +73,9 @@ test('widget refreshes server-owned choreography deadlines and clears stale phas
   const widget = widgetResource('https://randomware.example').contents[0].text;
   assert.match(widget, /statusUrl/);
   assert.match(widget, /setInterval/);
+  assert.match(widget, /pollFailures/);
+  assert.match(widget, /pollFailures>=3/);
+  assert.match(widget, /status polling unavailable/);
   assert.match(widget, /syncTimerFromServer/);
   assert.match(widget, /phase:'repair_requested',choreography:null/);
   assert.match(widget, /record_choreography_failure.*requestId:crypto\.randomUUID\(\)/);

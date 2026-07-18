@@ -27,6 +27,7 @@ function json(res, status, body, headers = {}) {
 }
 
 const runtimeCors = { 'access-control-allow-origin': 'null', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'access-control-max-age': '600', vary: 'Origin' };
+const publicReadCors = { 'access-control-allow-origin': '*', 'access-control-allow-methods': 'GET, OPTIONS', 'access-control-max-age': '600' };
 
 function text(res, status, body, headers = {}) {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...headers }); res.end(body);
@@ -109,7 +110,8 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       const runMatch = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(concept|artifact|repair))?$/);
       if (runMatch) {
         const runId = runMatch[1]; const action = runMatch[2];
-        if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId)));
+        if (req.method === 'OPTIONS' && !action) { res.writeHead(204, publicReadCors); return res.end(); }
+        if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId)), publicReadCors);
         if (req.method === 'POST' && action === 'concept') {
           const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) };
           const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });

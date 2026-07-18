@@ -145,6 +145,10 @@ def main():
             assert widget_page.evaluate("window.__widgetState?.paused") is True, "widget_concept_timer_not_paused"
             widget_page.wait_for_timeout(3200)
             assert widget_page.evaluate("window.__widgetState?.choreography?.lastActivityAt") == now_ms + 1000, "widget_status_refresh_not_applied"
+            widget_page.unroute(f"{BASE}/api/runs/widget-run")
+            widget_page.route(f"{BASE}/api/runs/widget-run", lambda route: route.abort())
+            widget_page.wait_for_timeout(9200)
+            assert widget_page.locator("#status").inner_text() == "status polling unavailable", "widget_poll_failure_not_visible"
             widget_page.evaluate("window.openai.sendFollowUpMessage = async arg => { window.__followUpPrompt = arg && arg.prompt; return {ok: false, error: 'host refused'}; }")
             widget_page.locator("#build").click()
             assert widget_page.locator("#fallback").is_visible(), "widget_unsuccessful_follow_up_not surfaced"
