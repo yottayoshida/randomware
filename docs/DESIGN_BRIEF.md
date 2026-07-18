@@ -31,6 +31,7 @@ Write exactly these five documents, in English. Documents only — see Hard cons
 
 - The `/goal` message itself is limited to 4,000 characters; `GOAL.md` carries the detail and the `/goal` message only points to it.
 - `DEMO_SCRIPT.md` is not your deliverable; `PLAN.md` assigns it to the final milestone of the implementation session.
+- **Hosting candidate — ChatGPT Sites.** Sites (Codex's hosted app platform, public beta since June–July 2026) is the preferred deployment target for narrative coherence: Codex writes the code and Codex hosts it, and no third-party deploy auth is needed. Confirmed from the official docs: hosted environment variables/secrets, public publishing ("anyone on the internet"), and deployment from a compatible local project. Unconfirmed and deal-breaker-class: (a) whether the hosted backend can make outbound requests to arbitrary public API hosts — the mediation proxy needs ~17 upstreams, one of them HTTP-only; (b) streaming/SSE support for build progress; (c) beta usage limits under judge traffic. `ARCHITECTURE.md` must decide Sites vs a conventional host (e.g. Vercel). If Sites is chosen, the first deployment milestone in `PLAN.md` must be a cheap feasibility spike proving secret-backed OpenAI calls, arbitrary-host egress, and public access — with a documented fallback path to the conventional host.
 
 ## Appendix — planned `/goal` message (for the later Luna session, verbatim draft)
 
