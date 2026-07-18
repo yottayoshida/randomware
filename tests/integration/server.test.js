@@ -30,7 +30,14 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   assert.match(page.headers.get('content-security-policy'), /frame-src 'self'/);
   const ownerHtml = await page.text();
   assert.match(ownerHtml, /sandbox="allow-scripts"/);
-  assert.match(ownerHtml, /min-height:390px/);
+  assert.match(ownerHtml, /<link rel="stylesheet" href="\/creation\.css">/);
+  assert.doesNotMatch(ownerHtml, /<style[\s>]/);
+  assert.doesNotMatch(ownerHtml, /<script[\s>]/);
+  const creationCss = await fetch(`${base}/creation.css`);
+  assert.equal(creationCss.status, 200);
+  const creationCssText = await creationCss.text();
+  assert.match(creationCssText, /\.rw-frame/);
+  assert.match(creationCssText, /min-height:390px/);
   assert.match(page.headers.get('content-security-policy'), /frame-ancestors https:\/\/chatgpt\.com/);
   const download = await fetch(`${base}/api/creations/${artifact.body.creationId}/download`);
   assert.match(download.headers.get('content-disposition'), /attachment/);
