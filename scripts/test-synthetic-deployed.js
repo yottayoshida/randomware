@@ -208,7 +208,7 @@ async function runSynthetic(base) {
   };
 
   let run;
-  for (const seed of ['contract-audio-2433', 'contract-audio-1306', 'contract-audio-3291', 'contract-audio-disabled-1217']) {
+  for (const seed of ['contract-audio-2433', 'contract-audio-1306', 'contract-audio-3291', 'contract-audio-disabled-1217', 'contract-audio-current-583']) {
     const spun = await call('spin_apis', { seed, requestId: `${tag}-${seed}` }); const candidate = spun.result.structuredContent;
     if (candidate.selectedApis.map((api) => api.id).sort().join('|') === 'librivox|nager-date|radio-browser') { run = candidate; break; }
   }
