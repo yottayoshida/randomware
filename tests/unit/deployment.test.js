@@ -9,4 +9,5 @@ test('Worker deployment manifest points to static assets, D1, and an hourly heal
   assert.equal(config.d1_databases[0].binding, 'DB');
   assert.deepEqual(config.triggers.crons, ['0 * * * *']);
   assert.match(fs.readFileSync('migrations/0001_initial.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS runs/);
+  assert.match(fs.readFileSync('migrations/0002_run_metadata.sql', 'utf8'), /ALTER TABLE runs ADD COLUMN metadata_json/);
 });
