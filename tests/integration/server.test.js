@@ -51,11 +51,24 @@ test('MCP surface exposes eight annotated tools', async (t) => {
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   t.after(() => server.close());
   const base = `http://127.0.0.1:${server.address().port}`;
-  const result = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) });
+  const initialize = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'integration', version: '1' } } }) });
+  assert.equal(initialize.response.status, 200);
+  assert.equal(initialize.body.result.protocolVersion, '2025-06-18');
+  const ready = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) });
+  assert.equal(ready.response.status, 202);
+  const resources = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'resources/list' }) });
+  assert.equal(resources.body.result.resources[0].uri, 'ui://widget/randomware.html');
+  const template = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'resources/read', params: { uri: 'ui://widget/randomware.html' } }) });
+  assert.equal(template.body.result.contents[0].mimeType, 'text/html;profile=mcp-app');
+  const result = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 4, method: 'tools/list' }) });
   assert.equal(result.response.status, 200);
   assert.equal(result.body.result.tools.length, 8);
   assert.ok(result.body.result.tools.every((tool) => tool.description.startsWith('Use this')));
   assert.ok(result.body.result.tools.every((tool) => tool.annotations && typeof tool.annotations.readOnlyHint === 'boolean'));
+  const open = result.body.result.tools.find((tool) => tool.name === 'open_randomware');
+  assert.equal(open._meta.ui.resourceUri, 'ui://widget/randomware.html');
+  const get = await fetch(`${base}/mcp`);
+  assert.equal(get.status, 405);
 });
 
 test('failed artifact keeps a nonblank owner-controlled death certificate', async (t) => {

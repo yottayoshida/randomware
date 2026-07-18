@@ -6,6 +6,7 @@ const { RunStore } = require('./core/store');
 const { Broker } = require('./core/broker');
 const { CapabilitySigner } = require('./core/capability');
 const { deathCertificate } = require('./core/failure');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError } = require('./core/mcp');
 
 const headers = (contentType = 'application/json; charset=utf-8', extra = {}) => ({ 'content-type': contentType, 'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', ...extra });
 const response = (body, status = 200, contentType, extra) => new Response(typeof body === 'string' ? body : JSON.stringify(body), { status, headers: headers(contentType, extra) });
@@ -35,7 +36,16 @@ function failure(run) {
 
 function tools() {
   const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'get_run', 'record_choreography_failure'].includes(name), destructiveHint: false } });
-  return [base('open_randomware', 'Use this to mount the Randomware slot machine.', {}), base('spin_apis', 'Use this to select a fresh bounded API collision.', { seed: { type: 'string' }, requestId: { type: 'string' } }), base('submit_concept', 'Use this after spin_apis to submit the concept contract.', { runId: { type: 'string' }, requestId: { type: 'string' }, appName: { type: 'string' }, premise: { type: 'string' }, playerAction: { type: 'string' }, apiIds: { type: 'array' }, causalChain: { type: 'array' }, apiRoles: { type: 'array' }, dependency: { type: 'object' }, interaction: { type: 'object' }, visualDirection: { type: 'object' }, bannedShapeAssessment: { type: 'object' }, noveltyDelta: { type: 'string' } }, ['runId', 'requestId', 'appName', 'premise', 'playerAction', 'apiIds', 'causalChain', 'apiRoles', 'dependency', 'interaction', 'visualDirection', 'bannedShapeAssessment', 'noveltyDelta']), base('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']), base('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']), base('get_run', 'Use this to recover a run snapshot.', { runId: { type: 'string' } }, ['runId']), base('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.', { creationId: { type: 'string' }, premise: { type: 'string' } }, ['creationId', 'premise']), base('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.', { runId: { type: 'string' }, phase: { type: 'string' }, code: { type: 'string' } }, ['runId', 'phase', 'code'])];
+  return [
+    { ...base('open_randomware', 'Use this to mount the Randomware slot machine.', {}), _meta: widgetToolMeta() },
+    base('spin_apis', 'Use this to select a fresh bounded API collision.', { seed: { type: 'string' }, requestId: { type: 'string' } }),
+    base('submit_concept', 'Use this after spin_apis to submit the concept contract.', { runId: { type: 'string' }, requestId: { type: 'string' }, appName: { type: 'string' }, premise: { type: 'string' }, playerAction: { type: 'string' }, apiIds: { type: 'array' }, causalChain: { type: 'array' }, apiRoles: { type: 'array' }, dependency: { type: 'object' }, interaction: { type: 'object' }, visualDirection: { type: 'object' }, bannedShapeAssessment: { type: 'object' }, noveltyDelta: { type: 'string' } }, ['runId', 'requestId', 'appName', 'premise', 'playerAction', 'apiIds', 'causalChain', 'apiRoles', 'dependency', 'interaction', 'visualDirection', 'bannedShapeAssessment', 'noveltyDelta']),
+    base('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']),
+    base('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.', { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, ['runId', 'requestId', 'html']),
+    base('get_run', 'Use this to recover a run snapshot.', { runId: { type: 'string' } }, ['runId']),
+    base('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.', { creationId: { type: 'string' }, premise: { type: 'string' } }, ['creationId', 'premise']),
+    base('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.', { runId: { type: 'string' }, phase: { type: 'string' }, code: { type: 'string' } }, ['runId', 'phase', 'code'])
+  ];
 }
 
 function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtureMode: false }), signer = new CapabilitySigner('worker-development-secret'), assets } = {}) {
@@ -48,8 +58,15 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
       if (request.method === 'GET' && url.pathname === '/api/registry') return response(registry.map(({ id, name, category, capability, docsUrl, attribution }) => ({ id, name, category, capability, docsUrl, attribution })));
       if (request.method === 'GET' && url.pathname === '/api/tools') return response(tools());
       if (request.method === 'GET' && url.pathname === '/api/creations/recent') return response((await callStore('listCreations')).filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
+      if (url.pathname === '/mcp' && request.method === 'GET') return new Response(null, { status: 405, headers: headers('text/plain; charset=utf-8', { allow: 'POST' }) });
       if (request.method === 'POST' && url.pathname === '/mcp') {
-        const input = await readJson(request); if (input.method === 'tools/list') return response({ jsonrpc: '2.0', id: input.id, result: { tools: tools() } });
+        const input = await readJson(request);
+        if (input.method === 'initialize') return response({ jsonrpc: '2.0', id: input.id, result: initializeResult(input.params) });
+        if (input.method === 'notifications/initialized' || input.method === 'notifications/cancelled') return new Response(null, { status: 202, headers: headers('text/plain; charset=utf-8') });
+        if (input.method === 'ping') return response({ jsonrpc: '2.0', id: input.id, result: {} });
+        if (input.method === 'resources/list') return response({ jsonrpc: '2.0', id: input.id, result: { resources: [resourceSummary(url.origin)] } });
+        if (input.method === 'resources/read') { if (input.params?.uri !== MCP_RESOURCE_URI) return response(jsonRpcError(input.id, -32602, 'resource_not_found'), 400); return response({ jsonrpc: '2.0', id: input.id, result: widgetResource(url.origin) }); }
+        if (input.method === 'tools/list') return response({ jsonrpc: '2.0', id: input.id, result: { tools: tools() } });
         if (input.method === 'tools/call' && input.params?.name === 'open_randomware') return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: { ok: true, registry: registry.length } } });
         if (input.method === 'tools/call' && input.params?.name === 'spin_apis') { const args = input.params.arguments || {}; const selected = selectApis({ seed: args.seed || seed(), registry, unhealthy: await unhealthy() }); const run = await callStore('createRun', { requestId: args.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: summary(run) } }); }
         if (input.method === 'tools/call') {

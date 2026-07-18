@@ -12,6 +12,7 @@ const { CapabilitySigner } = require('./core/capability');
 const { validateConcept } = require('./core/concept');
 const { escapeHtml } = require('./core/artifact');
 const { deathCertificate } = require('./core/failure');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError } = require('./core/mcp');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -45,7 +46,7 @@ function securityHeaders(csp) {
 
 function createMcpTools(app) {
   return [
-    { name: 'open_randomware', description: 'Use this to mount the Randomware slot machine.', inputSchema: { type: 'object', properties: {} }, annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false } },
+    { name: 'open_randomware', description: 'Use this to mount the Randomware slot machine.', inputSchema: { type: 'object', properties: {} }, annotations: { readOnlyHint: true, openWorldHint: false, destructiveHint: false }, _meta: widgetToolMeta() },
     { name: 'spin_apis', description: 'Use this to select a fresh bounded API collision.', inputSchema: { type: 'object', properties: { seed: { type: 'string' }, requestId: { type: 'string' } } }, annotations: { readOnlyHint: false, openWorldHint: false, destructiveHint: false } },
     { name: 'submit_concept', description: 'Use this after spin_apis to submit the concept contract.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, appName: { type: 'string' }, premise: { type: 'string' }, playerAction: { type: 'string' }, apiIds: { type: 'array' }, causalChain: { type: 'array' }, apiRoles: { type: 'array' }, dependency: { type: 'object' }, interaction: { type: 'object' }, visualDirection: { type: 'object' }, bannedShapeAssessment: { type: 'object' }, noveltyDelta: { type: 'string' } }, required: ['runId','requestId','appName','premise','playerAction','apiIds','causalChain','apiRoles','dependency','interaction','visualDirection','bannedShapeAssessment','noveltyDelta'] }, annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false } },
     { name: 'submit_artifact', description: 'Use this after concept acceptance to submit one complete HTML artifact.', inputSchema: { type: 'object', properties: { runId: { type: 'string' }, requestId: { type: 'string' }, html: { type: 'string' } }, required: ['runId','requestId','html'] }, annotations: { readOnlyHint: false, openWorldHint: true, destructiveHint: false } },
@@ -65,6 +66,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, category, capability, docsUrl, attribution }) => ({ id, name, category, capability, docsUrl, attribution })));
       if (req.method === 'GET' && url.pathname === '/api/tools') return json(res, 200, createMcpTools(app));
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
+      if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
       if (req.method === 'POST' && url.pathname === '/api/spin') {
         const input = await body(req); const selected = selectApis({ seed: input.seed || cryptoSeed(), registry, history: input.history || [] });
@@ -164,7 +166,12 @@ function removalPage(run) {
 }
 
 async function handleMcp(req, res, app) {
-  const input = await body(req); const method = input.method;
+  const input = await body(req); const method = input.method; const origin = `https://${req.headers.host || 'localhost'}`;
+  if (method === 'initialize') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: initializeResult(input.params) });
+  if (method === 'notifications/initialized' || method === 'notifications/cancelled') { res.writeHead(202); return res.end(); }
+  if (method === 'ping') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: {} });
+  if (method === 'resources/list') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { resources: [resourceSummary(origin)] } });
+  if (method === 'resources/read') { if (input.params?.uri !== MCP_RESOURCE_URI) return json(res, 400, jsonRpcError(input.id, -32602, 'resource_not_found')); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: widgetResource(origin) }); }
   if (method === 'tools/list') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { tools: createMcpTools(app) } });
   if (method === 'tools/call') {
     const name = input.params?.name; const args = input.params?.arguments || {};
