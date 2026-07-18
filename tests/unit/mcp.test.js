@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt } = require('../../src/core/mcp');
+const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
 
@@ -66,4 +66,24 @@ test('widget fallback prompt binds the active run and required build choreograph
   assert.match(prompt, /call get_run/);
   assert.match(prompt, /then submit_concept/);
   assert.match(prompt, /submit the complete artifact via submit_artifact/);
+});
+
+test('every prompt surface carries the shared artifact contract literals', () => {
+  assert.ok(Array.isArray(ARTIFACT_CONTRACT_LITERALS));
+  const surfaces = [
+    initializeResult().instructions,
+    ...tools().map((tool) => tool.description),
+    conceptAcceptedPrompt('run_prompt_fidelity'),
+    widgetBuildPrompt({ runId: 'run_prompt_fidelity' }),
+    widgetRepairPrompt({ runId: 'run_prompt_fidelity', diagnostics: ['loading marker missing'] }),
+    widgetResource('https://randomware.example').contents[0].text
+  ];
+  for (const [index, surface] of surfaces.entries()) for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(surface.includes(literal), `prompt_surface_${index}_missing:${literal}`);
+});
+
+test('repair prompt includes exact diagnostics and the full artifact contract', () => {
+  const prompt = widgetRepairPrompt({ runId: 'run_repair_fidelity', diagnostics: ['loading marker missing', 'viewport marker missing'] });
+  assert.match(prompt, /loading marker missing/);
+  assert.match(prompt, /viewport marker missing/);
+  for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(prompt.includes(literal), `repair_prompt_missing:${literal}`);
 });

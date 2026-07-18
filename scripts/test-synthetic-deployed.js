@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { createArtifact } = require('../src/core/artifact');
 const { toolSchemas } = require('../src/core/tool-contract');
+const { ARTIFACT_CONTRACT_LITERALS } = require('../src/core/artifact-contract');
 
 function clone(value) { return structuredClone(value); }
 
@@ -42,6 +43,11 @@ function requiredPaths(schema, prefix = '') {
   return paths;
 }
 
+function assertPromptSurface(surface, label) {
+  const text = String(surface || '');
+  for (const literal of ARTIFACT_CONTRACT_LITERALS) assert.ok(text.includes(literal), `prompt_fidelity:${label}:${literal}`);
+}
+
 function wrongValue(schema) {
   if (schema?.type === 'string') return 123;
   if (schema?.type === 'integer') return 'not-an-integer';
@@ -76,9 +82,17 @@ async function runSynthetic(base) {
   const tag = `synthetic-${Date.now()}-${randomUUID()}`;
   const initialize = await mcp({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'randomware-synthetic-model', version: '1.0.0' } } });
   assert.equal(initialize.status, 200, `synthetic_initialize:${initialize.status}`);
+  const initializeBody = await initialize.clone().json();
+  assertPromptSurface(initializeBody.result?.instructions, 'initialize');
   const ready = await mcp({ jsonrpc: '2.0', method: 'notifications/initialized' }); assert.equal(ready.status, 202, `synthetic_initialized:${ready.status}`);
   const toolsResponse = await mcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' }); assert.equal(toolsResponse.status, 200);
   const tools = (await toolsResponse.json()).result.tools; assert.equal(tools.length, 8);
+  for (const tool of tools) assertPromptSurface(tool.description, `tool:${tool.name}`);
+  const resourceResponse = await mcp({ jsonrpc: '2.0', id: 2.5, method: 'resources/read', params: { uri: 'ui://widget/randomware.html' } }); assert.equal(resourceResponse.status, 200);
+  const widgetText = (await resourceResponse.json()).result.contents[0].text;
+  assertPromptSurface(widgetText, 'widget');
+  assert.ok(widgetText.includes('submit the complete artifact via submit_artifact'), 'prompt_fidelity:widget_build_prompt');
+  assert.ok(widgetText.includes('Exact rejection diagnostics:'), 'prompt_fidelity:widget_repair_prompt');
   for (const tool of tools) {
     assert.equal(tool.inputSchema.type, 'object', `schema_object:${tool.name}`);
     for (const path of requiredPaths(tool.inputSchema)) assert.ok(schemaAt(tool.inputSchema, path), `schema_path:${tool.name}:${path}`);
@@ -93,6 +107,7 @@ async function runSynthetic(base) {
   assert.equal(spun.response.status, 200); const run = spun.body.result.structuredContent; assert.ok(run.runId && run.runContract && run.promptVersion && run.selectedApis.length);
   const conceptInput = conceptFor(run, 'choreography', `${tag}-concept`);
   const concept = await call(4, 'submit_concept', conceptInput); assert.equal(concept.response.status, 200); assert.equal(concept.body.result.structuredContent.phase, 'concept_accepted');
+  assertPromptSurface(concept.body.result.content?.[0]?.text, 'concept_result');
   const conceptRun = concept.body.result.structuredContent;
   const artifact = await call(5, 'submit_artifact', artifactFor(conceptRun, 'choreography', `${tag}-artifact`)); assert.equal(artifact.response.status, 200); assert.equal(artifact.body.result.structuredContent.phase, 'completed');
   const status = await fetch(`${base}${artifact.body.result.structuredContent.statusUrl}`); assert.equal(status.status, 200); const statusBody = await status.json(); assert.equal(statusBody.phase, 'completed'); assert.equal(statusBody.creationId, artifact.body.result.structuredContent.creationId);
@@ -101,6 +116,8 @@ async function runSynthetic(base) {
   const repairConcept = await call(7, 'submit_concept', conceptFor(repairRun, 'repair', `${tag}-repair-concept`)); assert.equal(repairConcept.response.status, 200);
   const repairState = repairConcept.body.result.structuredContent;
   const failed = await call(8, 'submit_artifact', artifactFor(repairState, 'repair', `${tag}-failed`, '<!doctype html><html><body>invalid</body></html>')); assert.equal(failed.response.status, 200); assert.equal(failed.body.result.isError, true);
+  assertPromptSurface(failed.body.result.content?.[0]?.text, 'repair_result');
+  for (const diagnostic of failed.body.result.structuredContent?.diagnostics || []) assert.ok(failed.body.result.content[0].text.includes(diagnostic), `repair_diagnostic:${diagnostic}`);
   const repairBase = { ...artifactFor(repairState, 'repair', `${tag}-repair`), failedRevisionId: '1', diagnosticCodes: ['artifact_schema'] };
 
   const bases = {
@@ -127,7 +144,7 @@ async function runSynthetic(base) {
       }
     }
   }
-  return { choreographyRunId: run.runId, creationId: artifact.body.result.structuredContent.creationId, fuzzCases, tools: tools.length };
+  return { choreographyRunId: run.runId, creationId: artifact.body.result.structuredContent.creationId, fuzzCases, tools: tools.length, promptSurfaces: tools.length + 4, promptLiterals: ARTIFACT_CONTRACT_LITERALS.length };
 }
 
 if (require.main === module) {

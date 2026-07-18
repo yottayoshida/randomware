@@ -1,5 +1,6 @@
 const MCP_PROTOCOL_VERSION = '2025-06-18';
 const { CHOREOGRAPHY_DEADLINES } = require('./choreography');
+const { ARTIFACT_CONTRACT_LITERALS, artifactContractPrompt, promptSurface, conceptAcceptedPrompt, artifactRepairPrompt } = require('./artifact-contract');
 const SUPPORTED_PROTOCOL_VERSIONS = Object.freeze(['2025-06-18', '2025-03-26', '2024-11-05']);
 const MCP_RESOURCE_URI = 'ui://widget/randomware.html';
 const MCP_RESOURCE_MIME = 'text/html;profile=mcp-app';
@@ -16,19 +17,40 @@ function widgetToolResult(value) {
 
 function widgetBuildPrompt(run) {
   const runId = String(run?.runId || 'unknown');
-  return `Use Randomware run ${runId}: call get_run, then submit_concept, then submit the complete artifact via submit_artifact.`;
+  return promptSurface(`Use Randomware run ${runId}: call get_run, then submit_concept, then submit the complete artifact via submit_artifact.`);
 }
 
+function widgetRepairPrompt(run, diagnostics) {
+  const input = run && typeof run === 'object' && Array.isArray(run.diagnostics) ? run : { runId: run?.runId, diagnostics };
+  return artifactRepairPrompt({ runId: String(input?.runId || 'unknown'), diagnostics: input?.diagnostics });
+}
+
+const TOOL_DESCRIPTION_BASES = Object.freeze({
+  open_randomware: 'Use this to mount the Randomware slot machine.',
+  spin_apis: 'Use this to select a fresh bounded API collision.',
+  submit_concept: 'Use this after spin_apis to submit the complete concept contract.',
+  submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact.',
+  submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact.',
+  get_run: 'Use this to recover a run snapshot.',
+  mutate_creation: 'Use this to ask for a different concept while preserving the selected API set.',
+  record_choreography_failure: 'Use this to close a silent or noncompliant phase after its absolute deadline.'
+});
+
+function toolDescription(name) {
+  return promptSurface(TOOL_DESCRIPTION_BASES[name] || `Use the ${name} tool.`);
+}
+
+const WIDGET_CONTRACT_PROMPT = artifactContractPrompt();
 const WIDGET_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Randomware</title><style>
 :root{color-scheme:dark;font-family:Georgia,serif}body{margin:0;background:linear-gradient(135deg,#120b32,#081a24);color:#ffe7c7;padding:18px}main{border:2px solid #ffe7c7;padding:20px;box-shadow:8px 8px 0 #e8614f}h1{font-size:clamp(2rem,8vw,4rem);line-height:.9;margin:0 0 12px;text-transform:uppercase}p{line-height:1.45}button,.rw-link{background:#ffe7c7;color:#120b32;border:0;padding:11px 16px;font:700 1rem Georgia;cursor:pointer;margin:4px 4px 4px 0;text-decoration:none;display:inline-block}button:focus-visible,.rw-link:focus-visible{outline:3px solid #55e6c1}button[disabled]{opacity:.55;cursor:wait}ul{padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px;min-height:34px}li{border:1px solid #55e6c1;padding:6px 9px}#status{color:#55e6c1;min-height:1.4em}#fallback{margin-top:18px;border:1px solid #e8614f;padding:12px}#fallback textarea{box-sizing:border-box;width:100%;min-height:110px;background:#080a14;color:#ffe7c7;border:1px solid #55e6c1;padding:10px;font:14px ui-monospace,monospace}#creation{margin-top:18px;border-top:1px solid #55e6c1;padding-top:14px}#creation-frame{display:block;width:100%;height:min(78vh,720px);min-height:390px;border:2px solid #ffe7c7;background:#080a14;margin-top:10px}small{display:block;margin-top:16px;opacity:.8}</style></head><body><main><p>AI-generated experimental app</p><h1>Randomware</h1><p id="status">Choose nothing. Make something.</p><p>Sequential reveal, bounded APIs, honest failure.</p><ul id="apis" aria-live="polite"></ul><button id="spin" type="button">Spin the slot</button><button id="build" type="button" hidden>Ask the model to build</button><section id="fallback" hidden><p id="fallback-status">The model follow-up could not be posted. Copy this prompt into the conversation.</p><textarea id="build-prompt" readonly aria-label="Build prompt"></textarea><button id="copy-prompt" type="button">Copy build prompt</button><button id="resume-timer" type="button">Resume concept timer</button></section><section id="creation" hidden><p id="creation-status">The creation is ready.</p><iframe id="creation-frame" title="Randomware creation" hidden></iframe><a id="creation-link" class="rw-link" href="#" target="_blank" rel="noopener noreferrer">Download or open the creation</a></section><small>Real APIs go in. Random apps come out. Embedded execution is primary; link-out remains available.</small></main><script>
-(()=>{const status=document.querySelector('#status');const list=document.querySelector('#apis');const spin=document.querySelector('#spin');const build=document.querySelector('#build');const fallback=document.querySelector('#fallback');const fallbackStatus=document.querySelector('#fallback-status');const buildPrompt=document.querySelector('#build-prompt');const copyPrompt=document.querySelector('#copy-prompt');const resumeTimerButton=document.querySelector('#resume-timer');const creation=document.querySelector('#creation');const creationStatus=document.querySelector('#creation-status');const creationFrame=document.querySelector('#creation-frame');const creationLink=document.querySelector('#creation-link');let run=null;let timer=null;let timerState=null;let pollTimer=null;let activeWidgetRunId=null;let revealToken=0;const bridge=()=>window.openai||{};const text=(value)=>String(value??'');function save(){try{bridge().setWidgetState?.({runId:run?.runId||null,creationId:run?.creationId||null,selectedApis:run?.selectedApis||[],phase:run?.phase||null,statusUrl:run?.statusUrl||null,choreography:run?.choreography||null,deadlineAt:timerState?.finalAt||null,reSteered:Boolean(timerState?.reSteered),paused:Boolean(timerState?.paused)})}catch{}}
+(()=>{const status=document.querySelector('#status');const list=document.querySelector('#apis');const spin=document.querySelector('#spin');const build=document.querySelector('#build');const fallback=document.querySelector('#fallback');const fallbackStatus=document.querySelector('#fallback-status');const buildPrompt=document.querySelector('#build-prompt');const copyPrompt=document.querySelector('#copy-prompt');const resumeTimerButton=document.querySelector('#resume-timer');const creation=document.querySelector('#creation');const creationStatus=document.querySelector('#creation-status');const creationFrame=document.querySelector('#creation-frame');const creationLink=document.querySelector('#creation-link');const artifactContractPrompt=${JSON.stringify(WIDGET_CONTRACT_PROMPT)};let run=null;let timer=null;let timerState=null;let pollTimer=null;let activeWidgetRunId=null;let revealToken=0;const bridge=()=>window.openai||{};const text=(value)=>String(value??'');function save(){try{bridge().setWidgetState?.({runId:run?.runId||null,creationId:run?.creationId||null,selectedApis:run?.selectedApis||[],phase:run?.phase||null,statusUrl:run?.statusUrl||null,choreography:run?.choreography||null,deadlineAt:timerState?.finalAt||null,reSteered:Boolean(timerState?.reSteered),paused:Boolean(timerState?.paused)})}catch{}}
 function stopStatusPolling(){if(pollTimer)clearInterval(pollTimer);pollTimer=null}
 function ensureStatusPolling(){if(pollTimer||!run?.statusUrl)return;pollTimer=setInterval(async()=>{try{const response=await fetch(new URL(run.statusUrl,window.location.href));if(!response.ok)return;const next=await response.json();showRun(next,'status')}catch{}},3000)}
 function clearTimer(){if(timer)clearTimeout(timer);timer=null;timerState=null;save()}
 function pauseTimer(){if(timer)clearTimeout(timer);timer=null;if(timerState)timerState.paused=true;save()}
 function scheduleTimer(){if(!timerState||timerState.paused)return;const phase=timerState.phase;const target=Math.min(timerState.reSteered?timerState.finalAt:timerState.firstAt,timerState.absoluteAt||Infinity);timer=setTimeout(()=>{timer=null;if(!timerState||timerState.paused)return;if(!timerState.reSteered&&Date.now()<(timerState.absoluteAt||Infinity)){timerState.reSteered=true;timerState.finalAt=Math.min(timerState.absoluteAt||Infinity,Date.now()+(${JSON.stringify(CHOREOGRAPHY_DEADLINES)}[phase]?.finalMs||0));status.textContent='Still waiting for the '+phase+'…';save();void sendFollowUp(phase).catch((error)=>showFollowUpFallback(phase,error)).finally(()=>scheduleTimer())}else void recordTimeout()},Math.max(0,target-Date.now()))}
 function resumeTimer(){if(!timerState)return;timerState.paused=false;status.textContent='The model follow-up is pending…';scheduleTimer();save()}
-function followUpPrompt(phase){const runId=run?.runId||'unknown';if(phase==='concept')return 'Use Randomware run '+runId+': call get_run, then submit_concept, then submit the complete artifact via submit_artifact.';return 'Use Randomware run '+runId+': continue the '+phase+' phase with the required tool call and send the complete artifact in the tool argument, not prose.'}
+function followUpPrompt(phase){const runId=run?.runId||'unknown';if(phase==='concept')return 'Use Randomware run '+runId+': call get_run, then submit_concept, then submit the complete artifact via submit_artifact.\n\n'+artifactContractPrompt;const diagnostics=Array.isArray(run?.failure?.diagnostics)&&run.failure.diagnostics.length?run.failure.diagnostics:[run?.failure?.code||'the validator supplied no diagnostic detail'];return 'Artifact rejected for Randomware run '+runId+'. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: '+diagnostics.map(text).join('; ')+'\n\n'+artifactContractPrompt}
 function logFollowUpApi(context){const api=bridge();const detail={context,sendFollowUpMessage:typeof api.sendFollowUpMessage,parentPostMessage:typeof window.parent?.postMessage,keys:Object.keys(api)};console.info('[Randomware] follow-up API',detail);return detail}
 async function sendFollowUp(phase){const prompt=followUpPrompt(phase);const api=bridge();const detail=logFollowUpApi(phase);if(detail.sendFollowUpMessage!=='function')throw new Error('sendFollowUpMessage unavailable');const result=await api.sendFollowUpMessage({prompt});if(result&&((result.ok===false)||(result.success===false)||result.error))throw new Error(text(result.error||'sendFollowUpMessage returned an unsuccessful result'));status.textContent=phase==='concept'?'Waiting for the model to build the specimen…':'Still waiting for the '+phase+'…';return result}
 function showFollowUpFallback(phase,error){const prompt=followUpPrompt(phase);fallback.hidden=false;fallbackStatus.textContent='Follow-up unavailable: '+text(error?.message||error)+'. Copy this prompt into the conversation, then resume the timer when you have pasted it.';buildPrompt.value=prompt;pauseTimer();status.textContent='The model follow-up could not be posted. Manual paste is ready.';save()}
@@ -44,7 +66,7 @@ function showRun(value,source='global'){const result=toolResult(value);if(!resul
 async function spinNow(){spin.disabled=true;status.textContent='Calling the bounded selector…';try{if(typeof bridge().callTool!=='function')throw new Error('ChatGPT widget bridge unavailable');showRun(await bridge().callTool('spin_apis',{seed:crypto.randomUUID(),requestId:crypto.randomUUID()}),'widget')}catch(error){status.textContent='The slot failed honestly: '+text(error.message)}finally{spin.disabled=false}}
 spin.addEventListener('click',spinNow);build.addEventListener('click',()=>{startTimer('concept');fallback.hidden=true;status.textContent='Asking the model to build the specimen…';void sendFollowUp('concept').catch((error)=>showFollowUpFallback('concept',error));});copyPrompt.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(buildPrompt.value);fallbackStatus.textContent='Prompt copied. Paste it into the conversation, then resume the timer.'}catch{buildPrompt.focus();buildPrompt.select();fallbackStatus.textContent='Clipboard access was unavailable; the prompt is selected for manual copy.'}});resumeTimerButton.addEventListener('click',()=>{fallback.hidden=true;resumeTimer()});
 const savedState=bridge().widgetState||{};activeWidgetRunId=savedState.runId||null;if(savedState.runId)run={runId:savedState.runId,creationId:savedState.creationId||null,selectedApis:savedState.selectedApis||[],phase:savedState.phase||'spinned',statusUrl:savedState.statusUrl||null,choreography:savedState.choreography||null};if(run)ensureStatusPolling();showRun(bridge().toolOutput);if(savedState.creationId)showCreation({creationId:savedState.creationId,phase:'completed'});window.addEventListener('openai:set_globals',(event)=>showRun(event.detail?.globals?.toolOutput||event.detail?.globals?.toolResponseMetadata?.mcp_tool_result),{passive:true});})();
-</script></body></html>`;
+</script><!-- ${WIDGET_CONTRACT_PROMPT} --></body></html>`;
 
 function chooseProtocolVersion(requested) {
   return SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : MCP_PROTOCOL_VERSION;
@@ -55,7 +77,7 @@ function initializeResult(params = {}) {
     protocolVersion: chooseProtocolVersion(params.protocolVersion),
     capabilities: { tools: { listChanged: false }, resources: { subscribe: false, listChanged: false } },
     serverInfo: { name: 'randomware', title: 'Randomware', version: '0.1.0' },
-    instructions: 'Call open_randomware first to mount the persistent Randomware widget. The widget calls spin_apis directly; then follow the concept and artifact tool choreography.'
+    instructions: promptSurface('Call open_randomware first to mount the persistent Randomware widget. The widget calls spin_apis directly; then follow the concept and artifact tool choreography.')
   };
 }
 
@@ -106,11 +128,17 @@ module.exports = {
   MCP_RESOURCE_MIME,
   CHOREOGRAPHY_DEADLINES,
   initializeResult,
+  conceptAcceptedPrompt,
+  artifactRepairPrompt,
+  artifactContractPrompt,
+  toolDescription,
+  ARTIFACT_CONTRACT_LITERALS,
   widgetResource,
   resourceSummary,
   widgetToolMeta,
   widgetToolResult,
   widgetBuildPrompt,
+  widgetRepairPrompt,
   jsonRpcError,
   callToolResult
 };

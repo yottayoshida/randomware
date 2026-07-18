@@ -12,7 +12,7 @@ const { CapabilitySigner } = require('./core/capability');
 const { validateConcept } = require('./core/concept');
 const { escapeHtml } = require('./core/artifact');
 const { deathCertificate } = require('./core/failure');
-const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult } = require('./core/mcp');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult, toolDescription, conceptAcceptedPrompt, artifactRepairPrompt } = require('./core/mcp');
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
@@ -51,16 +51,16 @@ function securityHeaders(csp) {
 }
 
 function createMcpTools(app) {
-  const schema = (name, description) => ({ name, description, inputSchema: toolSchemas[name], annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
+  const schema = (name) => ({ name, description: toolDescription(name), inputSchema: toolSchemas[name], annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
   return [
-    { ...schema('open_randomware', 'Use this to mount the Randomware slot machine.'), _meta: widgetToolMeta() },
-    schema('spin_apis', 'Use this to select a fresh bounded API collision.'),
-    schema('submit_concept', 'Use this after spin_apis to submit the complete concept contract.'),
-    schema('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.'),
-    schema('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.'),
-    schema('get_run', 'Use this to recover a run snapshot.'),
-    schema('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.'),
-    schema('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.')
+    { ...schema('open_randomware'), _meta: widgetToolMeta() },
+    schema('spin_apis'),
+    schema('submit_concept'),
+    schema('submit_artifact'),
+    schema('submit_repair'),
+    schema('get_run'),
+    schema('mutate_creation'),
+    schema('record_choreography_failure')
   ];
 }
 
@@ -217,11 +217,11 @@ async function handleMcp(req, res, app) {
     if (name === 'submit_concept') {
       app.store.noteActivity(args.runId, Date.now(), [phases.SPINNED]); const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
       if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) });
-      const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `Concept accepted for ${args.runId}.`) });
+      const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), conceptAcceptedPrompt(args.runId)) });
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
       app.store.noteActivity(args.runId, Date.now(), name === 'submit_repair' ? [phases.REPAIR_REQUESTED] : [phases.CONCEPT_ACCEPTED, phases.BUILDING]); const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis });
-      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, failureArgs); else app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); }
+      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, failureArgs); else app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics }), { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
       return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
     }

@@ -6,7 +6,7 @@ const { RunStore } = require('./core/store');
 const { Broker } = require('./core/broker');
 const { CapabilitySigner } = require('./core/capability');
 const { deathCertificate } = require('./core/failure');
-const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult } = require('./core/mcp');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult, toolDescription, conceptAcceptedPrompt, artifactRepairPrompt } = require('./core/mcp');
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
@@ -41,17 +41,17 @@ function failure(run) {
 }
 
 function tools() {
-  const base = (name, description, properties, required = []) => ({ name, description, inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
-  const schema = (name, description) => ({ ...base(name, description, toolSchemas[name].properties, toolSchemas[name].required), inputSchema: toolSchemas[name] });
+  const base = (name, properties, required = []) => ({ name, description: toolDescription(name), inputSchema: { type: 'object', properties, required }, annotations: { readOnlyHint: ['open_randomware', 'get_run'].includes(name), openWorldHint: !['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure'].includes(name), destructiveHint: false } });
+  const schema = (name) => ({ ...base(name, toolSchemas[name].properties, toolSchemas[name].required), inputSchema: toolSchemas[name] });
   return [
-    { ...schema('open_randomware', 'Use this to mount the Randomware slot machine.'), _meta: widgetToolMeta() },
-    schema('spin_apis', 'Use this to select a fresh bounded API collision.'),
-    schema('submit_concept', 'Use this after spin_apis to submit the complete concept contract.'),
-    schema('submit_artifact', 'Use this after concept acceptance to submit one complete HTML artifact.'),
-    schema('submit_repair', 'Use this once after a validation or boot failure to submit one complete replacement artifact.'),
-    schema('get_run', 'Use this to recover a run snapshot.'),
-    schema('mutate_creation', 'Use this to ask for a different concept while preserving the selected API set.'),
-    schema('record_choreography_failure', 'Use this to close a silent or noncompliant phase after its absolute deadline.')
+    { ...schema('open_randomware'), _meta: widgetToolMeta() },
+    schema('spin_apis'),
+    schema('submit_concept'),
+    schema('submit_artifact'),
+    schema('submit_repair'),
+    schema('get_run'),
+    schema('mutate_creation'),
+    schema('record_choreography_failure')
   ];
 }
 
@@ -80,8 +80,8 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         if (input.method === 'tools/call') {
           const name = input.params?.name; const args = input.params?.arguments || {};
           if (name === 'get_run') { await callStore('noteActivity', args.runId); const run = await callStore('getRun', args.runId); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(run), `Run ${run.id} is ${run.phase}.`) }); }
-          if (name === 'submit_concept') { await callStore('noteActivity', args.runId, Date.now(), ['spinned']); const run = await callStore('getRun', args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] }); if (!check.ok) return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) }); const accepted = await callStore('acceptConcept', args.runId, concept); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(accepted), `Concept accepted for ${args.runId}.`) }); }
-          if (name === 'submit_artifact' || name === 'submit_repair') { await callStore('noteActivity', args.runId, Date.now(), name === 'submit_repair' ? ['repair_requested'] : ['concept_accepted', 'building']); const run = await callStore('getRun', args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis }); if (!check.ok) { const failureArgs = { requestId: args.requestId || seed(), code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') await callStore('recordRepairFailure', args.runId, failureArgs); else await callStore('recordArtifactFailure', args.runId, failureArgs); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); } const accepted = name === 'submit_repair' ? await callStore('acceptRepair', args.runId, { requestId: args.requestId || seed(), html: args.html, sha256: check.sha256, bytes: check.bytes }) : await callStore('acceptArtifact', args.runId, { requestId: args.requestId || seed(), html: args.html, sha256: check.sha256, bytes: check.bytes }); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) }); }
+          if (name === 'submit_concept') { await callStore('noteActivity', args.runId, Date.now(), ['spinned']); const run = await callStore('getRun', args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] }); if (!check.ok) return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) }); const accepted = await callStore('acceptConcept', args.runId, concept); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(accepted), conceptAcceptedPrompt(args.runId)) }); }
+          if (name === 'submit_artifact' || name === 'submit_repair') { await callStore('noteActivity', args.runId, Date.now(), name === 'submit_repair' ? ['repair_requested'] : ['concept_accepted', 'building']); const run = await callStore('getRun', args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis }); if (!check.ok) { const failureArgs = { requestId: args.requestId || seed(), code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') await callStore('recordRepairFailure', args.runId, failureArgs); else await callStore('recordArtifactFailure', args.runId, failureArgs); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics }), { isError: true }) }); } const accepted = name === 'submit_repair' ? await callStore('acceptRepair', args.runId, { requestId: args.requestId || seed(), html: args.html, sha256: check.sha256, bytes: check.bytes }) : await callStore('acceptArtifact', args.runId, { requestId: args.requestId || seed(), html: args.html, sha256: check.sha256, bytes: check.bytes }); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) }); }
           if (name === 'mutate_creation') { const run = await callStore('findByCreation', args.creationId); const result = { ok: true, creationId: run.creationId, apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' }; return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(result, `Mutation recorded for ${run.creationId}.`) }); }
           if (name === 'record_choreography_failure') { const failed = await callStore('fail', args.runId, args.code || 'choreography_timeout', args.phase); return response({ jsonrpc: '2.0', id: input.id, result: callToolResult(summary(failed), `Failure recorded for ${args.runId}.`) }); }
         }
