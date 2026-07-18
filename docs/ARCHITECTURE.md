@@ -422,7 +422,7 @@ D1 `api_health` holds `api_id`, `registry_version`, `status` (`healthy`, `degrad
 
 ### 7.2 Launch set and recorded changes
 
-The launch target is 14 APIs. Every entry remains disabled until its implementation-time live, terms, attribution, and asset-domain check passes.
+The launch target is 18 APIs. Every entry remains disabled until its implementation-time live, terms, attribution, and asset-domain check passes.
 
 | API | Source set | Decision and constraints |
 |---|---|---|
@@ -440,19 +440,25 @@ The launch target is 14 APIs. Every entry remains disabled until its implementat
 | Met Museum | backup | promote; only `isPublicDomain` objects/images, CC0 source |
 | Nager.Date | backup | promote; small public-holiday response, MIT project attribution |
 | TVMaze | backup | promote; public endpoints only, 20 calls/10 s ceiling, link attribution, CC BY-SA notice |
+| [Rick and Morty API](https://rickandmortyapi.com/documentation) | round 3 | promote for the noncommercial competition demo under its [BSD/open-source notice](https://rickandmortyapi.com/about); use fixed REST character GETs, credit the API and Adult Swim, proxy only same-host avatars, and never persist or transform them |
+| [Open Food Facts](https://openfoodfacts.github.io/openfoodfacts-server/api/) | round 3 | promote; use v3 product-by-code GETs with an explicit `fields` list, never the search endpoints, send a custom user agent, stay at or below 10 rpm, preserve ODbL/DbCL and image CC BY-SA attribution, and proxy only `images.openfoodfacts.org` assets |
+| [LibriVox](https://librivox.org/api/info) | round 3 | promote; request bounded catalog/audiotrack fields, strip returned HTML, credit LibriVox and the reader, and proxy one [public-domain](https://librivox.org/pages/public-domain/) section for at most 90 seconds through signed media restricted to `archive.org` and validated `*.us.archive.org` redirects; no audio caching |
+| [TheMealDB](https://www.themealdb.com/terms_of_use.php) | primary, reconfirmed | promote for this noncommercial competition web demo under the free-key development terms; use [official v1 GET endpoints](https://www.themealdb.com/docs_api_guide.php) and key `1`, credit TheMealDB, proxy only `www.themealdb.com` images, and disable before app-store or post-demo production use without a supporter key |
 
-The following verified primaries are not launched:
+The following verified candidates are not launched:
 
 - Open Library: 3.4-second observed latency makes it a demo-path risk.
 - PokéAPI: roughly 290 KB responses and unbounded `raw.githubusercontent.com` sprite paths add disproportionate mediation risk.
 - Advice Slip: no clear API-specific terms were found during the design pass.
 - REST Countries: terms updated on 2026-07-10 introduce account/key language and three-day retention constraints inconsistent with the key-free registry assumption.
-- TheMealDB: the public key `1` is not activated until demo/public-use terms are confirmed.
 - iTunes Search: preview terms restrict audio to promotion and prohibit independent entertainment value, which conflicts with Randomware. It is spike-only and never stored/cached.
+- [Foodish](https://github.com/surhud004/Foodish): reject because a single random image is too thin and the MIT code license does not resolve the upstream dataset images' ownership and attribution.
+- [Deezer](https://developers.deezer.com/termsofuse): reject because its developer terms limit listening to private family use, which is incompatible with public generated creations.
+- [Gutendex](https://github.com/garethbjohnson/gutendex): reject because 6.3–13.8-second uncached responses are a core demo-path risk, and its official project recommends self-hosting rather than relying on the public test instance.
 
 ISS APIs remain excluded from the launch set. `api.wheretheiss.at` measured 9–10 seconds; `api.open-notify.org` is HTTP-only. The design does not reintroduce either on the core path.
 
-If any of the 14 launch entries fails its implementation-time terms or health check, it is disabled rather than replaced ad hoc. The launch may proceed with 12–18 enabled entries and must stop below 10.
+If any of the 18 launch entries fails its implementation-time terms or health check, it is disabled rather than replaced ad hoc. The launch may proceed with 12–18 enabled entries and must stop below 10.
 
 The registry's policy fields start from these official sources, checked on 2026-07-18: [Deck of Cards](https://deckofcardsapi.com/), [PoetryDB](https://github.com/thundercomb/poetrydb), [Datamuse](https://www.datamuse.com/api/), [Art Institute of Chicago](https://api.artic.edu/docs/), [Dog API](https://dog.ceo/dog-api/about), [Radio Browser](https://docs.radio-browser.info/), [Open-Meteo terms](https://open-meteo.com/en/terms), [Frankfurter](https://frankfurter.dev/), [RandomUser](https://randomuser.me/documentation), [Wikimedia REST policy](https://www.mediawiki.org/wiki/API:REST_API/Policies), [USGS Earthquake API](https://earthquake.usgs.gov/fdsnws/event/1/), [Met Open Access](https://www.metmuseum.org/about-the-met/policies-and-documents/open-access), [Nager.Date](https://github.com/nager/Nager.Date), and [TVMaze](https://www.tvmaze.com/api). The excluded-entry decisions use [REST Countries terms](https://restcountries.com/legal/terms-of-service), [iTunes Search API terms](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/), and the live-verification evidence in `api-candidates/`.
 
