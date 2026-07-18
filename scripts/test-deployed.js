@@ -46,7 +46,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const artifactFor = (run, label) => createArtifact({ appName: `MCP ${label}`, selected: run.selectedApis.map((api) => ({ apiId: api.id, operationId: api.operations[0].id })) });
   const testTag = `${Date.now()}-${randomUUID()}`;
   const mounted = await call(6, 'open_randomware'); if (mounted.structuredContent?.ok !== true) throw new Error('open_randomware_result_failed');
-  const spun = await call(7, 'spin_apis', { seed: `${testTag}-spin-1`, requestId: `${testTag}-spin-1` }); const run = spun.structuredContent; if (!run?.runId || !run.selectedApis?.length) throw new Error('spin_apis_result_failed');
+  const spun = await call(7, 'spin_apis', { seed: 'randomware-broker-e2e', requestId: `${testTag}-spin-1` }); const run = spun.structuredContent; if (!run?.runId || !run.selectedApis?.length) throw new Error('spin_apis_result_failed');
   const recovered = await call(8, 'get_run', { runId: run.runId }); if (recovered.structuredContent?.runId !== run.runId) throw new Error('get_run_result_failed');
   const concept = await call(9, 'submit_concept', conceptFor(run, 'primary', `${testTag}-primary-concept`)); if (concept.structuredContent?.phase !== 'concept_accepted') throw new Error('submit_concept_result_failed');
   const artifact = await call(10, 'submit_artifact', { runId: run.runId, requestId: `${testTag}-artifact`, html: artifactFor(run, 'primary') }); if (artifact.structuredContent?.phase !== 'completed') throw new Error('submit_artifact_result_failed');

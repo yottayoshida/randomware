@@ -19,9 +19,12 @@ function bounded(value, depth = 0) {
 }
 
 function radioAdapter(value) {
-  const station = (Array.isArray(value) ? value : []).find((candidate) => candidate && typeof candidate.url_resolved === 'string');
-  if (!station) throw new Error('media_audio_source_missing');
-  const resolved = validateMediaUrl(station.url_resolved, { kind: 'radio-browser' });
+  let station; let resolved; let rejection;
+  for (const candidate of (Array.isArray(value) ? value : [])) {
+    if (!candidate || typeof candidate.url_resolved !== 'string') continue;
+    try { resolved = validateMediaUrl(candidate.url_resolved, { kind: 'radio-browser' }); station = candidate; break; } catch (error) { rejection = error; }
+  }
+  if (!station || !resolved) throw rejection || new Error('media_audio_source_missing');
   return {
     data: { station: bounded({ name: station.name, codec: station.codec, bitrate: station.bitrate, country: station.country, tags: station.tags, homepage: station.homepage }), media: { kind: 'audio', codec: station.codec || null } },
     mediaCandidate: { kind: 'radio-browser', resolvedUrl: resolved.toString() }
