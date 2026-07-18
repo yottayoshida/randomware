@@ -58,9 +58,10 @@ const ARTIFACT_CONTRACT = deepFreeze({
 const CAPABILITY_CONTRACT = deepFreeze({
   ttlMs: 600000,
   quotas: { jsonCalls: 30, concurrentJson: 2, adaptedBytes: 1048576 },
+  asset: { ttlMs: 600000, maxBytesEach: 2097152, maxBytesPerPage: 8388608, maxRedirects: 2 },
   media: { ttlMs: 300000, maxBytes: 8388608, concurrentStreams: 1, maxRedirects: 2 },
   bindings: ['creationId', 'revision', 'apiId', 'operationId'],
-  semanticRules: ['signed token required', 'expiration required', 'selected operation binding required', 'media URL must be the exact server-resolved URL']
+  semanticRules: ['signed token required', 'expiration required', 'selected operation binding required', 'asset and media URLs must be the exact server-resolved URL']
 });
 
 const BANNED_SHAPE_PHRASES = deepFreeze([

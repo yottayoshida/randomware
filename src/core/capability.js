@@ -19,6 +19,11 @@ class CapabilitySigner {
     return `${b64(payload)}.${this.sign(payload)}`;
   }
 
+  issueAsset({ tokenId, pageId, creationId, revision, apiId, operationId, resolvedUrl, now = Date.now(), ttlMs = CAPABILITY_CONTRACT.asset.ttlMs, maxBytes = CAPABILITY_CONTRACT.asset.maxBytesEach }) {
+    const payload = JSON.stringify({ kind: 'asset', tokenId, pageId, creationId, revision, apiId, operationId, resolvedUrl, issuedAt: now, expiresAt: now + ttlMs, maxBytes });
+    return `${b64(payload)}.${this.sign(payload)}`;
+  }
+
   verify(token, { now = Date.now(), creationId, revision, apiId, operationId } = {}) {
     const [encoded, signature] = String(token).split('.');
     if (!encoded || !signature) throw new Error('capability_invalid');
@@ -42,6 +47,18 @@ class CapabilitySigner {
     try { data = JSON.parse(payload); } catch { throw new Error('media_capability_invalid'); }
     if (data.kind !== 'media' || !data.tokenId || !data.resolvedUrl || now >= data.expiresAt || (tokenId && data.tokenId !== tokenId) || (creationId && data.creationId !== creationId) || (revision && data.revision !== revision)) throw new Error('media_capability_invalid');
     if (!Number.isInteger(data.maxBytes) || data.maxBytes <= 0) throw new Error('media_capability_invalid');
+    return data;
+  }
+
+  verifyAsset(token, { now = Date.now(), tokenId, creationId, revision } = {}) {
+    const [encoded, signature] = String(token).split('.');
+    if (!encoded || !signature) throw new Error('asset_capability_invalid');
+    const payload = unb64(encoded); const expected = this.sign(payload); const actual = Buffer.from(signature); const expectedBytes = Buffer.from(expected);
+    if (actual.length !== expectedBytes.length || !crypto.timingSafeEqual(actual, expectedBytes)) throw new Error('asset_capability_invalid');
+    let data;
+    try { data = JSON.parse(payload); } catch { throw new Error('asset_capability_invalid'); }
+    if (data.kind !== 'asset' || !data.tokenId || !data.pageId || !data.resolvedUrl || now >= data.expiresAt || (tokenId && data.tokenId !== tokenId) || (creationId && data.creationId !== creationId) || (revision && data.revision !== revision)) throw new Error('asset_capability_invalid');
+    if (!Number.isInteger(data.maxBytes) || data.maxBytes <= 0 || data.maxBytes > CAPABILITY_CONTRACT.asset.maxBytesEach) throw new Error('asset_capability_invalid');
     return data;
   }
 }

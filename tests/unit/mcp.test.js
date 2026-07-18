@@ -67,6 +67,9 @@ test('widget opens a routable creation in-frame and exposes an openExternal fall
   assert.match(widget, /\/c\//);
   assert.match(widget, /openExternal\(\{href/);
   assert.match(widget, /Download or open the creation/);
+  assert.match(widget, /https:\/\/randomware\.example/);
+  assert.doesNotMatch(widget, /new URL\(run\.statusUrl,window\.location/);
+  assert.doesNotMatch(widget, /window\.location\.origin/);
 });
 
 test('widget refreshes server-owned choreography deadlines and clears stale phase state on repair', () => {

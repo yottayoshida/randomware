@@ -3,7 +3,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { URL } = require('node:url');
-const { registry } = require('./core/registry');
+const { registry, getRegistryEntry } = require('./core/registry');
 const { selectApis } = require('./core/selection');
 const { validateArtifact } = require('./core/validator');
 const { RunStore, phases } = require('./core/store');
@@ -16,7 +16,9 @@ const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, wid
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
+const { fetchAsset, limitedAssetStream, ASSET_LIMITS } = require('./core/asset');
 const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
+const { companionUrl, runUrls } = require('./core/urls');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -40,9 +42,9 @@ async function body(req) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
-function runSummary(run) {
+function runSummary(run, origin) {
   return {
-    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, statusUrl: `/api/runs/${run.id}`, phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
+    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, ...runUrls(run, origin), phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
     concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount
   };
 }
@@ -76,6 +78,15 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
       if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
+      const assetMatch = url.pathname.match(/^\/api\/runtime\/asset\/([^/]+)$/);
+      if (assetMatch && req.method === 'GET') {
+        const assetToken = signer.verifyAsset(decodeURIComponent(assetMatch[1])); const stored = store.getAssetToken(assetToken.tokenId);
+        if (stored.pageId !== assetToken.pageId || stored.resolvedUrl !== assetToken.resolvedUrl || stored.creationId !== assetToken.creationId || stored.revision !== assetToken.revision || stored.apiId !== assetToken.apiId || stored.operationId !== assetToken.operationId) throw new Error('asset_capability_invalid');
+        const upstream = await fetchAsset({ target: stored.resolvedUrl, policy: getRegistryEntry(stored.apiId).assetPolicy, fetcher: broker.fetcher || globalThis.fetch }); const reservation = upstream.contentLength == null ? ASSET_LIMITS.bytesEach : upstream.contentLength; store.reserveAsset(assetToken.tokenId, reservation);
+        const stream = limitedAssetStream(upstream.response.body, Math.min(assetToken.maxBytes, ASSET_LIMITS.bytesEach), (bytes) => store.finishAsset(assetToken.tokenId, bytes));
+        res.writeHead(200, { 'content-type': upstream.contentType, 'cache-control': 'private, no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'cross-origin', 'content-security-policy': "default-src 'none'; sandbox", ...(upstream.contentLength == null ? {} : { 'content-length': String(upstream.contentLength) }) });
+        const reader = stream.getReader(); try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); } catch { res.destroy(); } return;
+      }
       const mediaMatch = url.pathname.match(/^\/media\/([^/]+)$/);
       if (mediaMatch && req.method === 'GET') {
         const mediaToken = signer.verifyMedia(decodeURIComponent(mediaMatch[1]));
@@ -97,36 +108,36 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         if (req.method === 'OPTIONS') { res.writeHead(204, runtimeCors); return res.end(); }
         if (req.method === 'POST') {
           const input = await body(req); const run = store.findByCreation(input.creationId); if (run.unpublished) throw new Error('creation_unpublished'); const capability = signer.verify(input.capability, { creationId: input.creationId, revision: input.revision, apiId: input.apiId, operationId: input.operationId }); store.assertRuntimeQuota(run.id, capability.quotas);
-          const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {}, media: { origin: `http://${req.headers.host || 'localhost'}`, runId: run.id, creationId: run.creationId, revision: input.revision, tokenSigner: signer, mediaStore: store } }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, runtimeCors);
+          const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {}, media: { origin: url.origin, runId: run.id, creationId: run.creationId, revision: input.revision, capability, tokenSigner: signer, mediaStore: store } }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, runtimeCors);
         }
       }
       if (req.method === 'POST' && url.pathname === '/api/spin') {
         const input = await body(req); const selected = selectApis({ seed: input.seed || cryptoSeed(), registry, history: input.history || [] });
         const run = store.createRun({ requestId: input.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] });
-        return json(res, 200, { ...runSummary(run), runId: run.id, statusUrl: `/api/runs/${run.id}`, disclosure: 'Building publishes this experimental AI-generated app at a public URL.' });
+        return json(res, 200, { ...runSummary(run, url.origin), disclosure: 'Building publishes this experimental AI-generated app at a public URL.' });
       }
       const rerollMatch = url.pathname.match(/^\/api\/runs\/([^/]+)\/reroll$/);
-      if (req.method === 'POST' && rerollMatch) { const input = await body(req); store.noteActivity(rerollMatch[1]); return json(res, 200, runSummary(store.rerollConcept(rerollMatch[1], input))); }
+      if (req.method === 'POST' && rerollMatch) { const input = await body(req); store.noteActivity(rerollMatch[1]); return json(res, 200, runSummary(store.rerollConcept(rerollMatch[1], input), url.origin)); }
       const runMatch = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(concept|artifact|repair))?$/);
       if (runMatch) {
         const runId = runMatch[1]; const action = runMatch[2];
         if (req.method === 'OPTIONS' && !action) { res.writeHead(204, publicReadCors); return res.end(); }
-        if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId)), publicReadCors);
+        if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId), url.origin), publicReadCors);
         if (req.method === 'POST' && action === 'concept') {
           const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) };
           const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
           if (!check.ok) return json(res, 422, check);
-          const accepted = store.acceptConcept(runId, concept); return json(res, 200, runSummary(accepted));
+          const accepted = store.acceptConcept(runId, concept); return json(res, 200, runSummary(accepted, url.origin));
         }
         if (req.method === 'POST' && action === 'artifact') {
           const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis, declaredApiUses: input.declaredApiUses });
-          if (!result.ok) { const failed = store.recordArtifactFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: result.code, diagnostics: result.diagnostics, ...runSummary(failed) }); }
-          const accepted = store.acceptArtifact(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
+          if (!result.ok) { const failed = store.recordArtifactFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: result.code, diagnostics: result.diagnostics, ...runSummary(failed, url.origin) }); }
+          const accepted = store.acceptArtifact(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted, url.origin) });
         }
         if (req.method === 'POST' && action === 'repair') {
           const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const result = validateArtifact(input.html, { selectedApis: run.selectedApis, declaredApiUses: input.declaredApiUses });
-          if (!result.ok) { const failed = store.recordRepairFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: 'repair_failed', diagnostics: result.diagnostics, ...runSummary(failed) }); }
-          const accepted = store.acceptRepair(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted) });
+          if (!result.ok) { const failed = store.recordRepairFailure(runId, { requestId: input.requestId || cryptoSeed(), code: result.code, html: input.html, bytes: result.bytes, sha256: result.sha256 }); return json(res, 422, { ok: false, code: 'repair_failed', diagnostics: result.diagnostics, ...runSummary(failed, url.origin) }); }
+          const accepted = store.acceptRepair(runId, { requestId: input.requestId || cryptoSeed(), html: input.html, sha256: result.sha256, bytes: result.bytes }); return json(res, 200, { ok: true, creationId: accepted.creationId, ...runSummary(accepted, url.origin) });
         }
       }
       const creationMatch = url.pathname.match(/^\/(c|run)\/([^/]+)$/);
@@ -214,21 +225,21 @@ async function handleMcp(req, res, app) {
     const name = input.params?.name; const args = input.params?.arguments || {};
     const contract = validateToolArguments(name, args); if (!contract.ok) return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: contract.code, message: 'invalid_tool_input', data: { diagnostics: contract.diagnostics } } });
     if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
-    if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Selected ${run.selectedApis.length} APIs.`) }); }
-    if (name === 'get_run') { app.store.noteActivity(args.runId); const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Run ${run.id} is ${run.phase}.`) }); }
+    if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run, origin), `Selected ${run.selectedApis.length} APIs.`) }); }
+    if (name === 'get_run') { app.store.noteActivity(args.runId); const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run, origin), `Run ${run.id} is ${run.phase}.`) }); }
     if (name === 'submit_concept') {
       app.store.noteActivity(args.runId, Date.now(), [phases.SPINNED]); const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
-      if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) });
-      const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), conceptAcceptedPrompt(args.runId)) });
+      if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...runSummary(run, origin), ...check }, `Concept rejected: ${check.code}.`, { isError: true }) });
+      const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted, origin), conceptAcceptedPrompt(args.runId)) });
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
       app.store.noteActivity(args.runId, Date.now(), name === 'submit_repair' ? [phases.REPAIR_REQUESTED] : [phases.CONCEPT_ACCEPTED, phases.BUILDING]); const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis, declaredApiUses: args.declaredApiUses });
-      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, failureArgs); else app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics }), { isError: true }) }); }
+      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; const failed = name === 'submit_repair' ? app.store.recordRepairFailure(args.runId, failureArgs) : app.store.recordArtifactFailure(args.runId, failureArgs); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...runSummary(failed, origin), ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics }), { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
-      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
+      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted, origin), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
     }
-    if (name === 'mutate_creation') { const run = app.store.findByCreation(args.creationId); const result = { ok: true, creationId: run.creationId, apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' }; return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(result, `Mutation recorded for ${run.creationId}.`) }); }
-    if (name === 'record_choreography_failure') { const failed = app.store.fail(args.runId, args.code || 'choreography_timeout', args.phase); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(failed), `Failure recorded for ${args.runId}.`) }); }
+    if (name === 'mutate_creation') { const run = app.store.findByCreation(args.creationId); const result = { ok: true, creationId: run.creationId, creationUrl: companionUrl(origin, `/c/${encodeURIComponent(run.creationId)}`), apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' }; return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(result, `Mutation recorded for ${run.creationId}.`) }); }
+    if (name === 'record_choreography_failure') { const failed = app.store.fail(args.runId, args.code || 'choreography_timeout', args.phase); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(failed, origin), `Failure recorded for ${args.runId}.`) }); }
   }
   return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: -32601, message: 'method_not_supported' } });
 }

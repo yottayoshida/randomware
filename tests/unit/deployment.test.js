@@ -11,4 +11,5 @@ test('Worker deployment manifest points to static assets, D1, and an hourly heal
   assert.match(fs.readFileSync('migrations/0001_initial.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS runs/);
   assert.match(fs.readFileSync('migrations/0002_run_metadata.sql', 'utf8'), /ALTER TABLE runs ADD COLUMN metadata_json/);
   assert.match(fs.readFileSync('migrations/0003_media_tokens.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS media_tokens/);
+  assert.match(fs.readFileSync('migrations/0004_asset_tokens.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS asset_tokens/);
 });

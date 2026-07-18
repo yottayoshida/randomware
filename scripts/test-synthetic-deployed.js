@@ -197,6 +197,10 @@ async function runSynthetic(base) {
     if (expectedStatus === 200) {
       assert.ok(Array.isArray(body.result?.content) && body.result.content.every((block) => block.type === 'text' && block.text.trim()), `call_tool_content:${name}`);
       assert.ok(Object.prototype.hasOwnProperty.call(body.result || {}, 'structuredContent'), `call_tool_structured:${name}`);
+      const output = body.result.structuredContent;
+      if (output?.statusUrl) { const statusUrl = new URL(output.statusUrl); assert.equal(statusUrl.protocol, 'https:'); assert.equal(statusUrl.origin, base); }
+      if (output?.creationUrl) { const creationUrl = new URL(output.creationUrl); assert.equal(creationUrl.protocol, 'https:'); assert.equal(creationUrl.origin, base); }
+      if (output?.creationId && ['completed', 'failed'].includes(output.phase)) assert.ok(output.creationUrl, `creation_url_missing:${name}`);
     }
     return body;
   };
@@ -213,7 +217,7 @@ async function runSynthetic(base) {
   const acceptedRun = concept.result.structuredContent;
   const artifactArgs = modelValue(byName.submit_artifact.inputSchema, { run: acceptedRun, tag, requestLabel: 'artifact', html });
   const artifact = await call('submit_artifact', artifactArgs); assert.equal(artifact.result.structuredContent.phase, 'completed'); const completed = artifact.result.structuredContent;
-  const status = await fetch(`${base}${completed.statusUrl}`); assert.equal(status.status, 200); assert.equal((await status.json()).creationId, completed.creationId);
+  const status = await fetch(completed.statusUrl); assert.equal(status.status, 200); const statusBody = await status.json(); assert.equal(statusBody.creationId, completed.creationId); assert.equal(new URL(statusBody.statusUrl).origin, base); assert.equal(new URL(statusBody.creationUrl).origin, base);
 
   const runtime = await fetch(`${base}/run/${completed.creationId}`); const runtimeHtml = await runtime.text(); const tokenLiteral = runtimeHtml.match(/capability:("(?:\\.|[^"])*")/); assert.ok(tokenLiteral, 'audio_capability_missing'); const capability = JSON.parse(tokenLiteral[1]);
   let audioEvidence = null; const audioFailures = [];

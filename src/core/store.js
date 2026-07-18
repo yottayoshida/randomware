@@ -11,6 +11,8 @@ class RunStore {
     this.requestIndex = new Map();
     this.runtimeRequests = [];
     this.mediaTokens = new Map();
+    this.assetTokens = new Map();
+    this.assetPages = new Map();
   }
 
   listCreations() {
@@ -145,6 +147,32 @@ class RunStore {
     record.active = false;
     record.bytesServed = Math.min(record.maxBytes, record.bytesServed + Math.max(0, Number(bytes) || 0));
     return record;
+  }
+
+  createAssetToken(runId, record) {
+    this.getRun(runId);
+    this.assetTokens.set(record.tokenId, { ...record, runId, reservedBytes: 0, bytesServed: 0, used: false });
+    if (!this.assetPages.has(record.pageId)) this.assetPages.set(record.pageId, { pageId: record.pageId, maxBytes: record.pageMaxBytes, reservedBytes: 0, bytesServed: 0 });
+    return record;
+  }
+
+  getAssetToken(tokenId) {
+    const record = this.assetTokens.get(tokenId);
+    if (!record) throw new Error('asset_token_not_found');
+    return record;
+  }
+
+  reserveAsset(tokenId, requestedBytes) {
+    const record = this.getAssetToken(tokenId); const page = this.assetPages.get(record.pageId); const reservation = Math.min(record.maxBytes, Math.max(1, Number(requestedBytes) || record.maxBytes));
+    if (Date.now() >= record.expiresAt) throw new Error('asset_capability_invalid');
+    if (record.used || record.reservedBytes) throw new Error('asset_token_used');
+    if (page.bytesServed + page.reservedBytes + reservation > page.maxBytes) throw new Error('asset_page_bytes_cap');
+    record.reservedBytes = reservation; page.reservedBytes += reservation; return { ...record };
+  }
+
+  finishAsset(tokenId, bytes) {
+    const record = this.getAssetToken(tokenId); const page = this.assetPages.get(record.pageId); const served = Math.min(record.reservedBytes || record.maxBytes, Math.max(0, Number(bytes) || 0));
+    page.reservedBytes = Math.max(0, page.reservedBytes - record.reservedBytes); page.bytesServed += served; record.reservedBytes = 0; record.bytesServed = served; record.used = true; return { ...record };
   }
 
   reportCreation(creationId, reason = 'unspecified') {

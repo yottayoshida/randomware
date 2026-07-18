@@ -10,6 +10,19 @@ const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000)
   maxRawBytes: 200_000, cacheTtlSeconds: 30, adapt: 'bounded-json'
 });
 
+const assetPolicies = {
+  'deck-of-cards': { allowedHosts: ['deckofcardsapi.com', 'images.deckofcards.io'], resolvedPaths: ['cards.*.image', 'cards.*.images.png', 'cards.*.images.svg'] },
+  artic: { allowedHosts: ['www.artic.edu'], resolvedPaths: ['data.image_url', 'data.*.image_url'] },
+  'dog-ceo': { allowedHosts: ['images.dog.ceo'], resolvedPaths: ['message'] },
+  randomuser: { allowedHosts: ['randomuser.me'], resolvedPaths: ['results.*.picture.large', 'results.*.picture.medium', 'results.*.picture.thumbnail'] },
+  'wiki-onthisday': { allowedHosts: ['upload.wikimedia.org'], resolvedPaths: ['selected.*.pages.*.thumbnail.source', 'selected.*.pages.*.originalimage.source'] },
+  'met-museum': { allowedHosts: ['images.metmuseum.org'], resolvedPaths: ['primaryImage', 'primaryImageSmall', 'additionalImages.*'] },
+  tvmaze: { allowedHosts: ['static.tvmaze.com'], resolvedPaths: ['*.show.image.medium', '*.show.image.original'] },
+  rickandmorty: { allowedHosts: ['rickandmortyapi.com'], resolvedPaths: ['image'] },
+  'open-food-facts': { allowedHosts: ['images.openfoodfacts.org'], resolvedPaths: ['product.image_url'] },
+  themealdb: { allowedHosts: ['www.themealdb.com'], resolvedPaths: ['meals.*.strMealThumb'] }
+};
+
 const rows = [
   ['deck-of-cards', 'Deck of Cards', 'games', 'https://deckofcardsapi.com/', 'https://deckofcardsapi.com/', ['deckofcardsapi.com'], operation('draw', 'draw a card', '/api/deck/new/draw/?count=1', 'deck-of-cards.json')],
   ['poetrydb', 'PoetryDB', 'text', 'https://github.com/thundercomb/poetrydb', 'https://github.com/thundercomb/poetrydb', ['poetrydb.org'], operation('random', 'get a poem', '/random', 'poetrydb.json')],
@@ -34,7 +47,7 @@ const rows = [
 const registry = deepFreeze(rows.map(([id, name, category, docsUrl, termsUrl, upstreamHosts, op]) => ({
   id, name, category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [],
   docsUrl, termsUrl, attribution: { text: `${name} attribution`, url: docsUrl, license: 'provider terms' },
-  upstreamHosts, assetPolicy: { allowedHosts: upstreamHosts, resolvedPaths: [], variableMediaHost: category === 'audio' },
+  upstreamHosts, assetPolicy: { ...(assetPolicies[id] || { allowedHosts: [], resolvedPaths: [] }), variableMediaHost: category === 'audio' },
   fixturePath: `docs/api-candidates/samples/${op.fixturePath}`, defaultWeight: 1, dailyBudget: 250,
   operations: [op]
 })));

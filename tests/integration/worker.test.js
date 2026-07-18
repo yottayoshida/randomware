@@ -20,9 +20,12 @@ test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a lis
   assert.equal(spin.status, 200);
   const spinBody = await spin.json();
   assert.equal(spinBody.selectedApis.length === 2 || spinBody.selectedApis.length === 3, true);
+  assert.match(spinBody.statusUrl, /^https:\/\/randomware\.example\/api\/runs\//);
+  assert.equal(spinBody.creationUrl, null);
   const mcpSpin = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'spin_apis', arguments: { seed: 'mcp-worker', requestId: 'mcp-worker-spin' } } }) }));
   const mcpSpinBody = await mcpSpin.json();
   const mcpRunId = mcpSpinBody.result.structuredContent.runId;
+  assert.match(mcpSpinBody.result.structuredContent.statusUrl, /^https:\/\/randomware\.example\/api\/runs\//);
   const mcpGet = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'get_run', arguments: { runId: mcpRunId } } }) }));
   assert.equal((await mcpGet.json()).result.structuredContent.runId, mcpRunId);
 });
@@ -162,4 +165,27 @@ test('Worker media route applies the archive.org policy to LibriVox audio', asyn
   assert.equal(streamed.status, 200);
   assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
   assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3librivox-audio');
+});
+
+test('Worker asset route serves a signed allowlisted image and binds the page quota', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-asset-test-secret');
+  const fetcher = async (target) => {
+    assert.match(String(target), /^https:\/\/images\.dog\.ceo\//);
+    return new Response(Buffer.from('bounded-image'), { status: 200, headers: { 'content-type': 'image/jpeg', 'content-length': '13' } });
+  };
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true, fetcher }) });
+  const run = store.createRun({ requestId: 'asset-route-test', selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }] });
+  store.acceptConcept(run.id, { requestId: 'asset-route-concept', apiIds: ['dog-ceo'] });
+  store.acceptArtifact(run.id, { requestId: 'asset-route-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'dog-ceo', operationId: 'random' }] });
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', { method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' }, body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'dog-ceo', operationId: 'random', params: {}, capability }) }));
+  assert.equal(mediated.status, 200);
+  const assetUrl = (await mediated.json()).data.message;
+  assert.match(assetUrl, /^https:\/\/randomware\.example\/api\/runtime\/asset\//);
+  const asset = await fetchHandler(new Request(assetUrl));
+  assert.equal(asset.status, 200);
+  assert.equal(asset.headers.get('content-type'), 'image/jpeg');
+  assert.equal(asset.headers.get('cross-origin-resource-policy'), 'cross-origin');
+  assert.equal(Buffer.from(await asset.arrayBuffer()).toString(), 'bounded-image');
 });

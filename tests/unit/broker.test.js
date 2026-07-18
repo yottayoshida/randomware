@@ -38,6 +38,25 @@ test('LibriVox adapter returns bounded book metadata and an archive.org media UR
   assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-book-media-token');
 });
 
+test('image adapters replace raw fields in place with signed same-origin asset URLs', async () => {
+  const created = [];
+  const broker = new Broker({ fixtureMode: true });
+  const result = await broker.call({
+    selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }],
+    apiId: 'dog-ceo', operationId: 'random', params: {},
+    media: {
+      origin: 'https://randomware.example', runId: 'run_asset', creationId: 'creation_asset', revision: 1,
+      capability: { nonce: 'page_nonce', expiresAt: Date.now() + 600000 },
+      tokenSigner: { issueAsset: () => 'signed-asset-token' },
+      mediaStore: { createAssetToken: async (_runId, record) => created.push(record) }
+    }
+  });
+  assert.equal(result.data.message, 'https://randomware.example/api/runtime/asset/signed-asset-token');
+  assert.doesNotMatch(JSON.stringify(result.data), /images\.dog\.ceo/);
+  assert.equal(created.length, 1);
+  assert.equal(created[0].pageId, 'page_nonce');
+});
+
 test('broker rejects unknown API operations and arbitrary URL parameters', async () => {
   const broker = new Broker({ fixtureMode: true });
   await assert.rejects(() => broker.call({ selectedApis: [], apiId: 'open-meteo', operationId: 'nope', params: {} }), /operation_not_selected/);

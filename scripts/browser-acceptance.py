@@ -111,9 +111,9 @@ def main():
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
-            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
+            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "creationUrl": None, "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
             concept_run = {**spin_run, "phase": "concept_accepted"}
-            complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation"}
+            complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation", "creationUrl": f"{BASE}/c/widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
             mount_output = json.dumps({"ok": True, "registry": 18})
             init_script = (
@@ -123,12 +123,18 @@ def main():
                 "if (name !== 'spin_apis') throw new Error('unexpected tool');"
                 "setTimeout(() => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: " + mount_output + "}}})), 10);"
                 "return " + json.dumps(envelope(spin_run)) + ";"
-                "}, openExternal: () => {}};"
+                "}, openExternal: arg => { window.__openedExternal = arg && arg.href; }};"
             )
             widget_page.add_init_script(init_script)
-            widget_page.goto(BASE, wait_until="domcontentloaded")
+            foreign_widget_url = "https://web-sandbox.oaiusercontent.com/widget-fixture"
+            widget_page.route(foreign_widget_url, lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html>"))
+            widget_page.goto(foreign_widget_url, wait_until="domcontentloaded")
             refreshed_run = {**spin_run, "choreography": {**spin_run["choreography"], "lastActivityAt": now_ms + 1000, "idleDeadlineAt": now_ms + 181000 + 1000}}
-            widget_page.route(f"{BASE}/api/runs/widget-run", lambda route: route.fulfill(status=200, content_type="application/json", body=json.dumps(refreshed_run)))
+            status_requests = []
+            def fulfill_status(route):
+                status_requests.append(route.request.url)
+                route.fulfill(status=200, content_type="application/json", headers={"access-control-allow-origin": "*"}, body=json.dumps(refreshed_run))
+            widget_page.route(f"{BASE}/api/runs/widget-run", fulfill_status)
             _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
             widget_html = widget_body["result"]["contents"][0]["text"]
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
@@ -145,6 +151,7 @@ def main():
             assert widget_page.evaluate("window.__widgetState?.paused") is True, "widget_concept_timer_not_paused"
             widget_page.wait_for_timeout(3200)
             assert widget_page.evaluate("window.__widgetState?.choreography?.lastActivityAt") == now_ms + 1000, "widget_status_refresh_not_applied"
+            assert status_requests and all(url.startswith(BASE) for url in status_requests), f"widget_status_used_foreign_origin:{status_requests}"
             widget_page.unroute(f"{BASE}/api/runs/widget-run")
             widget_page.route(f"{BASE}/api/runs/widget-run", lambda route: route.abort())
             widget_page.wait_for_timeout(9200)
@@ -162,7 +169,11 @@ def main():
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
             assert widget_page.locator("#creation").is_visible(), "widget_creation_section_missing"
             assert not widget_page.locator("#creation-frame").get_attribute("hidden"), "widget_creation_frame_not_embedded"
-            assert "/c/widget-creation" in widget_page.locator("#creation-link").get_attribute("href"), "widget_creation_link_missing"
+            assert widget_page.locator("#creation-frame").get_attribute("src") == f"{BASE}/c/widget-creation", "widget_creation_frame_wrong_origin"
+            assert widget_page.locator("#creation-link").get_attribute("href") == f"{BASE}/c/widget-creation", "widget_creation_link_wrong_origin"
+            widget_page.locator("#creation-link").dispatch_event("click")
+            opened_external = widget_page.evaluate("window.__openedExternal")
+            assert opened_external == f"{BASE}/c/widget-creation", f"widget_open_external_wrong_origin:{opened_external}"
             print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "widgetEnvelope": True, "widgetTransitions": True}))
             browser.close()
     finally:

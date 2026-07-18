@@ -1,6 +1,7 @@
 const { getRegistryEntry } = require('./registry');
 const crypto = require('node:crypto');
 const { extractLibrivoxAudioUrl, validateMediaUrl, MEDIA_LIMITS } = require('./media');
+const { ASSET_LIMITS, prepareAssetData, collectAssetCandidates, rewriteAssetCandidates } = require('./asset');
 
 function rejectParameters(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_parameters');
@@ -10,11 +11,11 @@ function rejectParameters(value) {
   }
 }
 
-function bounded(value, depth = 0) {
-  if (depth > 4) return '[truncated]';
+function bounded(value, depth = 0, maxDepth = 4) {
+  if (depth > maxDepth) return '[truncated]';
   if (typeof value === 'string') return value.replace(/<[^>]*>/g, '').slice(0, 4000);
-  if (Array.isArray(value)) return value.slice(0, 20).map((item) => bounded(item, depth + 1));
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).slice(0, 40).map(([key, item]) => [key, bounded(item, depth + 1)]));
+  if (Array.isArray(value)) return value.slice(0, 20).map((item) => bounded(item, depth + 1, maxDepth));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).slice(0, 40).map(([key, item]) => [key, bounded(item, depth + 1, maxDepth)]));
   return value;
 }
 
@@ -90,23 +91,36 @@ class Broker {
       if (raw.byteLength > op.maxRawBytes) throw new Error('response_too_large');
       try { data = JSON.parse(raw.toString('utf8')); } catch { throw new Error('response_shape_mismatch'); }
     }
-    const adapted = await adaptAudio(apiId, data, { fetcher: this.fetcher, fixtureMode: this.fixtureMode });
-    data = adapted.data;
-    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate };
+    const prepared = prepareAssetData(apiId, data);
+    const adapted = await adaptAudio(apiId, prepared, { fetcher: this.fetcher, fixtureMode: this.fixtureMode });
+    data = bounded(adapted.data, 0, apiId === 'wiki-onthisday' ? 6 : 4);
+    const assetCandidates = collectAssetCandidates(entry, data);
+    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates };
     if (result.bytes > 64 * 1024) throw new Error('response_too_large');
     this.cache.set(cacheKey, result);
     return this.publicResult(result, media);
   }
 
   async publicResult(base, media) {
-    const result = { ...base }; const candidate = result.mediaCandidate; delete result.mediaCandidate;
-    if (!candidate || !media?.tokenSigner || !media?.mediaStore) return result;
+    const result = { ...base, data: structuredClone(base.data) };
+    const assetCandidates = result.assetCandidates || []; delete result.assetCandidates;
+    result.data = await rewriteAssetCandidates(result.data, assetCandidates, async (candidate) => {
+      if (!media?.tokenSigner?.issueAsset || !media?.mediaStore?.createAssetToken || !media?.capability?.nonce) return null;
+      const tokenId = crypto.randomUUID(); const pageId = media.capability.nonce; const now = Date.now(); const expiresAt = Math.min(Number(media.capability.expiresAt) || now + ASSET_LIMITS.ttlMs, now + ASSET_LIMITS.ttlMs); const ttlMs = Math.max(1, expiresAt - now);
+      const token = media.tokenSigner.issueAsset({ tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, now, ttlMs, maxBytes: ASSET_LIMITS.bytesEach });
+      await media.mediaStore.createAssetToken(media.runId, { tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes: ASSET_LIMITS.bytesEach, pageMaxBytes: ASSET_LIMITS.bytesPerPage });
+      return `${String(media.origin).replace(/\/$/, '')}/api/runtime/asset/${token}`;
+    });
+    const candidate = result.mediaCandidate; delete result.mediaCandidate;
+    if (!candidate || !media?.tokenSigner || !media?.mediaStore) { result.bytes = Buffer.byteLength(JSON.stringify(result.data)); if (result.bytes > 64 * 1024) throw new Error('response_too_large'); return result; }
     const tokenId = crypto.randomUUID(); const expiresAt = Date.now() + MEDIA_LIMITS.streamMs; const maxBytes = MEDIA_LIMITS.bytesPerPage;
     const token = media.tokenSigner.issueMedia({ tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, ttlMs: MEDIA_LIMITS.streamMs, maxBytes });
     await media.mediaStore.createMediaToken(media.runId, { tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes });
     const mediaUrl = `${String(media.origin).replace(/\/$/, '')}/media/${token}`;
     result.mediaUrl = mediaUrl;
     result.data = result.data && typeof result.data === 'object' && !Array.isArray(result.data) ? { ...result.data, mediaUrl } : { value: result.data, mediaUrl };
+    result.bytes = Buffer.byteLength(JSON.stringify(result.data));
+    if (result.bytes > 64 * 1024) throw new Error('response_too_large');
     return result;
   }
 }
