@@ -40,6 +40,7 @@ function tools() {
 
 function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtureMode: false }), signer = new CapabilitySigner('worker-development-secret'), assets } = {}) {
   const callStore = (method, ...args) => Promise.resolve(store[method](...args));
+  const unhealthy = async () => typeof store.unhealthyIds === 'function' ? callStore('unhealthyIds') : new Set();
   return async function handle(request, env = {}) {
     const url = new URL(request.url);
     try {
@@ -50,7 +51,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
       if (request.method === 'POST' && url.pathname === '/mcp') {
         const input = await readJson(request); if (input.method === 'tools/list') return response({ jsonrpc: '2.0', id: input.id, result: { tools: tools() } });
         if (input.method === 'tools/call' && input.params?.name === 'open_randomware') return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: { ok: true, registry: registry.length } } });
-        if (input.method === 'tools/call' && input.params?.name === 'spin_apis') { const args = input.params.arguments || {}; const selected = selectApis({ seed: args.seed || seed(), registry }); const run = await callStore('createRun', { requestId: args.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: summary(run) } }); }
+        if (input.method === 'tools/call' && input.params?.name === 'spin_apis') { const args = input.params.arguments || {}; const selected = selectApis({ seed: args.seed || seed(), registry, unhealthy: await unhealthy() }); const run = await callStore('createRun', { requestId: args.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: summary(run) } }); }
         if (input.method === 'tools/call') {
           const name = input.params?.name; const args = input.params?.arguments || {};
           if (name === 'get_run') return response({ jsonrpc: '2.0', id: input.id, result: { structuredContent: summary(await callStore('getRun', args.runId)) } });
@@ -61,7 +62,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         }
         return response({ jsonrpc: '2.0', id: input.id, error: { code: -32601, message: 'method_not_supported' } }, 400);
       }
-      if (request.method === 'POST' && url.pathname === '/api/spin') { const input = await readJson(request); const selected = selectApis({ seed: input.seed || seed(), registry, history: input.history || [] }); const run = await callStore('createRun', { requestId: input.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] }); return response({ ...summary(run), statusUrl: `/api/runs/${run.id}`, disclosure: 'Building publishes this experimental AI-generated app at a public URL.' }); }
+      if (request.method === 'POST' && url.pathname === '/api/spin') { const input = await readJson(request); const selected = selectApis({ seed: input.seed || seed(), registry, history: input.history || [], unhealthy: await unhealthy() }); const run = await callStore('createRun', { requestId: input.requestId || seed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] }); return response({ ...summary(run), statusUrl: `/api/runs/${run.id}`, disclosure: 'Building publishes this experimental AI-generated app at a public URL.' }); }
       const reroll = url.pathname.match(/^\/api\/runs\/([^/]+)\/reroll$/); if (reroll && request.method === 'POST') return response(summary(await callStore('rerollConcept', reroll[1], await readJson(request))));
       const runMatch = url.pathname.match(/^\/api\/runs\/([^/]+)(?:\/(concept|artifact|repair))?$/);
       if (runMatch) {

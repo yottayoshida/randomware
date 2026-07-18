@@ -2,6 +2,7 @@ import { createWebHandler } from './web.js';
 import { D1RunStore } from './core/d1-store.js';
 import { CapabilitySigner } from './core/capability.js';
 import { Broker } from './core/broker.js';
+import { runHealthCheck, publishHealth } from './core/health.js';
 
 let handler;
 function getHandler(env) {
@@ -12,5 +13,9 @@ function getHandler(env) {
 export default {
   async fetch(request, env) {
     return getHandler(env)(request, env);
+  },
+  async scheduled(_controller, env) {
+    const rows = await runHealthCheck({ broker: new Broker({ fixtureMode: env.RANDOMWARE_FIXTURES === '1' }) });
+    if (env.DB) await publishHealth(env.DB, rows);
   }
 };
