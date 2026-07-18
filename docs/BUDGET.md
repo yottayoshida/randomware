@@ -108,9 +108,9 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 
 | Checkpoint | Timestamp/timezone | Plan usage (exact UI) | Credit balance | Credit delta | Expected next envelope | Decision/reason |
 |---|---|---|---:|---:|---:|---|
-| Sol design start | 2026-07-18 JST | Not yet measured | Not yet measured | — | 300 | Capture from Settings before evaluating design spend |
-| Sol design end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | — | Must be recorded before Luna implementation |
-| Luna `/goal` start | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 1,400 | Confirm ChatGPT sign-in and auto top-up off |
+| Sol design start | 2026-07-18 JST (retroactive entry) | Not captured before the design session — honest baseline omission | 2,500 (owner-confirmed at redemption) | — | 300 | Meters are owner-transcribed from Codex Settings; the plan meter is account-wide and includes any non-project usage |
+| Sol design end | 2026-07-18 11:21 JST | 33% of weekly limit used (ChatGPT Plus) | 2,500 | 0 | — | Design pass + three bounded addenda ran entirely on plan-included usage; grant untouched |
+| Luna `/goal` start | 2026-07-18 11:21 JST (same snapshot as design end) | 33% of weekly limit used (ChatGPT Plus) | 2,500 | 0 | 1,400 | ChatGPT sign-in and auto top-up off confirmed by owner; `/goal` starts immediately after this snapshot |
 | Milestone 0 feasibility end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 1,200 | Continue only if all hard gates pass |
 | Milestone 1 vertical slice end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 850 | Preserve first runnable path |
 | Milestone 2 safe runtime end | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 500 | All security Must checks pass |
