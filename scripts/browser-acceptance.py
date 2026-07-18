@@ -135,7 +135,19 @@ def main():
             assert widget_page.locator("#apis li").count() == 1, "widget_reels_not_rendered"
             assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
             widget_page.locator("#build").click()
-            assert "Waiting for the model" in widget_page.locator("#status").inner_text(), "widget_concept_transition_missing"
+            assert widget_page.locator("#fallback").is_visible(), "widget_follow_up_fallback_missing"
+            fallback_prompt = widget_page.locator("#build-prompt").input_value()
+            assert "Use Randomware run widget-run:" in fallback_prompt, "widget_fallback_run_id_missing"
+            assert "submit the complete artifact via submit_artifact" in fallback_prompt, "widget_fallback_prompt_incomplete"
+            assert widget_page.evaluate("window.__widgetState?.paused") is True, "widget_concept_timer_not_paused"
+            widget_page.evaluate("window.openai.sendFollowUpMessage = async arg => { window.__followUpPrompt = arg && arg.prompt; return {ok: false, error: 'host refused'}; }")
+            widget_page.locator("#build").click()
+            assert widget_page.locator("#fallback").is_visible(), "widget_unsuccessful_follow_up_not surfaced"
+            widget_page.evaluate("window.openai.sendFollowUpMessage = async arg => { window.__followUpPrompt = arg && arg.prompt; return {ok: true}; }")
+            widget_page.locator("#build").click()
+            assert "Waiting for the model" in widget_page.locator("#status").inner_text(), "widget_follow_up_success_not_rendered"
+            assert not widget_page.locator("#fallback").is_visible(), "widget_fallback_not_cleared_after_success"
+            assert "Use Randomware run widget-run:" in widget_page.evaluate("window.__followUpPrompt"), "widget_follow_up_run_id_missing"
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(concept_run))
             assert "Concept accepted" in widget_page.locator("#status").inner_text(), "widget_artifact_transition_missing"
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { callToolResult, widgetResource, widgetToolResult } = require('../../src/core/mcp');
+const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt } = require('../../src/core/mcp');
 const { tools } = require('../../src/web');
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
@@ -30,4 +30,12 @@ test('widget consumes the real CallToolResult envelope and ignores a stale mount
   assert.deepEqual(widgetToolResult(envelope), { output: run, isError: false });
   assert.deepEqual(widgetToolResult({ result: envelope }), { output: run, isError: false });
   assert.equal(widgetToolResult(callToolResult({ ok: true, registry: 18 }, 'Randomware slot mounted.')), null);
+});
+
+test('widget fallback prompt binds the active run and required build choreography', () => {
+  const prompt = widgetBuildPrompt({ runId: 'run_fallback_123' });
+  assert.match(prompt, /Use Randomware run run_fallback_123:/);
+  assert.match(prompt, /call get_run/);
+  assert.match(prompt, /then submit_concept/);
+  assert.match(prompt, /submit the complete artifact via submit_artifact/);
 });
