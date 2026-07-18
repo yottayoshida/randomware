@@ -24,6 +24,14 @@ test('widget opens a routable creation in-frame and exposes an openExternal fall
   assert.match(widget, /Download or open the creation/);
 });
 
+test('widget refreshes server-owned choreography deadlines and clears stale phase state on repair', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, /statusUrl/);
+  assert.match(widget, /setInterval/);
+  assert.match(widget, /syncTimerFromServer/);
+  assert.match(widget, /phase:'repair_requested',choreography:null/);
+});
+
 test('widget consumes the real CallToolResult envelope and ignores a stale mount result', () => {
   const run = { runId: 'run-widget', phase: 'spinned', selectedApis: [{ id: 'frankfurter', name: 'Frankfurter', operations: [] }] };
   const envelope = callToolResult(run, 'Selected 1 API.');
