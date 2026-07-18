@@ -12,7 +12,7 @@ This document defines **what** Randomware is and what it must do. It intentional
 
 ## 1. Summary
 
-**Randomware is a slot machine for software.** It randomly selects two or three real public APIs, then GPT-5.6 invents, implements, and launches a completely new working web app from that combination in real time. Every spin produces something unpredictable: sometimes useful, sometimes absurd, sometimes a glorious failure — and the unpredictability itself is the product.
+**Randomware is a slot machine for software.** It randomly selects two or three real public APIs, then GPT-5.6 invents, implements, and launches a completely new working web app from that combination in real time. Every spin produces something unpredictable: sometimes useful, sometimes absurd, sometimes a glorious failure — and the unpredictability itself is the product. Usefulness is never the goal; when it happens, it is a happy accident. The goal is eccentric, gloriously unnecessary software that no human would have thought to ask for.
 
 Tagline: **Real APIs go in. Random apps come out.**
 
@@ -25,6 +25,10 @@ Elevator pitch (submission-ready, ≤200 characters):
 Most AI app builders start with a human idea: the user describes what they want, and the AI implements it. Randomware inverts that relationship. The human provides no idea at all; a random set of real public APIs becomes the creative constraint, and GPT-5.6 must invent *what to build* before building it.
 
 Public APIs matter because they connect the generated apps to reality. Each API carries real data, real capabilities, and real quirks. GPT-5.6 has to find meaning in combinations no template system could enumerate — and because the APIs are real, the results actually run instead of being staged mockups.
+
+The creative stance is a **collision aesthetic**. Like a band name that welds two unrelated sentimental clichés into something strange and new (the product owner's touchstone: Omoide Hatoba — "Memory Wharf" — a Japanese band named by colliding two stock words of sentimental pop songs), Randomware welds APIs that share nothing — a deck of cards and live radio, poetry and exchange rates — and forces a meaning that never existed to hold them together.
+
+This is also a deliberate creative answer to the two most criticized behaviors of generative AI. **Slop** is what happens when generation optimizes for plausible usefulness at scale; Randomware optimizes for the opposite — implausible, singular existence. **Hallucination** is confidently inventing what is not there; Randomware demands exactly that invention — a connection between unrelated APIs that no documentation supports — and then holds the hallucination accountable by forcing it to run as working software against real data. Grounded confabulation, with receipts.
 
 ## 3. Product definition
 
@@ -52,6 +56,15 @@ Spin
 5. Failures are shown as results in their own right, never hidden.
 6. No coding knowledge is needed to play.
 7. The curious can inspect the generated source code and the actual API traffic.
+
+### Creative principles
+
+These govern every prompt, every generated app, and every line of product copy:
+
+- **Deadpan sincerity.** The machine never winks. Every absurd combination is treated as a legitimate product brief and executed with total seriousness — the comedy lives in the gap between the absurdity of the premise and the sincerity of the execution. Generated apps play it completely straight; only Randomware's own chrome (build narration, failure reports) provides the dry commentary.
+- **Uselessness is a feature.** Randomware does not apologize for pointless creations; it aspires to them. An app that is beautiful, functional, and utterly unnecessary is a full success.
+- **Beyond human imagination.** A concept that a reasonable product manager could pitch without irony is a failed concept. If it could launch on Product Hunt unironically, it is rejected as insufficiently eccentric.
+- **Collision naming.** Generated app names follow the collision aesthetic: two unrelated, evocative words jammed together ("Weather Dealer", "Bark Librarian", "Orbital Poet") — earnest, slightly wrong, memorable.
 
 ## 5. Target users
 
@@ -92,8 +105,11 @@ As a player, I see what GPT-5.6 decided to invent before it is built.
 Acceptance criteria:
 
 - Shows: app name, a one-line premise, what the player will do, and how each API contributes.
+- Shows a one-line causal chain of the invention (e.g. "draw a card → the card becomes a country → fetch its weather → the weather picks a radio station"). The chain itself is a punchline, and it makes every API's role visible.
 - Every selected API has an essential role; decorative APIs are not allowed.
 - Boring shapes are rejected before display: plain dashboards, plain search boxes, plain quizzes, plain random-fact display, thin clones of well-known apps.
+- Concepts that read like a plausible startup or utility pitch are rejected as insufficiently eccentric (Creative principles, §4).
+- Target: the concept appears within ~10 seconds of the spin — the first punchline must land fast.
 - The player can reroll the concept without triggering a build (cheap), or proceed to build.
 
 ### US-03 — Build & run
@@ -145,9 +161,9 @@ Requirement-level description; layout and visuals are design decisions.
 
 1. **Slot** — logo, tagline, reels, spin control, and the honest disclaimer "Results may be useful, absurd, or broken."
 2. **Concept reveal** — the invention, its API roles, Build and Reroll actions. No code is generated at this stage.
-3. **Build progress** — real pipeline stages only.
+3. **Build progress** — real pipeline stages only, staged as a show; the wait is part of the act, never a silent progress bar.
 4. **Live creation** — the running app plus its name, APIs used, status, entry points to code / traffic / dataflow inspection, Mutate, and Spin Again.
-5. **Failed creation** — cause, playful epitaph (e.g. inherited traits, survival time), inspectable remains.
+5. **Failed creation** — a deadpan death certificate: accurate cause of death, an epitaph, inherited traits, survival time, and a specimen number; the remains stay inspectable.
 
 Every generated app must permanently display an "AI-generated experimental app" notice and must never ask for passwords, personal data, or payment details (§11).
 
@@ -164,8 +180,9 @@ Every generated app must permanently display an "AI-generated experimental app" 
 
 - Default 2 APIs, ~15% chance of 3.
 - Constraints as in US-01, plus: prefer at least one "sensory" API (visual, audio, or geo) per spin so results have presence.
-- The visible experience is a fair slot; internal selection may weight combinations to avoid monotony. Weighting internals are a design decision.
-- Should-level: selectable moods — Stable (compatible picks), Wild (default), Chaos (3 APIs, fewest guardrails).
+- Actively prefer semantic distance between the selected APIs — the slot exists to produce collisions, not curated pairings. Kindred APIs make boring offspring.
+- The visible experience is a fair slot; internal selection may weight combinations to maximize incongruity. Weighting internals are a design decision.
+- Should-level: selectable moods — Stable (compatible picks), Wild (default, incongruity-weighted), Chaos (3 APIs, fewest guardrails).
 
 ## 10. Generation rules
 
@@ -173,6 +190,7 @@ Every generated app must permanently display an "AI-generated experimental app" 
 - All selected APIs are essential, and at least one API's output must influence another API call, the app's rules, or the interface state — never just parallel display.
 - The player must have something to do (input, choice, or manipulation); purely passive display is rejected.
 - A first-time player should understand the generated app within about 30 seconds.
+- The app's name and copy follow the collision-naming principle (§4); its visual direction must commit to one extreme aesthetic. "Clean minimal SaaS" is banned as a style — the generic default look of AI-generated frontends is treated as a defect.
 - Novelty pressure: the history of previous concepts for the same combination is used to avoid repeats.
 - One repair attempt maximum (US-05).
 - In-product model: GPT-5.6 performs invention, implementation, and repair.
@@ -193,12 +211,13 @@ Threat framing: the product intentionally runs freshly AI-generated code in visi
 ## 12. Success metrics
 
 - A first-time visitor, unassisted, completes spin → concept → run → interact → respin within 3 minutes.
-- Spin-to-first-preview ≤ 90 seconds (target).
+- Spin-to-concept-reveal ≤ 10 seconds and spin-to-first-preview ≤ 90 seconds (targets).
 - ≥ 70% of 2-API creations boot to an interactive state.
 - ≥ 80% of booted creations actually call every selected API at runtime.
 - 0 network requests to unapproved hosts from generated code.
 - 100% of failures produce an explanatory Failed Creation view.
 - ≥ 5 API combinations verified end-to-end before submission; the same combination demonstrably yields different concepts.
+- Pre-submission eccentricity check: if a majority of sampled concepts could pass for sincere startup pitches, generation is tuned too safe and must be retuned.
 - Explicit non-goal: a 100% success rate. If nothing ever fails, the guardrails are too tight.
 
 ## 13. Build constraints (the meta-challenge)
@@ -222,9 +241,9 @@ Constraint on the design pass itself: produce documents only. Application code b
 
 **Must**: ≥10 verified APIs; 2-API spin with occasional 3; slot experience; GPT-5.6 concept generation; GPT-5.6 single-page app generation; contained in-browser execution with mediated API access; pre-run and runtime checks; single auto-repair; success and failure result views; source view; API traffic view; Mutate; Spin Again; public deployment; README; demo video; `/feedback` Session ID.
 
-**Should**: Stable / Wild / Chaos moods; dataflow visualization; session-local history; seeded reproducibility; streamed build progress; pre-verified demo combinations with an offline demo mode.
+**Should**: Stable / Wild / Chaos moods; dataflow visualization; session-local history; seeded reproducibility; streamed build progress; pre-verified demo combinations with an offline demo mode; a staged "chaos spin" fanfare for rare 3-API spins.
 
-**Could**: gallery, share URLs, favorites, screenshots, failed-creation collection, daily combination.
+**Could**: gallery, share URLs, favorites, screenshots, failed-creation collection, daily combination; a "twist" modifier reel (an injected external constraint such as a tone or genre — held in reserve as an anti-convergence lever only if testing shows concepts becoming samey; the default belief is that eccentricity must come from the API collision itself).
 
 **Won't**: accounts, payments, arbitrary user APIs, exporting generated apps to production, multi-file or native generation, long-running autonomous agents.
 
@@ -245,7 +264,7 @@ Submit under **Apps for Your Life**. Randomware is a consumer-facing creative to
 
 ### 16.3 Project description
 
-Must clearly explain: what Randomware is; what happens on a spin; how APIs are selected; how GPT-5.6 invents and implements each app; how generated code is validated and executed safely; why fixed templates could not reproduce this; why failed creations are deliberately part of the experience.
+Must clearly explain: what Randomware is; what happens on a spin; how APIs are selected; how GPT-5.6 invents and implements each app; how generated code is validated and executed safely; why fixed templates could not reproduce this; why failed creations are deliberately part of the experience; and why deliberate uselessness is the point — the project's creative answer to AI slop and hallucination.
 
 ### 16.4 Demo video
 
