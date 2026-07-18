@@ -1,4 +1,5 @@
 const { createArtifact } = require('../src/core/artifact');
+const { randomUUID } = require('node:crypto');
 
 const baseArg = process.argv.find((arg) => arg.startsWith('--base-url='));
 const base = (baseArg ? baseArg.slice('--base-url='.length) : process.env.RANDOMWARE_PUBLIC_URL || '').replace(/\/$/, '');
@@ -26,10 +27,10 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
     if (!result || !Array.isArray(result.content) || !result.content.length || result.content.some((block) => block.type !== 'text' || typeof block.text !== 'string' || !block.text.trim()) || !Object.prototype.hasOwnProperty.call(result, 'structuredContent')) throw new Error(`tool_${name}_call_result_shape_failed`);
     return result;
   };
-  const conceptFor = (run, label) => {
+  const conceptFor = (run, label, requestId = `${label}-concept`) => {
     const apiIds = run.selectedApis.map((api) => api.id);
     return {
-      runId: run.runId, requestId: `${label}-concept`, appName: `MCP ${label}`, premise: `A bounded collision turns ${label} signals into one theatrical instrument.`, playerAction: `Press the single control to make the ${label} instrument reveal its next state.`, apiIds,
+      runId: run.runId, requestId, appName: `MCP ${label}`, premise: `A bounded collision turns ${label} signals into one theatrical instrument.`, playerAction: `Press the single control to make the ${label} instrument reveal its next state.`, apiIds,
       causalChain: run.selectedApis.map((api, index) => ({ order: index + 1, apiId: api.id, action: `turn ${api.name} into the next ${label} rule` })),
       apiRoles: run.selectedApis.map((api) => ({ apiId: api.id, essentialRole: `${api.name} supplies an essential ${label} signal.`, operations: api.operations.map((operation) => operation.id) })),
       dependency: { fromApiId: apiIds[0], to: 'rules', ...(apiIds[1] ? { toApiId: apiIds[1] } : {}), explanation: `The first ${label} signal determines how the next one is interpreted.` },
@@ -40,17 +41,18 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
     };
   };
   const artifactFor = (run, label) => createArtifact({ appName: `MCP ${label}`, selected: run.selectedApis.map((api) => ({ apiId: api.id, operationId: api.operations[0].id })) });
+  const testTag = `${Date.now()}-${randomUUID()}`;
   const mounted = await call(6, 'open_randomware'); if (mounted.structuredContent?.ok !== true) throw new Error('open_randomware_result_failed');
-  const spun = await call(7, 'spin_apis', { seed: 'deployed-call-result-shape-1', requestId: 'deployed-call-result-shape-1' }); const run = spun.structuredContent; if (!run?.runId || !run.selectedApis?.length) throw new Error('spin_apis_result_failed');
+  const spun = await call(7, 'spin_apis', { seed: `${testTag}-spin-1`, requestId: `${testTag}-spin-1` }); const run = spun.structuredContent; if (!run?.runId || !run.selectedApis?.length) throw new Error('spin_apis_result_failed');
   const recovered = await call(8, 'get_run', { runId: run.runId }); if (recovered.structuredContent?.runId !== run.runId) throw new Error('get_run_result_failed');
-  const concept = await call(9, 'submit_concept', conceptFor(run, 'primary')); if (concept.structuredContent?.phase !== 'concept_accepted') throw new Error('submit_concept_result_failed');
-  const artifact = await call(10, 'submit_artifact', { runId: run.runId, requestId: 'deployed-call-result-shape-artifact', html: artifactFor(run, 'primary') }); if (artifact.structuredContent?.phase !== 'completed') throw new Error('submit_artifact_result_failed');
+  const concept = await call(9, 'submit_concept', conceptFor(run, 'primary', `${testTag}-primary-concept`)); if (concept.structuredContent?.phase !== 'concept_accepted') throw new Error('submit_concept_result_failed');
+  const artifact = await call(10, 'submit_artifact', { runId: run.runId, requestId: `${testTag}-artifact`, html: artifactFor(run, 'primary') }); if (artifact.structuredContent?.phase !== 'completed') throw new Error('submit_artifact_result_failed');
   const mutation = await call(11, 'mutate_creation', { creationId: artifact.structuredContent.creationId, premise: 'A different bounded collision premise for the same immutable APIs.' }); if (mutation.structuredContent?.ok !== true) throw new Error('mutate_creation_result_failed');
-  const repairSpin = await call(12, 'spin_apis', { seed: 'deployed-call-result-shape-2', requestId: 'deployed-call-result-shape-2' }); const repairRun = repairSpin.structuredContent;
-  await call(13, 'submit_concept', conceptFor(repairRun, 'repair'));
-  const failedArtifact = await call(14, 'submit_artifact', { runId: repairRun.runId, requestId: 'deployed-call-result-shape-failed', html: '<!doctype html><html><body>invalid</body></html>' }); if (!failedArtifact.isError) throw new Error('invalid_artifact_should_error');
-  const repair = await call(15, 'submit_repair', { runId: repairRun.runId, requestId: 'deployed-call-result-shape-repair', html: artifactFor(repairRun, 'repair') }); if (repair.structuredContent?.phase !== 'completed') throw new Error('submit_repair_result_failed');
-  const failureSpin = await call(16, 'spin_apis', { seed: 'deployed-call-result-shape-3', requestId: 'deployed-call-result-shape-3' }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, phase: 'spinned', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
+  const repairSpin = await call(12, 'spin_apis', { seed: `${testTag}-spin-2`, requestId: `${testTag}-spin-2` }); const repairRun = repairSpin.structuredContent;
+  await call(13, 'submit_concept', conceptFor(repairRun, 'repair', `${testTag}-repair-concept`));
+  const failedArtifact = await call(14, 'submit_artifact', { runId: repairRun.runId, requestId: `${testTag}-failed-artifact`, html: '<!doctype html><html><body>invalid</body></html>' }); if (!failedArtifact.isError) throw new Error('invalid_artifact_should_error');
+  const repair = await call(15, 'submit_repair', { runId: repairRun.runId, requestId: `${testTag}-repair-artifact`, html: artifactFor(repairRun, 'repair') }); if (repair.structuredContent?.phase !== 'completed') throw new Error('submit_repair_result_failed');
+  const failureSpin = await call(16, 'spin_apis', { seed: `${testTag}-spin-3`, requestId: `${testTag}-spin-3` }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, phase: 'spinned', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
   const get = await fetch(`${base}/mcp`, { headers: { accept: 'text/event-stream' } }); if (get.status !== 405) throw new Error(`mcp_get_status:${get.status}`);
   const index = await fetch(base); if (!index.ok || !(await index.text()).includes('Randomware')) throw new Error('public_index_failed');
   console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType }));
