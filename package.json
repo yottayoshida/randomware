@@ -11,6 +11,7 @@
     "test:integration": "node --test tests/integration/*.test.js",
     "test:e2e": "node --test tests/e2e/*.test.js",
     "test:e2e:deployed": "node scripts/test-deployed.js",
+    "test:e2e:synthetic": "node scripts/test-synthetic-deployed.js",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "build": "node scripts/build.js",
     "dev": "node src/server.js",

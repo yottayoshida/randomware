@@ -24,6 +24,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const annotations = Object.fromEntries(toolsBody.result.tools.map((tool) => [tool.name, tool.annotations]));
   for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) if (annotations[name]?.openWorldHint !== false) throw new Error(`mcp_${name}_annotation_failed`);
   for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) if (annotations[name]?.openWorldHint !== true) throw new Error(`mcp_${name}_annotation_failed`);
+  const synthetic = await runSynthetic(base);
   const call = async (id, name, args = {}) => {
     const response = await mcp({ jsonrpc: '2.0', id, method: 'tools/call', params: { name, arguments: args } });
     if (!response.ok) throw new Error(`tool_${name}_status:${response.status}`);
@@ -87,6 +88,5 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const failureSpin = await call(16, 'spin_apis', { seed: `${testTag}-spin-3`, requestId: `${testTag}-spin-3` }); const failure = await call(17, 'record_choreography_failure', { runId: failureSpin.structuredContent.runId, requestId: `${testTag}-failure`, phase: 'spinned', code: 'choreography_timeout' }); if (failure.structuredContent?.phase !== 'failed') throw new Error('record_choreography_failure_result_failed');
   const get = await fetch(`${base}/mcp`, { headers: { accept: 'text/event-stream' } }); if (get.status !== 405) throw new Error(`mcp_get_status:${get.status}`);
   const index = await fetch(base); if (!index.ok || !(await index.text()).includes('Randomware')) throw new Error('public_index_failed');
-  const synthetic = await runSynthetic(base);
   console.log(JSON.stringify({ ok: true, base, registry: healthBody.registry, tools: toolsBody.result.tools.length, toolNamesCovered: 8, toolResultChecks: 10, protocolVersion: initializeBody.result.protocolVersion, widget: content.mimeType, brokerPreflightStatus: preflight.status, brokerPostStatus: mediated.status, runtimeRequests: requestsAfter.length, mediaRequests, synthetic }));
 })().catch((error) => { console.error(`deployed acceptance failed: ${error.message}`); process.exitCode = 1; });
