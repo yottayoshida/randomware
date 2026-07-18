@@ -24,3 +24,12 @@ test('hourly health path degrades adapted shape drift instead of re-enabling it'
   assert.equal(rows[0].status, 'degraded');
   assert.match(rows[0].reason, /^adapted_shape_drift:/);
 });
+
+test('hourly health supplies signing context required by audio response contracts', async () => {
+  let call;
+  const operation = { id: 'station', timeoutMs: 4000, shapeSignature: { '$': 'object', '$.mediaUrl': 'scalar' } };
+  const rows = await runHealthCheck({ entries: [{ id: 'radio-browser', operations: [operation] }], broker: { call: async (input) => { call = input; return { data: { mediaUrl: `${input.media.origin}/media/health-media` } }; } }, now: 10 });
+  assert.equal(rows[0].status, 'healthy');
+  assert.equal(call.media.tokenSigner.issueMedia(), 'health-media');
+  assert.equal(typeof call.media.mediaStore.createMediaToken, 'function');
+});

@@ -21,5 +21,17 @@
     "config": {
       "website_url": "http://www.artic.edu"
     }
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "data",
+          "image_url"
+        ],
+        "resolvedUrl": "data:image/gif;base64,R0lGODlhBAAFAPQAAF1aS2deUJSLdpGKeKuegaSgiqunjK+pkrivk763mr+6n7+5osa+osi/o83EqdDIr9PKr9vRutvTvOHYwwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAAIf4KQXBwbGVNYXJrCgAsAAAAAAQABQAABRHgI01RwzhQIhCIAQSDUhxLCAA7"
+      }
+    ],
+    "media": null
   }
 }

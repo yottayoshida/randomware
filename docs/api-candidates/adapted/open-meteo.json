@@ -4,7 +4,7 @@
   "data": {
     "latitude": 35.7,
     "longitude": 139.75,
-    "generationtime_ms": 0.047206878662109375,
+    "generationtime_ms": 0.039458274841308594,
     "utc_offset_seconds": 0,
     "timezone": "GMT",
     "timezone_abbreviation": "GMT",
@@ -16,10 +16,14 @@
       "weather_code": "wmo code"
     },
     "current": {
-      "time": "2026-07-18T14:30",
+      "time": "2026-07-18T15:15",
       "interval": 900,
-      "temperature_2m": 25.4,
+      "temperature_2m": 25.3,
       "weather_code": 1
     }
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": null
   }
 }

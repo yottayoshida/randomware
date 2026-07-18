@@ -4,13 +4,13 @@
   "data": {
     "results": [
       {
-        "gender": "female",
+        "gender": "male",
         "name": {
-          "title": "Mrs",
-          "first": "Marina",
-          "last": "Moya"
+          "title": "Mr",
+          "first": "Gökhan",
+          "last": "Abadan"
         },
-        "nat": "ES",
+        "nat": "TR",
         "picture": {
           "large": "https://randomware.example/api/runtime/asset/golden-asset-randomuser-person",
           "medium": "https://randomware.example/api/runtime/asset/golden-asset-randomuser-person",
@@ -18,5 +18,37 @@
         }
       }
     ]
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "results",
+          0,
+          "picture",
+          "large"
+        ],
+        "resolvedUrl": "https://randomuser.me/api/portraits/men/86.jpg"
+      },
+      {
+        "path": [
+          "results",
+          0,
+          "picture",
+          "medium"
+        ],
+        "resolvedUrl": "https://randomuser.me/api/portraits/med/men/86.jpg"
+      },
+      {
+        "path": [
+          "results",
+          0,
+          "picture",
+          "thumbnail"
+        ],
+        "resolvedUrl": "https://randomuser.me/api/portraits/thumb/men/86.jpg"
+      }
+    ],
+    "media": null
   }
 }

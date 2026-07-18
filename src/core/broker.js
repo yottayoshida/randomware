@@ -20,18 +20,37 @@ function bounded(value, depth = 0, maxDepth = 4) {
   return value;
 }
 
-function conformToExample(value, example) {
+async function conformToExample(value, example, fallback, path = []) {
   if (Array.isArray(example)) {
     if (!example.length) return [];
     const source = Array.isArray(value) && value.length ? value : example;
-    return source.slice(0, 20).map((item) => conformToExample(item, example[0]));
+    return Promise.all(source.slice(0, 20).map((item, index) => conformToExample(item, example[0], fallback, [...path, index])));
   }
   if (example && typeof example === 'object') {
     const source = Array.isArray(value) ? value[0] : value;
-    return Object.fromEntries(Object.entries(example).map(([key, item]) => [key, conformToExample(source && typeof source === 'object' ? source[key] : undefined, item)]));
+    const entries = await Promise.all(Object.entries(example).map(async ([key, item]) => [key, await conformToExample(source && typeof source === 'object' ? source[key] : undefined, item, fallback, [...path, key])]));
+    return Object.fromEntries(entries);
   }
+  const projected = fallback ? await fallback(example, path, value) : undefined;
+  if (projected !== undefined) return projected;
   if (value === null || value === undefined || (typeof value === 'object' && value !== null)) return example;
   return value;
+}
+
+async function issueAssetUrl(candidate, result, media) {
+  if (!media?.tokenSigner?.issueAsset || !media?.mediaStore?.createAssetToken || !media?.capability?.nonce) return null;
+  const tokenId = crypto.randomUUID(); const pageId = media.capability.nonce; const now = Date.now(); const expiresAt = Math.min(Number(media.capability.expiresAt) || now + ASSET_LIMITS.ttlMs, now + ASSET_LIMITS.ttlMs); const ttlMs = Math.max(1, expiresAt - now);
+  const token = media.tokenSigner.issueAsset({ tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, now, ttlMs, maxBytes: ASSET_LIMITS.bytesEach });
+  await media.mediaStore.createAssetToken(media.runId, { tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes: ASSET_LIMITS.bytesEach, pageMaxBytes: ASSET_LIMITS.bytesPerPage });
+  return `${String(media.origin).replace(/\/$/, '')}/api/runtime/asset/${token}`;
+}
+
+async function issueMediaUrl(candidate, result, media) {
+  if (!candidate || !media?.tokenSigner?.issueMedia || !media?.mediaStore?.createMediaToken) return null;
+  const tokenId = crypto.randomUUID(); const expiresAt = Date.now() + MEDIA_LIMITS.streamMs; const maxBytes = MEDIA_LIMITS.bytesPerPage;
+  const token = media.tokenSigner.issueMedia({ tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, ttlMs: MEDIA_LIMITS.streamMs, maxBytes });
+  await media.mediaStore.createMediaToken(media.runId, { tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes });
+  return `${String(media.origin).replace(/\/$/, '')}/media/${token}`;
 }
 
 function browserPlayableRadioCodec(value) {
@@ -98,11 +117,27 @@ class Broker {
   }
 
   async finalResult(base, media) {
-    const fixtureExample = base.fixtureExample; const clean = { ...base }; delete clean.fixtureExample;
+    const fixtureExample = base.fixtureExample; const fixtureSources = base.fixtureSources; const clean = { ...base }; delete clean.fixtureExample; delete clean.fixtureSources;
     const result = await this.publicResult(clean, media);
     if (fixtureExample !== undefined) {
-      result.data = conformToExample(result.data, fixtureExample);
+      const pathKey = (path) => JSON.stringify(path);
+      const assetSources = new Map((fixtureSources?.assets || []).map((candidate) => [pathKey(candidate.path), candidate.resolvedUrl]));
+      const fallback = async (example, path, currentValue) => {
+        if (typeof example === 'string' && example.includes('/api/runtime/asset/golden-asset-')) {
+          if (typeof currentValue === 'string' && currentValue.includes('/api/runtime/asset/') && !currentValue.includes('/golden-asset-')) return currentValue;
+          const resolvedUrl = assetSources.get(pathKey(path)); if (!resolvedUrl) throw new Error(`fixture_asset_source_missing:${path.join('.')}`);
+          return issueAssetUrl({ path, resolvedUrl }, result, media);
+        }
+        if (typeof example === 'string' && example.includes('/media/golden-media-')) {
+          if (typeof currentValue === 'string' && currentValue.includes('/media/') && !currentValue.includes('/golden-media-')) return currentValue;
+          const resolvedUrl = fixtureSources?.media?.resolvedUrl; if (!resolvedUrl) throw new Error('fixture_media_source_missing');
+          return issueMediaUrl({ resolvedUrl }, result, media);
+        }
+        return undefined;
+      };
+      result.data = await conformToExample(result.data, fixtureExample, fallback);
       result.bytes = Buffer.byteLength(JSON.stringify(result.data));
+      if (result.bytes > 64 * 1024) throw new Error('response_too_large');
     }
     return result;
   }
@@ -115,14 +150,14 @@ class Broker {
     if (!op) throw new Error('operation_not_found');
     const cacheKey = `${apiId}:${operationId}:${JSON.stringify(params)}`;
     if (this.cache.has(cacheKey)) return this.finalResult({ ...this.cache.get(cacheKey), cached: true }, media);
-    let data; let fixtureExample; let sourceUrl = `https://${entry.upstreamHosts[0]}${op.pathTemplate}`;
+    let data; let fixtureExample; let fixtureSources; let sourceUrl = `https://${entry.upstreamHosts[0]}${op.pathTemplate}`;
     if (this.fixtureMode) {
       const fs = require('node:fs'); const path = require('node:path');
       const file = path.join(this.fixtureRoot, 'docs', 'api-candidates', 'samples', op.fixturePath);
       data = JSON.parse(fs.readFileSync(file, 'utf8'));
       if (this.contractFixtureMode) {
         const adapted = JSON.parse(fs.readFileSync(path.join(this.fixtureRoot, op.adaptedFixturePath), 'utf8'));
-        fixtureExample = adapted.data;
+        fixtureExample = adapted.data; fixtureSources = adapted.fixtureSources;
       }
     } else {
       let response;
@@ -151,7 +186,7 @@ class Broker {
     const adapted = await adaptAudio(apiId, prepared, { fetcher: this.fetcher, fixtureMode: this.fixtureMode });
     data = bounded(adapted.data, 0, apiId === 'wiki-onthisday' ? 6 : 4);
     const assetCandidates = collectAssetCandidates(entry, data);
-    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates, fixtureExample };
+    const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates, fixtureExample, fixtureSources };
     if (result.bytes > 64 * 1024) throw new Error('response_too_large');
     this.cache.set(cacheKey, result);
     return this.finalResult(result, media);
@@ -161,18 +196,13 @@ class Broker {
     const result = { ...base, data: structuredClone(base.data) };
     const assetCandidates = result.assetCandidates || []; delete result.assetCandidates;
     result.data = await rewriteAssetCandidates(result.data, assetCandidates, async (candidate) => {
-      if (!media?.tokenSigner?.issueAsset || !media?.mediaStore?.createAssetToken || !media?.capability?.nonce) return null;
-      const tokenId = crypto.randomUUID(); const pageId = media.capability.nonce; const now = Date.now(); const expiresAt = Math.min(Number(media.capability.expiresAt) || now + ASSET_LIMITS.ttlMs, now + ASSET_LIMITS.ttlMs); const ttlMs = Math.max(1, expiresAt - now);
-      const token = media.tokenSigner.issueAsset({ tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, now, ttlMs, maxBytes: ASSET_LIMITS.bytesEach });
-      await media.mediaStore.createAssetToken(media.runId, { tokenId, pageId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes: ASSET_LIMITS.bytesEach, pageMaxBytes: ASSET_LIMITS.bytesPerPage });
-      return `${String(media.origin).replace(/\/$/, '')}/api/runtime/asset/${token}`;
+      if (typeof media?.captureAsset === 'function') media.captureAsset(candidate);
+      return issueAssetUrl(candidate, result, media);
     });
     const candidate = result.mediaCandidate; delete result.mediaCandidate;
     if (!candidate || !media?.tokenSigner || !media?.mediaStore) { result.bytes = Buffer.byteLength(JSON.stringify(result.data)); if (result.bytes > 64 * 1024) throw new Error('response_too_large'); return result; }
-    const tokenId = crypto.randomUUID(); const expiresAt = Date.now() + MEDIA_LIMITS.streamMs; const maxBytes = MEDIA_LIMITS.bytesPerPage;
-    const token = media.tokenSigner.issueMedia({ tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, ttlMs: MEDIA_LIMITS.streamMs, maxBytes });
-    await media.mediaStore.createMediaToken(media.runId, { tokenId, creationId: media.creationId, revision: media.revision, apiId: result.apiId, operationId: result.operationId, resolvedUrl: candidate.resolvedUrl, expiresAt, maxBytes });
-    const mediaUrl = `${String(media.origin).replace(/\/$/, '')}/media/${token}`;
+    if (typeof media.captureMedia === 'function') media.captureMedia(candidate);
+    const mediaUrl = await issueMediaUrl(candidate, result, media);
     result.mediaUrl = mediaUrl;
     result.data = result.data && typeof result.data === 'object' && !Array.isArray(result.data) ? { ...result.data, mediaUrl } : { value: result.data, mediaUrl };
     result.bytes = Buffer.byteLength(JSON.stringify(result.data));
@@ -181,4 +211,4 @@ class Broker {
   }
 }
 
-module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec, conformToExample };
+module.exports = { Broker, rejectParameters, bounded, browserPlayableRadioCodec, conformToExample, issueAssetUrl, issueMediaUrl };

@@ -47,8 +47,22 @@ test('fixture-mode broker data conforms to every model-visible adapted contract'
   const broker = new Broker({ fixtureMode: true });
   for (const entry of registry) {
     const operation = entry.operations[0];
-    const result = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {}, media: goldenMedia(entry.id, operation.id) });
+    const media = goldenMedia(entry.id, operation.id);
+    media.tokenSigner.issueAsset = ({ tokenId }) => `fixture-asset-${tokenId}`;
+    media.tokenSigner.issueMedia = ({ tokenId }) => `fixture-media-${tokenId}`;
+    const result = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {}, media });
     const drift = compareShape(result.data, operation.shapeSignature);
     assert.equal(drift.ok, true, `${entry.id}:${JSON.stringify(drift)}`);
   }
+});
+
+test('fixture conformance mints usable active-origin asset fallbacks instead of golden placeholders', async () => {
+  const created = [];
+  const broker = new Broker({ fixtureMode: true });
+  const result = await broker.call({ selectedApis: [{ apiId: 'deck-of-cards', operationIds: ['draw'] }], apiId: 'deck-of-cards', operationId: 'draw', params: {}, media: { origin: 'https://local.randomware.test', runId: 'fixture-assets', creationId: 'fixture-creation', revision: 1, capability: { nonce: 'fixture-page', expiresAt: Date.now() + 600000 }, tokenSigner: { issueAsset: ({ tokenId }) => `signed-${tokenId}` }, mediaStore: { createAssetToken: async (_runId, record) => created.push(record) } } });
+  const urls = [result.data.cards[0].image, result.data.cards[0].images.png, result.data.cards[0].images.svg];
+  assert.ok(urls.every((url) => url.startsWith('https://local.randomware.test/api/runtime/asset/signed-')));
+  assert.equal(created.length, urls.length);
+  assert.ok(created.every((record) => /^https:\/\/deckofcardsapi\.com\//.test(record.resolvedUrl)));
+  assert.doesNotMatch(JSON.stringify(result.data), /golden-asset|randomware\.example/);
 });

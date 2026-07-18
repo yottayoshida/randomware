@@ -15,5 +15,16 @@
       "name": "Citadel of Ricks"
     },
     "image": "https://randomware.example/api/runtime/asset/golden-asset-rickandmorty-character"
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "image"
+        ],
+        "resolvedUrl": "https://rickandmortyapi.com/api/character/avatar/1.jpeg"
+      }
+    ],
+    "media": null
   }
 }

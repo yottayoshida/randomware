@@ -21,5 +21,11 @@
       "format": "audio/mpeg"
     },
     "mediaUrl": "https://randomware.example/media/golden-media-librivox-book"
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": {
+      "resolvedUrl": "https://archive.org/download/count_monte_cristo_0711_librivox/count_of_monte_cristo_001_dumas_64kb.mp3"
+    }
   }
 }

@@ -3,19 +3,50 @@
   "operationId": "draw",
   "data": {
     "success": true,
-    "deck_id": "3z49p16bwxgk",
+    "deck_id": "jrr6vfsal9a6",
     "cards": [
       {
-        "code": "4C",
+        "code": "5D",
         "image": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
         "images": {
           "svg": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
           "png": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw"
         },
-        "value": "4",
-        "suit": "CLUBS"
+        "value": "5",
+        "suit": "DIAMONDS"
       }
     ],
     "remaining": 51
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "cards",
+          0,
+          "image"
+        ],
+        "resolvedUrl": "https://deckofcardsapi.com/static/img/5D.png"
+      },
+      {
+        "path": [
+          "cards",
+          0,
+          "images",
+          "svg"
+        ],
+        "resolvedUrl": "https://deckofcardsapi.com/static/img/5D.svg"
+      },
+      {
+        "path": [
+          "cards",
+          0,
+          "images",
+          "png"
+        ],
+        "resolvedUrl": "https://deckofcardsapi.com/static/img/5D.png"
+      }
+    ],
+    "media": null
   }
 }

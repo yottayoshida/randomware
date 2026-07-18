@@ -4,7 +4,7 @@
   "data": {
     "type": "FeatureCollection",
     "metadata": {
-      "generated": 1784385604000,
+      "generated": 1784387790000,
       "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=5&orderby=time-asc",
       "title": "USGS Earthquakes",
       "status": 200,
@@ -16,53 +16,13 @@
       {
         "type": "Feature",
         "properties": {
-          "mag": 0.8,
-          "place": "18 km NW of Stanton, Texas",
-          "time": 1781793620839,
-          "updated": 1781798188973,
-          "tz": null,
-          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/tx2026lxnemp",
-          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=tx2026lxnemp&format=geojson",
-          "felt": null,
-          "cdi": null,
-          "mmi": null,
-          "alert": null,
-          "status": "reviewed",
-          "tsunami": 0,
-          "sig": 10,
-          "net": "tx",
-          "code": "2026lxnemp",
-          "ids": ",tx2026lxnemp,",
-          "sources": ",tx,",
-          "types": ",origin,phase-data,",
-          "nst": 20,
-          "dmin": 0,
-          "rms": 0.2,
-          "gap": 60,
-          "magType": "ml",
-          "type": "earthquake",
-          "title": "M 0.8 - 18 km NW of Stanton, Texas"
-        },
-        "geometry": {
-          "type": "Point",
-          "coordinates": [
-            "[truncated]",
-            "[truncated]",
-            "[truncated]"
-          ]
-        },
-        "id": "tx2026lxnemp"
-      },
-      {
-        "type": "Feature",
-        "properties": {
           "mag": 1.7,
-          "place": "105 km S of Unalaska, Alaska",
-          "time": 1781793704384,
-          "updated": 1781800589779,
+          "place": "78 km ENE of Lime Village, Alaska",
+          "time": 1781796208607,
+          "updated": 1781895159895,
           "tz": null,
-          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzlces",
-          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzlces&format=geojson",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzmmew",
+          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzmmew&format=geojson",
           "felt": null,
           "cdi": null,
           "mmi": null,
@@ -71,17 +31,17 @@
           "tsunami": 0,
           "sig": 44,
           "net": "ak",
-          "code": "a2026lzlces",
-          "ids": ",aka2026lzlces,",
+          "code": "a2026lzmmew",
+          "ids": ",aka2026lzmmew,",
           "sources": ",ak,",
           "types": ",origin,phase-data,",
-          "nst": 11,
-          "dmin": 0.8,
-          "rms": 0.3,
-          "gap": 250,
+          "nst": 28,
+          "dmin": 0.7,
+          "rms": 0.5,
+          "gap": 64,
           "magType": "ml",
           "type": "earthquake",
-          "title": "M 1.7 - 105 km S of Unalaska, Alaska"
+          "title": "M 1.7 - 78 km ENE of Lime Village, Alaska"
         },
         "geometry": {
           "type": "Point",
@@ -91,37 +51,77 @@
             "[truncated]"
           ]
         },
-        "id": "aka2026lzlces"
+        "id": "aka2026lzmmew"
       },
       {
         "type": "Feature",
         "properties": {
-          "mag": 4,
-          "place": "82 km E of Yamada, Japan",
-          "time": 1781793776154,
-          "updated": 1782671832040,
+          "mag": 1.4,
+          "place": "7 km SE of Clam Gulch, Alaska",
+          "time": 1781796331428,
+          "updated": 1781895252277,
           "tz": null,
-          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us6000t7vn",
-          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us6000t7vn&format=geojson",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzmfti",
+          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzmfti&format=geojson",
           "felt": null,
           "cdi": null,
           "mmi": null,
           "alert": null,
           "status": "reviewed",
           "tsunami": 0,
-          "sig": 246,
+          "sig": 30,
+          "net": "ak",
+          "code": "a2026lzmfti",
+          "ids": ",aka2026lzmfti,",
+          "sources": ",ak,",
+          "types": ",origin,phase-data,",
+          "nst": 20,
+          "dmin": 0.5,
+          "rms": 0.5,
+          "gap": 95,
+          "magType": "ml",
+          "type": "earthquake",
+          "title": "M 1.4 - 7 km SE of Clam Gulch, Alaska"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            "[truncated]",
+            "[truncated]",
+            "[truncated]"
+          ]
+        },
+        "id": "aka2026lzmfti"
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "mag": 4.5,
+          "place": "19 km SSE of Kakching, India",
+          "time": 1781796564907,
+          "updated": 1782672591040,
+          "tz": null,
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000suc2",
+          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us7000suc2&format=geojson",
+          "felt": null,
+          "cdi": null,
+          "mmi": null,
+          "alert": null,
+          "status": "reviewed",
+          "tsunami": 0,
+          "sig": 312,
           "net": "us",
-          "code": "6000t7vn",
-          "ids": ",us6000t7vn,",
+          "code": "7000suc2",
+          "ids": ",us7000suc2,",
           "sources": ",us,",
           "types": ",origin,phase-data,",
-          "nst": 18,
-          "dmin": 2.015,
-          "rms": 0.75,
-          "gap": 195,
+          "nst": 42,
+          "dmin": 3.22,
+          "rms": 0.9,
+          "gap": 131,
           "magType": "mb",
           "type": "earthquake",
-          "title": "M 4.0 - 82 km E of Yamada, Japan"
+          "title": "M 4.5 - 19 km SSE of Kakching, India"
         },
         "geometry": {
           "type": "Point",
@@ -131,37 +131,37 @@
             "[truncated]"
           ]
         },
-        "id": "us6000t7vn"
+        "id": "us7000suc2"
       },
       {
         "type": "Feature",
         "properties": {
-          "mag": 2.1,
-          "place": "71 km E of Port Alsworth, Alaska",
-          "time": 1781795229340,
-          "updated": 1781895028054,
+          "mag": 2.6,
+          "place": "88 km SSW of Unalaska, Alaska",
+          "time": 1781796644466,
+          "updated": 1783861982040,
           "tz": null,
-          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzlxlw",
-          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzlxlw&format=geojson",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000sup9",
+          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us7000sup9&format=geojson",
           "felt": null,
           "cdi": null,
           "mmi": null,
           "alert": null,
           "status": "reviewed",
           "tsunami": 0,
-          "sig": 68,
-          "net": "ak",
-          "code": "a2026lzlxlw",
-          "ids": ",aka2026lzlxlw,",
-          "sources": ",ak,",
+          "sig": 104,
+          "net": "us",
+          "code": "7000sup9",
+          "ids": ",aka2026lzmslq,us7000sup9,",
+          "sources": ",ak,us,",
           "types": ",origin,phase-data,",
-          "nst": 66,
-          "dmin": 0.2,
-          "rms": 0.7,
-          "gap": 111,
+          "nst": 21,
+          "dmin": 0.626,
+          "rms": 0.8,
+          "gap": 205,
           "magType": "ml",
           "type": "earthquake",
-          "title": "M 2.1 - 71 km E of Port Alsworth, Alaska"
+          "title": "M 2.6 - 88 km SSW of Unalaska, Alaska"
         },
         "geometry": {
           "type": "Point",
@@ -171,37 +171,37 @@
             "[truncated]"
           ]
         },
-        "id": "aka2026lzlxlw"
+        "id": "us7000sup9"
       },
       {
         "type": "Feature",
         "properties": {
-          "mag": 1.5,
+          "mag": 1.4,
           "place": "50 km NNE of White Mountain, Alaska",
-          "time": 1781795562429,
-          "updated": 1781905689617,
+          "time": 1781796848351,
+          "updated": 1781905950379,
           "tz": null,
-          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzmcwb",
-          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzmcwb&format=geojson",
+          "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzmvlf",
+          "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzmvlf&format=geojson",
           "felt": null,
           "cdi": null,
           "mmi": null,
           "alert": null,
           "status": "reviewed",
           "tsunami": 0,
-          "sig": 35,
+          "sig": 30,
           "net": "ak",
-          "code": "a2026lzmcwb",
-          "ids": ",aka2026lzmcwb,",
+          "code": "a2026lzmvlf",
+          "ids": ",aka2026lzmvlf,",
           "sources": ",ak,",
           "types": ",origin,phase-data,",
-          "nst": 7,
+          "nst": 4,
           "dmin": 0.9,
           "rms": 0.3,
-          "gap": 77,
+          "gap": 143,
           "magType": "ml",
           "type": "earthquake",
-          "title": "M 1.5 - 50 km NNE of White Mountain, Alaska"
+          "title": "M 1.4 - 50 km NNE of White Mountain, Alaska"
         },
         "geometry": {
           "type": "Point",
@@ -211,16 +211,20 @@
             "[truncated]"
           ]
         },
-        "id": "aka2026lzmcwb"
+        "id": "aka2026lzmvlf"
       }
     ],
     "bbox": [
-      -166.77,
-      32.257,
-      4.7,
-      142.8998,
-      65.104,
-      137.5
+      -166.9814,
+      24.3478,
+      2.5,
+      94.0847,
+      65.106,
+      62.4
     ]
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": null
   }
 }

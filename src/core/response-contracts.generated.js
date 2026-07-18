@@ -247,17 +247,17 @@ module.exports = Object.freeze({
     },
     "responseExample": {
       "success": true,
-      "deck_id": "3z49p16bwxgk",
+      "deck_id": "jrr6vfsal9a6",
       "cards": [
         {
-          "code": "4C",
+          "code": "5D",
           "image": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
           "images": {
             "svg": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw",
             "png": "https://randomware.example/api/runtime/asset/golden-asset-deck-of-cards-draw"
           },
-          "value": "4",
-          "suit": "CLUBS"
+          "value": "5",
+          "suit": "DIAMONDS"
         }
       ],
       "remaining": 51
@@ -860,6 +860,7 @@ module.exports = Object.freeze({
       "$.measurements[]": "object",
       "$.measurements[].elementDescription": "scalar",
       "$.measurements[].elementMeasurements": "object",
+      "$.measurements[].elementMeasurements.Depth": "scalar",
       "$.measurements[].elementMeasurements.Height": "scalar",
       "$.measurements[].elementMeasurements.Width": "scalar",
       "$.measurements[].elementName": "scalar",
@@ -1198,7 +1199,7 @@ module.exports = Object.freeze({
     "responseExample": {
       "latitude": 35.7,
       "longitude": 139.75,
-      "generationtime_ms": 0.047206878662109375,
+      "generationtime_ms": 0.039458274841308594,
       "utc_offset_seconds": 0,
       "timezone": "GMT",
       "timezone_abbreviation": "GMT",
@@ -1210,9 +1211,9 @@ module.exports = Object.freeze({
         "weather_code": "wmo code"
       },
       "current": {
-        "time": "2026-07-18T14:30",
+        "time": "2026-07-18T15:15",
         "interval": 900,
-        "temperature_2m": 25.4,
+        "temperature_2m": 25.3,
         "weather_code": 1
       }
     },
@@ -1281,12 +1282,12 @@ module.exports = Object.freeze({
     },
     "responseExample": [
       {
-        "title": "The Daemon of the World",
-        "author": "Percy Bysshe Shelley",
+        "title": "The Rebel Surprise Near Tamai",
+        "author": "William Topaz McGonagall",
         "lines": [
-          "A FRAGMENT."
+          "'Twas on the 22nd of March, in the year 1885,"
         ],
-        "linecount": "632"
+        "linecount": "64"
       }
     ],
     "semanticFieldPaths": [
@@ -1377,16 +1378,16 @@ module.exports = Object.freeze({
     },
     "responseExample": {
       "station": {
-        "name": "sfera",
-        "codec": "AAC",
+        "name": "The Indie Beat Radio - Rock",
+        "codec": "MP3",
         "bitrate": 128,
-        "country": "Greece",
-        "tags": "pop",
-        "homepage": "https://www.sfera.gr/"
+        "country": "The United States Of America",
+        "tags": "",
+        "homepage": "https://theindiebeat.fm/rock/"
       },
       "media": {
         "kind": "audio",
-        "codec": "AAC"
+        "codec": "MP3"
       },
       "mediaUrl": "https://randomware.example/media/golden-media-radio-browser-station"
     },
@@ -1493,13 +1494,13 @@ module.exports = Object.freeze({
     "responseExample": {
       "results": [
         {
-          "gender": "female",
+          "gender": "male",
           "name": {
-            "title": "Mrs",
-            "first": "Marina",
-            "last": "Moya"
+            "title": "Mr",
+            "first": "Gökhan",
+            "last": "Abadan"
           },
-          "nat": "ES",
+          "nat": "TR",
           "picture": {
             "large": "https://randomware.example/api/runtime/asset/golden-asset-randomuser-person",
             "medium": "https://randomware.example/api/runtime/asset/golden-asset-randomuser-person",
@@ -1649,8 +1650,7 @@ module.exports = Object.freeze({
                 "maxLength": 4000
               },
               "strArea": {
-                "type": "string",
-                "maxLength": 4000
+                "type": "null"
               },
               "strCategory": {
                 "type": "string",
@@ -1858,30 +1858,30 @@ module.exports = Object.freeze({
     "responseExample": {
       "meals": [
         {
-          "idMeal": "53377",
-          "strMeal": "Napa Cabbage with Dried Shrimp",
+          "idMeal": "53404",
+          "strMeal": "Tavë Kosi Baked Lamb and Yogurt",
           "strMealAlternate": null,
-          "strCategory": "Seafood",
-          "strArea": "Chinese",
-          "strCountry": "China",
-          "strInstructions": "Dried shrimp gives this Chinese dish a punch of salty umami flavor. You can find it at an Asian grocery store in the frozen or refrigerated section. Look for sm",
+          "strCategory": "Lamb",
+          "strArea": null,
+          "strCountry": "Albania",
+          "strInstructions": "1\r\nBaking the Lamb\r\nIn a large pan (with a lid) melt the butter and olive oil together then add the diced lamb. Brown the lamb on a medium heat, this will take ",
           "strMealThumb": "https://randomware.example/api/runtime/asset/golden-asset-themealdb-meal",
           "strTags": null,
-          "strYoutube": "https://www.youtube.com/watch?v=Fj0JALB4_5k",
-          "strIngredient1": "Dried Shrimp",
-          "strIngredient2": "Boiling Water",
-          "strIngredient3": "Napa Cabbage",
-          "strIngredient4": "Peanut Oil",
-          "strIngredient5": "Scallions",
-          "strIngredient6": "Ginger",
-          "strIngredient7": "Soy Sauce",
-          "strIngredient8": "Water",
-          "strIngredient9": "Cornstarch",
-          "strIngredient10": "Kosher Salt",
-          "strIngredient11": "Pepper",
-          "strIngredient12": "",
-          "strIngredient13": "",
-          "strIngredient14": ""
+          "strYoutube": "https://www.youtube.com/watch?v=sinI-D-vhKU",
+          "strIngredient1": "Lamb",
+          "strIngredient2": "Butter",
+          "strIngredient3": "Olive Oil",
+          "strIngredient4": "Rice",
+          "strIngredient5": "Oregano",
+          "strIngredient6": "Boiling Water",
+          "strIngredient7": "Garlic",
+          "strIngredient8": "Salt",
+          "strIngredient9": "Pepper",
+          "strIngredient10": "Butter",
+          "strIngredient11": "Flour",
+          "strIngredient12": "Greek Yogurt",
+          "strIngredient13": "Eggs",
+          "strIngredient14": "Salt"
         }
       ]
     },
@@ -2564,7 +2564,7 @@ module.exports = Object.freeze({
     "responseExample": {
       "type": "FeatureCollection",
       "metadata": {
-        "generated": 1784385604000,
+        "generated": 1784387790000,
         "url": "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=5&orderby=time-asc",
         "title": "USGS Earthquakes",
         "status": 200,
@@ -2576,29 +2576,29 @@ module.exports = Object.freeze({
         {
           "type": "Feature",
           "properties": {
-            "mag": 0.8,
-            "place": "18 km NW of Stanton, Texas",
-            "time": 1781793620839,
-            "updated": 1781798188973,
+            "mag": 1.7,
+            "place": "78 km ENE of Lime Village, Alaska",
+            "time": 1781796208607,
+            "updated": 1781895159895,
             "tz": null,
-            "url": "https://earthquake.usgs.gov/earthquakes/eventpage/tx2026lxnemp",
-            "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=tx2026lxnemp&format=geojson",
+            "url": "https://earthquake.usgs.gov/earthquakes/eventpage/aka2026lzmmew",
+            "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=aka2026lzmmew&format=geojson",
             "felt": null,
             "cdi": null,
             "mmi": null,
             "alert": null,
             "status": "reviewed",
             "tsunami": 0,
-            "sig": 10,
-            "net": "tx",
-            "code": "2026lxnemp",
-            "ids": ",tx2026lxnemp,",
-            "sources": ",tx,",
+            "sig": 44,
+            "net": "ak",
+            "code": "a2026lzmmew",
+            "ids": ",aka2026lzmmew,",
+            "sources": ",ak,",
             "types": ",origin,phase-data,",
-            "nst": 20,
-            "dmin": 0,
-            "rms": 0.2,
-            "gap": 60,
+            "nst": 28,
+            "dmin": 0.7,
+            "rms": 0.5,
+            "gap": 64,
             "magType": "ml"
           },
           "geometry": {
@@ -2607,11 +2607,11 @@ module.exports = Object.freeze({
               "[truncated]"
             ]
           },
-          "id": "tx2026lxnemp"
+          "id": "aka2026lzmmew"
         }
       ],
       "bbox": [
-        -166.77
+        -166.9814
       ]
     },
     "semanticFieldPaths": [

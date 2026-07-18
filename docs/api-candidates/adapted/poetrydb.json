@@ -3,31 +3,35 @@
   "operationId": "random",
   "data": [
     {
-      "title": "The Daemon of the World",
-      "author": "Percy Bysshe Shelley",
+      "title": "The Rebel Surprise Near Tamai",
+      "author": "William Topaz McGonagall",
       "lines": [
-        "A FRAGMENT.",
+        "'Twas on the 22nd of March, in the year 1885,",
+        "That the Arabs rushed like a mountain torrent in full drive,",
+        "And quickly attacked General M'Neill's transport-zereba,",
+        "But in a short time they were forced to withdraw.",
         "",
-        "PART 1.",
+        "And in the suddenness of surprise the men were carried away,",
+        "Also camels, mules, and horses were thrown into wild disarray,",
+        "By thousands of the Arabs that in ambush lay,",
+        "But our brave British heroes held the enemy at bay.",
         "",
-        "Nec tantum prodere vati,",
-        "Quantum scire licet. Venit aetas omnis in unam",
-        "Congeriem, miserumque premunt tot saecula pectus.",
-        "LUCAN, Phars. v. 176.",
+        "There was a multitude of camels heaped upon one another,",
+        "Kicking and screaming, while many of them did smother,",
+        "Owing to the heavy pressure of the entangled mass,",
+        "That were tramping o'er one another as they lay on the grass.",
         "",
-        "How wonderful is Death,",
-        "Death and his brother Sleep!",
-        "One pale as yonder wan and horned moon,",
-        "With lips of lurid blue,",
-        "The other glowing like the vital morn,",
-        "When throned on ocean's wave",
-        "It breathes over the world:",
-        "Yet both so passing strange and wonderful!",
-        "",
-        "Hath then the iron-sceptred Skeleton,",
-        "Whose reign is in the tainted sepulchres,"
+        "The scene was indescribable, and sickening to behold,",
+        "To see the mass of innocent brutes lying stiff and cold,",
+        "And the moaning cries of them were pitiful to hear,",
+        "Likewise the cries of the dying men that lay wounded in the rear.",
+        ""
       ],
-      "linecount": "632"
+      "linecount": "64"
     }
-  ]
+  ],
+  "fixtureSources": {
+    "assets": [],
+    "media": null
+  }
 }

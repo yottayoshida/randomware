@@ -6,5 +6,9 @@
     "base": "USD",
     "quote": "JPY",
     "rate": 162.41
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": null
   }
 }

@@ -15,7 +15,7 @@ async function runHealthCheck({ broker, entries = registry, previous = new Map()
   for (const entry of entries) {
     const operation = entry.operations[0]; const started = Date.now(); let result;
     try {
-      const response = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {} });
+      const response = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {}, media: { origin: 'https://health.randomware.invalid', runId: 'health', creationId: 'health', revision: 1, capability: { nonce: 'health', expiresAt: now + 600000 }, tokenSigner: { issueAsset: () => 'health-asset', issueMedia: () => 'health-media' }, mediaStore: { createAssetToken: async () => {}, createMediaToken: async () => {} } } });
       const drift = operation.shapeSignature ? compareShape(response?.data, operation.shapeSignature) : { ok: true };
       if (!drift.ok) throw new Error(`adapted_shape_drift:${[...drift.missing.map((path) => `missing:${path}`), ...drift.extra.map((path) => `extra:${path}`), ...drift.changed.map((change) => `changed:${change.path}`)].slice(0, 8).join('|')}`);
       result = { apiId: entry.id, ok: true, latencyMs: Date.now() - started, latencyLimitMs: operation.timeoutMs };

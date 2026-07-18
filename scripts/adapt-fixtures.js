@@ -6,6 +6,7 @@ const { Broker } = require('../src/core/broker');
 const root = path.resolve(__dirname, '..');
 
 function goldenMedia(apiId, operationId) {
+  const fixtureSources = { assets: [], media: null };
   return {
     origin: 'https://randomware.example',
     runId: 'golden-run',
@@ -19,19 +20,23 @@ function goldenMedia(apiId, operationId) {
     mediaStore: {
       createAssetToken: async () => {},
       createMediaToken: async () => {}
-    }
+    },
+    fixtureSources,
+    captureAsset: (candidate) => fixtureSources.assets.push({ path: candidate.path, resolvedUrl: candidate.resolvedUrl }),
+    captureMedia: (candidate) => { fixtureSources.media = { resolvedUrl: candidate.resolvedUrl }; }
   };
 }
 
 async function capture(broker, entry, operation) {
+  const media = goldenMedia(entry.id, operation.id);
   const result = await broker.call({
     selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }],
     apiId: entry.id,
     operationId: operation.id,
     params: {},
-    media: goldenMedia(entry.id, operation.id)
+    media
   });
-  return { apiId: entry.id, operationId: operation.id, data: result.data };
+  return { apiId: entry.id, operationId: operation.id, data: result.data, fixtureSources: media.fixtureSources };
 }
 
 async function main() {

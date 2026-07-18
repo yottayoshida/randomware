@@ -3,17 +3,23 @@
   "operationId": "station",
   "data": {
     "station": {
-      "name": "sfera",
-      "codec": "AAC",
+      "name": "The Indie Beat Radio - Rock",
+      "codec": "MP3",
       "bitrate": 128,
-      "country": "Greece",
-      "tags": "pop",
-      "homepage": "https://www.sfera.gr/"
+      "country": "The United States Of America",
+      "tags": "",
+      "homepage": "https://theindiebeat.fm/rock/"
     },
     "media": {
       "kind": "audio",
-      "codec": "AAC"
+      "codec": "MP3"
     },
     "mediaUrl": "https://randomware.example/media/golden-media-radio-browser-station"
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": {
+      "resolvedUrl": "https://azura.theindiebeat.fm/listen/the_indie_beat_radio_-_rock/radio.mp3"
+    }
   }
 }

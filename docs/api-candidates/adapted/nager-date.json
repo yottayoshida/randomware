@@ -210,5 +210,9 @@
         "Public"
       ]
     }
-  ]
+  ],
+  "fixtureSources": {
+    "assets": [],
+    "media": null
+  }
 }

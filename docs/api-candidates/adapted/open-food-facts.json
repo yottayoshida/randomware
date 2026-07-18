@@ -18,5 +18,17 @@
     },
     "status": "success",
     "warnings": []
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "product",
+          "image_url"
+        ],
+        "resolvedUrl": "https://images.openfoodfacts.org/images/products/301/762/401/0701/front_en.100.400.jpg"
+      }
+    ],
+    "media": null
   }
 }

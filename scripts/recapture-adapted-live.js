@@ -9,7 +9,10 @@ const root = path.resolve(__dirname, '..');
 async function main() {
   const broker = new Broker({ fixtureMode: false });
   const failures = [];
-  for (const entry of registry) {
+  const only = process.argv.find((argument) => argument.startsWith('--api='))?.slice('--api='.length);
+  const entries = only ? registry.filter((entry) => entry.id === only) : registry;
+  if (!entries.length) throw new Error(`unknown_registry_entry:${only}`);
+  for (const entry of entries) {
     const operation = entry.operations[0];
     try {
       const fixture = await capture(broker, entry, operation);

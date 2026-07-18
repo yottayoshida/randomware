@@ -4,5 +4,16 @@
   "data": {
     "message": "https://randomware.example/api/runtime/asset/golden-asset-dog-ceo-random",
     "status": "success"
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "message"
+        ],
+        "resolvedUrl": "https://images.dog.ceo/breeds/husky/n02110185_9461.jpg"
+      }
+    ],
+    "media": null
   }
 }
