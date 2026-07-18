@@ -67,6 +67,9 @@ test('MCP surface exposes eight annotated tools', async (t) => {
   assert.ok(result.body.result.tools.every((tool) => tool.annotations && typeof tool.annotations.readOnlyHint === 'boolean'));
   const open = result.body.result.tools.find((tool) => tool.name === 'open_randomware');
   assert.equal(open._meta.ui.resourceUri, 'ui://widget/randomware.html');
+  const openCall = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 5, method: 'tools/call', params: { name: 'open_randomware', arguments: {} } }) });
+  assert.deepEqual(openCall.body.result.content, [{ type: 'text', text: 'Randomware slot mounted.' }]);
+  assert.equal(openCall.body.result.structuredContent.ok, true);
   const get = await fetch(`${base}/mcp`);
   assert.equal(get.status, 405);
 });

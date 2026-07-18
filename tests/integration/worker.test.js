@@ -10,6 +10,10 @@ test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a lis
   assert.equal((await health.json()).registry, 18);
   const tools = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) }));
   assert.equal((await tools.json()).result.tools.length, 8);
+  const open = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1.1, method: 'tools/call', params: { name: 'open_randomware', arguments: {} } }) }));
+  const openResult = (await open.json()).result;
+  assert.deepEqual(openResult.content, [{ type: 'text', text: 'Randomware slot mounted.' }]);
+  assert.equal(openResult.structuredContent.ok, true);
   const spin = await fetchHandler(new Request('https://randomware.example/api/spin', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ seed: 'worker', requestId: 'worker-spin' }) }));
   assert.equal(spin.status, 200);
   const spinBody = await spin.json();

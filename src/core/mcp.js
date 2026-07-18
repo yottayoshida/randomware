@@ -62,6 +62,10 @@ function jsonRpcError(id, code, message, data) {
   return { jsonrpc: '2.0', id: id ?? null, error: { code, message, ...(data ? { data } : {}) } };
 }
 
+function callToolResult(structuredContent, text, extra = {}) {
+  return { content: [{ type: 'text', text: String(text) }], structuredContent, ...extra };
+}
+
 module.exports = {
   MCP_PROTOCOL_VERSION,
   MCP_RESOURCE_URI,
@@ -70,5 +74,6 @@ module.exports = {
   widgetResource,
   resourceSummary,
   widgetToolMeta,
-  jsonRpcError
+  jsonRpcError,
+  callToolResult
 };

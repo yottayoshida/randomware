@@ -12,7 +12,7 @@ const { CapabilitySigner } = require('./core/capability');
 const { validateConcept } = require('./core/concept');
 const { escapeHtml } = require('./core/artifact');
 const { deathCertificate } = require('./core/failure');
-const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError } = require('./core/mcp');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult } = require('./core/mcp');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -175,22 +175,22 @@ async function handleMcp(req, res, app) {
   if (method === 'tools/list') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { tools: createMcpTools(app) } });
   if (method === 'tools/call') {
     const name = input.params?.name; const args = input.params?.arguments || {};
-    if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: { ok: true, registry: registry.length } } });
-    if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: runSummary(run) } }); }
-    if (name === 'get_run') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: runSummary(app.store.getRun(args.runId)) } });
+    if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
+    if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Selected ${run.selectedApis.length} APIs.`) }); }
+    if (name === 'get_run') { const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run), `Run ${run.id} is ${run.phase}.`) }); }
     if (name === 'submit_concept') {
       const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
-      if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { isError: true, structuredContent: check } });
-      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: runSummary(app.store.acceptConcept(args.runId, concept)) } });
+      if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(check, `Concept rejected: ${check.code}.`, { isError: true }) });
+      const accepted = app.store.acceptConcept(args.runId, concept); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `Concept accepted for ${args.runId}.`) });
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
       const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis });
-      if (!check.ok) { if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); else app.store.recordArtifactFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { isError: true, structuredContent: { ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' } } }); }
+      if (!check.ok) { if (name === 'submit_repair') app.store.recordRepairFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); else app.store.recordArtifactFailure(args.runId, { requestId: args.requestId, code: check.code, html: args.html }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, `${name === 'submit_repair' ? 'Repair' : 'Artifact'} rejected: ${check.code}.`, { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
-      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: runSummary(accepted) } });
+      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
     }
-    if (name === 'mutate_creation') { const run = app.store.findByCreation(args.creationId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: { ok: true, creationId: run.creationId, apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' } } }); }
-    if (name === 'record_choreography_failure') { const failed = app.store.fail(args.runId, args.code || 'choreography_timeout', args.phase); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: { structuredContent: runSummary(failed) } }); }
+    if (name === 'mutate_creation') { const run = app.store.findByCreation(args.creationId); const result = { ok: true, creationId: run.creationId, apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' }; return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(result, `Mutation recorded for ${run.creationId}.`) }); }
+    if (name === 'record_choreography_failure') { const failed = app.store.fail(args.runId, args.code || 'choreography_timeout', args.phase); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(failed), `Failure recorded for ${args.runId}.`) }); }
   }
   return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: -32601, message: 'method_not_supported' } });
 }
