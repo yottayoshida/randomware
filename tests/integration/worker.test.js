@@ -122,3 +122,23 @@ test('Worker media route streams a signed radio response through a validated red
   assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3bounded-audio');
   assert.equal(upstreamCalls, 2);
 });
+
+test('Worker media route applies the archive.org policy to LibriVox audio', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-librivox-media-test-secret');
+  const fetcher = async (target) => {
+    assert.match(String(target), /^https:\/\/(?:www\.)?archive\.org\//);
+    return new Response(Buffer.from('ID3librivox-audio'), { status: 200, headers: { 'content-type': 'audio/mpeg' } });
+  };
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true, fetcher }) });
+  const run = store.createRun({ requestId: 'librivox-media-route-test', selectedApis: [{ apiId: 'librivox', operationIds: ['book'] }] });
+  store.acceptConcept(run.id, { requestId: 'librivox-media-route-concept', apiIds: ['librivox'] });
+  store.acceptArtifact(run.id, { requestId: 'librivox-media-route-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'librivox', operationId: 'book' }] });
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', { method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' }, body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'librivox', operationId: 'book', params: {}, capability }) }));
+  const mediaUrl = new URL((await mediated.json()).data.mediaUrl);
+  const streamed = await fetchHandler(new Request(mediaUrl));
+  assert.equal(streamed.status, 200);
+  assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
+  assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3librivox-audio');
+});
