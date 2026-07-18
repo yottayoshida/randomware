@@ -8,6 +8,7 @@ Chronological record of how Randomware is being built, kept for the OpenAI Build
 - 29 candidate public APIs verified with live requests ([api-candidates/report.md](api-candidates/report.md)). 15 primary + 9 backup adopted; 4 rejected (no HTTPS, TLS failure, persistent 504, wrong content type). Real response bodies and headers captured under `api-candidates/samples/` as fixture material.
 - Repository created: public, MIT licensed.
 - Tooling disclosure: this preparation step (PRD authoring and API verification) was done with Claude Code, before and outside the $100 Codex budget. No application code was written during preparation.
+- Design-pass brief added ([DESIGN_BRIEF.md](DESIGN_BRIEF.md)): the instruction document handed to the GPT-5.6 Sol design session, so the design pass starts from a single "read this and execute" prompt.
 
 ### Planned next steps
 
