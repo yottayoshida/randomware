@@ -9,6 +9,7 @@ class RunStore {
     this.runs = new Map();
     this.requestIndex = new Map();
     this.runtimeRequests = [];
+    this.mediaTokens = new Map();
   }
 
   listCreations() {
@@ -107,6 +108,34 @@ class RunStore {
     const bytes = run.runtimeRequests.reduce((sum, row) => sum + (row.bytes || 0), 0);
     if (completed >= (quotas.jsonCalls || 30) || bytes >= (quotas.adaptedBytes || 1024 * 1024)) throw new Error('capacity_reached');
     return { completed, bytes };
+  }
+
+  createMediaToken(runId, record) {
+    this.getRun(runId);
+    this.mediaTokens.set(record.tokenId, { ...record, runId, active: false, bytesServed: 0 });
+    return record;
+  }
+
+  getMediaToken(tokenId) {
+    const record = this.mediaTokens.get(tokenId);
+    if (!record) throw new Error('media_token_not_found');
+    return record;
+  }
+
+  startMediaStream(tokenId) {
+    const record = this.getMediaToken(tokenId);
+    if (Date.now() >= record.expiresAt) throw new Error('media_capability_invalid');
+    if (record.active) throw new Error('media_concurrent_limit');
+    if (record.bytesServed >= record.maxBytes) throw new Error('media_bytes_cap');
+    record.active = true;
+    return record;
+  }
+
+  finishMediaStream(tokenId, bytes) {
+    const record = this.getMediaToken(tokenId);
+    record.active = false;
+    record.bytesServed = Math.min(record.maxBytes, record.bytesServed + Math.max(0, Number(bytes) || 0));
+    return record;
   }
 
   reportCreation(creationId, reason = 'unspecified') {

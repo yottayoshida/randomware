@@ -13,6 +13,19 @@ test('broker permits only selected fixed operations and returns bounded JSON', a
   assert.ok(result.data);
 });
 
+test('audio adapters return metadata and a same-origin media URL, never the upstream stream URL', async () => {
+  const broker = new Broker({ fixtureMode: true });
+  const result = await broker.call({
+    selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }],
+    apiId: 'radio-browser', operationId: 'station', params: {},
+    media: { origin: 'https://randomware.example', creationId: 'creation_test', revision: 1, tokenSigner: { issueMedia: () => 'signed-media-token' }, mediaStore: { createMediaToken: async () => {} } }
+  });
+  assert.equal(result.data.station.url_resolved, undefined);
+  assert.equal(result.data.station.url, undefined);
+  assert.equal(result.data.mediaUrl, 'https://randomware.example/media/signed-media-token');
+  assert.equal(result.mediaUrl, 'https://randomware.example/media/signed-media-token');
+});
+
 test('broker rejects unknown API operations and arbitrary URL parameters', async () => {
   const broker = new Broker({ fixtureMode: true });
   await assert.rejects(() => broker.call({ selectedApis: [], apiId: 'open-meteo', operationId: 'nope', params: {} }), /operation_not_selected/);

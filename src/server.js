@@ -15,6 +15,7 @@ const { deathCertificate } = require('./core/failure');
 const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult } = require('./core/mcp');
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
+const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -72,12 +73,28 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
       if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
+      const mediaMatch = url.pathname.match(/^\/media\/([^/]+)$/);
+      if (mediaMatch && req.method === 'GET') {
+        const mediaToken = signer.verifyMedia(decodeURIComponent(mediaMatch[1]));
+        const stored = store.getMediaToken(mediaToken.tokenId);
+        if (stored.resolvedUrl !== mediaToken.resolvedUrl || stored.creationId !== mediaToken.creationId || stored.revision !== mediaToken.revision) throw new Error('media_capability_invalid');
+        const started = store.startMediaStream(mediaToken.tokenId);
+        let upstream;
+        try { upstream = await fetchMedia({ target: stored.resolvedUrl, request: new Request(`http://${req.headers.host || 'localhost'}${req.url}`, { method: 'GET', headers: req.headers }), fetcher: broker.fetcher || globalThis.fetch, kind: mediaToken.apiId === 'librivox' ? 'librivox' : 'radio-browser' }); }
+        catch (error) { store.finishMediaStream(mediaToken.tokenId, 0); throw error; }
+        const remaining = Math.min(mediaToken.maxBytes, MEDIA_LIMITS.bytesPerPage) - (started.bytesServed || 0);
+        const stream = limitedStream(upstream.response.body, remaining, (bytes) => store.finishMediaStream(mediaToken.tokenId, bytes));
+        const passHeaders = {}; for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
+        const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
+        res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'same-origin', ...passHeaders });
+        const reader = stream.getReader(); const pump = async () => { try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); } catch { res.destroy(); } }; await pump(); return;
+      }
       if (url.pathname === '/api/runtime/call') {
         if (req.headers.origin && req.headers.origin !== 'null') throw new Error('origin_not_allowed');
         if (req.method === 'OPTIONS') { res.writeHead(204, runtimeCors); return res.end(); }
         if (req.method === 'POST') {
           const input = await body(req); const run = store.findByCreation(input.creationId); if (run.unpublished) throw new Error('creation_unpublished'); const capability = signer.verify(input.capability, { creationId: input.creationId, revision: input.revision, apiId: input.apiId, operationId: input.operationId }); store.assertRuntimeQuota(run.id, capability.quotas);
-          const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {} }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, runtimeCors);
+          const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {}, media: { origin: `http://${req.headers.host || 'localhost'}`, runId: run.id, creationId: run.creationId, revision: input.revision, tokenSigner: signer, mediaStore: store } }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, runtimeCors);
         }
       }
       if (req.method === 'POST' && url.pathname === '/api/spin') {
@@ -119,7 +136,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         }
         run.lastCapabilityExpiresAt = Date.now() + 600000; const token = signer.issue({ creationId: run.creationId, revision: revision.revision, selected: run.selectedApis.flatMap((entry) => entry.operationIds.map((operationId) => ({ apiId: entry.apiId, operationId }))) });
         const harness = `<script>window.randomware=Object.freeze({call:async(a,o,p)=>{const r=await fetch('/api/runtime/call',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({creationId:${JSON.stringify(run.creationId)},revision:${revision.revision},apiId:a,operationId:o,params:p,capability:${JSON.stringify(token)}})});if(!r.ok)throw new Error('broker_failure');return r.json()},ready:()=>parent.postMessage({channel:'randomware',type:'ready'},'*')});</script>`;
-        const csp = `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: 'self'; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://${req.headers.host || 'localhost'} ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
+        const csp = `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: https://${req.headers.host || 'localhost'}; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors https://${req.headers.host || 'localhost'} ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
         return text(res, 200, `${harness}${revision.html}`, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8', 'access-control-allow-origin': 'null' });
       }
       const keeperMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/(download|spec|spec\/download)$/);

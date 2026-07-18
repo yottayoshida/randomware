@@ -94,3 +94,31 @@ test('Worker broker route handles opaque-origin preflight and records a mediated
   assert.equal((await mediated.json()).ok, true);
   assert.equal(store.findByCreation(run.creationId).runtimeRequests.length, 1);
 });
+
+test('Worker media route streams a signed radio response through a validated redirect', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-media-test-secret');
+  let upstreamCalls = 0;
+  const fetcher = async (target) => {
+    upstreamCalls += 1;
+    if (String(target).includes('stream.laut.fm')) return new Response(null, { status: 302, headers: { location: 'https://cdn.example/radio.mp3' } });
+    if (String(target) === 'https://cdn.example/radio.mp3') return new Response(Buffer.from('ID3bounded-audio'), { status: 200, headers: { 'content-type': 'audio/mpeg' } });
+    throw new Error(`unexpected_media_target:${target}`);
+  };
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true, fetcher }) });
+  const run = store.createRun({ requestId: 'media-route-test', selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }] });
+  store.acceptConcept(run.id, { requestId: 'media-route-concept', apiIds: ['radio-browser'] });
+  store.acceptArtifact(run.id, { requestId: 'media-route-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'radio-browser', operationId: 'station' }] });
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', { method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' }, body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'radio-browser', operationId: 'station', params: {}, capability }) }));
+  assert.equal(mediated.status, 200);
+  const mediatedBody = await mediated.json();
+  assert.match(mediatedBody.data.mediaUrl, /^https:\/\/randomware\.example\/media\//);
+  assert.doesNotMatch(JSON.stringify(mediatedBody), /stream\.laut\.fm|url_resolved/);
+  const mediaUrl = new URL(mediatedBody.data.mediaUrl);
+  const streamed = await fetchHandler(new Request(mediaUrl));
+  assert.equal(streamed.status, 200);
+  assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
+  assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3bounded-audio');
+  assert.equal(upstreamCalls, 2);
+});

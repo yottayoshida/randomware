@@ -27,7 +27,7 @@ const rows = [
   ['tvmaze', 'TVMaze', 'culture', 'https://www.tvmaze.com/api', 'https://www.tvmaze.com/api', ['api.tvmaze.com'], operation('show', 'find a TV show', '/search/shows?q=space', 'tvmaze.json')],
   ['rickandmorty', 'Rick and Morty API', 'characters', 'https://rickandmortyapi.com/documentation', 'https://rickandmortyapi.com/about', ['rickandmortyapi.com'], operation('character', 'get a character', '/api/character/1', 'rickandmorty.json')],
   ['open-food-facts', 'Open Food Facts', 'food', 'https://openfoodfacts.github.io/openfoodfacts-server/api/', 'https://world.openfoodfacts.org/terms-of-use', ['world.openfoodfacts.org', 'images.openfoodfacts.org'], operation('product', 'get a product by barcode', '/api/v3/product/3017624010701.json?fields=code,product_name,brands,nutriscore_grade,image_url', 'open-food-facts.json')],
-  ['librivox', 'LibriVox', 'books', 'https://librivox.org/api/info', 'https://librivox.org/pages/public-domain/', ['librivox.org', 'archive.org'], operation('book', 'get a public-domain audiobook', '/api/feed/audiobooks/?id=47&format=json&fields=id,title,authors,url_librivox,url_zip_file', 'librivox.json')],
+  ['librivox', 'LibriVox', 'books', 'https://librivox.org/api/info', 'https://librivox.org/pages/public-domain/', ['librivox.org', 'archive.org'], operation('book', 'get a public-domain audiobook', '/api/feed/audiobooks/?id=47&format=json&fields=id,title,authors,url_librivox,url_rss,url_zip_file', 'librivox.json')],
   ['themealdb', 'TheMealDB', 'food', 'https://www.themealdb.com/docs_api_guide.php', 'https://www.themealdb.com/terms_of_use.php', ['www.themealdb.com'], operation('meal', 'get a meal', '/api/json/v1/1/random.php', 'themealdb.json')]
 ];
 
