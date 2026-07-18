@@ -20,7 +20,7 @@ const integrationResult = spawnSync(process.execPath, ['--test', 'tests/integrat
 if (integrationResult.status !== 0) process.exit(integrationResult.status || 1);
 const e2eResult = spawnSync(process.execPath, ['--test', 'tests/e2e/*.test.js'], { cwd: root, shell: true, stdio: 'inherit' });
 if (e2eResult.status !== 0) process.exit(e2eResult.status || 1);
-for (const script of ['build.js', 'registry-verify.js', 'security-scan.js', 'secrets-scan.js']) {
+for (const script of ['build.js', 'registry-verify.js', 'security-scan.js', 'secrets-scan.js', 'document-check.js']) {
   const result = spawnSync(process.execPath, [path.join(root, 'scripts', script)], { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status || 1);
 }

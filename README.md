@@ -16,9 +16,13 @@ The live submission URL and `/mcp` endpoint are recorded in [docs/BUILD_LOG.md](
 
 Real APIs go in. GPT-5.6 turns their collision into a tiny app — or an honest, inspectable failure.
 
-## Media and deployed URL
+## Media
 
 The companion UI is the canonical zero-setup demo. No private media or credentials are committed. Deployment evidence belongs in the build log.
+
+## Deployed showcase URL
+
+Pending the owner-authorized Cloudflare deployment; the final HTTPS origin and `/mcp` URL will be recorded here and in `docs/BUILD_LOG.md` before submission.
 
 ## ChatGPT prerequisites and connect
 

@@ -23,6 +23,7 @@
     "feasibility:local": "node scripts/feasibility-local.js",
     "security:scan": "node scripts/security-scan.js",
     "secrets:scan": "node scripts/secrets-scan.js",
+    "documents:check": "node scripts/document-check.js",
     "acceptance:machine": "node scripts/acceptance-machine.js"
   }
 }
