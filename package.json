@@ -1,0 +1,25 @@
+{
+  "name": "randomware",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "format:check": "node scripts/check-format.js",
+    "lint": "node scripts/check-lint.js",
+    "typecheck": "node scripts/check-types.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:e2e": "node --test tests/e2e/*.test.js",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "build": "node scripts/build.js",
+    "dev": "node src/server.js",
+    "dev:worker": "node src/server.js",
+    "registry:verify": "node scripts/registry-verify.js",
+    "registry:verify:live": "node scripts/registry-live.js",
+    "registry:health:publish": "node scripts/registry-health-publish.js",
+    "feasibility:local": "node scripts/feasibility-local.js",
+    "security:scan": "node scripts/security-scan.js",
+    "secrets:scan": "node scripts/secrets-scan.js",
+    "acceptance:machine": "node scripts/acceptance-machine.js"
+  }
+}

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Randomware — Real APIs go in</title><link rel="stylesheet" href="/styles.css"></head>
+<body>
+  <main class="shell">
+    <header class="masthead"><p class="eyebrow">A slot machine for software</p><h1>Randomware</h1><p class="tagline">Real APIs go in. Random apps come out.</p><p class="disclaimer">Results may be useful, absurd, or broken.</p></header>
+    <section class="slot" aria-labelledby="slot-title"><div><h2 id="slot-title">Choose nothing. Make something.</h2><p>Spin to collide two public APIs. The machine invents a concept, builds a specimen, and leaves the receipts.</p></div><button id="spin" class="primary" type="button">Spin the slot</button></section>
+    <section id="progress" class="panel" hidden aria-live="polite"><p class="eyebrow">Observed pipeline</p><ol id="events"></ol></section>
+    <section id="concept" class="panel" hidden><p class="eyebrow">Concept reveal</p><h2 id="concept-name"></h2><p id="concept-premise"></p><ul id="apis" class="chips" aria-live="polite"></ul><div class="actions"><button id="build" class="primary" type="button" hidden>Build this specimen</button><button id="reroll" class="secondary" type="button" hidden>Reroll concept</button></div></section>
+    <section id="result" class="panel" hidden><p class="eyebrow">Creation ready</p><div id="result-copy"></div><div class="actions"><a id="open-creation" class="button" target="_blank" rel="noreferrer">Open the creation</a><button id="spin-again" class="secondary" type="button">Spin again</button></div></section>
+    <section class="panel registry"><p class="eyebrow">Recent specimens</p><ul id="recent" class="recent"><li>Loading the latest honest results…</li></ul><p><span id="registry-count">18</span> bounded public sources, each with attribution, fixed operations, and a failure path.</p><a href="/api/registry">Inspect registry metadata</a></section>
+  </main><script src="/app.js"></script>
+</body></html>

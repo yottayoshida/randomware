@@ -1,0 +1,76 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { createServer } = require('../../src/server');
+const { createArtifact } = require('../../src/core/artifact');
+
+async function request(base, path, options = {}) {
+  const response = await fetch(`${base}${path}`, { ...options, headers: { 'content-type': 'application/json', ...(options.headers || {}) } });
+  const text = await response.text();
+  let body; try { body = JSON.parse(text); } catch { body = text; }
+  return { response, body };
+}
+
+test('server supports spin, concept, artifact, creation, and opaque run routes', async (t) => {
+  const server = createServer({ fixtureMode: true });
+  await new Promise((resolve) => server.listen(0, resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const spin = await request(base, '/api/spin', { method: 'POST', body: JSON.stringify({ seed: 'integration', requestId: 'integration-spin' }) });
+  assert.equal(spin.response.status, 200);
+  const run = spin.body;
+  const apiIds = run.selectedApis.map((api) => api.id);
+  const concept = await request(base, `/api/runs/${run.runId}/concept`, { method: 'POST', body: JSON.stringify({ requestId: 'integration-concept', appName: 'Weather Dealer', premise: 'A weather auction where unrelated public signals become one theatrical market.', playerAction: 'Press the dealer button to settle the next absurd auction.', noveltyDelta: 'The selected signals decide the auction rules.', apiIds, apiRoles: run.selectedApis.map((api) => ({ apiId: api.id, essentialRole: `${api.name} supplies the dealer\'s next essential signal.`, operations: api.operations.map((operation) => operation.id) })), causalChain: run.selectedApis.map((api, index) => ({ order: index + 1, apiId: api.id, action: `turn ${api.name} into the next auction rule` })), dependency: { fromApiId: apiIds[0], to: 'rules', toApiId: apiIds[1], explanation: 'The first signal determines how the next one is interpreted.' }, interaction: { controls: ['settle auction'], outcome: 'The dealer reveals a changing result.' }, visualDirection: { style: 'maximalist auction theatre', palette: 'saffron, ink, and cyan', typography: 'oversized editorial serif', motion: 'cards sweep like auction paddles' }, bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'This is a staged collision, not a startup pitch.' } }) });
+  assert.equal(concept.response.status, 200);
+  const selected = run.selectedApis.map((api) => ({ apiId: api.id, operationId: api.operations[0].id }));
+  const html = createArtifact({ appName: 'Weather Dealer', selected });
+  const artifact = await request(base, `/api/runs/${run.runId}/artifact`, { method: 'POST', body: JSON.stringify({ requestId: 'integration-artifact', html }) });
+  assert.equal(artifact.response.status, 200);
+  const page = await fetch(`${base}/c/${artifact.body.creationId}`);
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get('content-security-policy'), /frame-src 'self'/);
+  assert.match(await page.text(), /sandbox="allow-scripts"/);
+  const generated = await fetch(`${base}/run/${artifact.body.creationId}`);
+  assert.equal(generated.status, 200);
+  assert.match(await generated.text(), /window\.randomware/);
+  const recent = await request(base, '/api/creations/recent');
+  assert.ok(recent.body.some((creation) => creation.creationId === artifact.body.creationId));
+  const report = await request(base, `/api/creations/${artifact.body.creationId}/report`, { method: 'POST', body: JSON.stringify({ reason: 'test' }) });
+  assert.equal(report.body.status, 'hidden');
+  const hidden = await request(base, '/api/creations/recent');
+  assert.ok(!hidden.body.some((creation) => creation.creationId === artifact.body.creationId));
+  const forbidden = await request(base, `/api/creations/${artifact.body.creationId}/unpublish`, { method: 'POST', body: '{}' });
+  assert.equal(forbidden.response.status, 403);
+  const unpublished = await request(base, `/api/creations/${artifact.body.creationId}/unpublish`, { method: 'POST', headers: { authorization: 'Bearer local-owner-token' }, body: '{}' });
+  assert.equal(unpublished.body.status, 'unpublished');
+  const removed = await fetch(`${base}/c/${artifact.body.creationId}`);
+  assert.match(await removed.text(), /Creation removed/);
+});
+
+test('MCP surface exposes eight annotated tools', async (t) => {
+  const server = createServer({ fixtureMode: true });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const result = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) });
+  assert.equal(result.response.status, 200);
+  assert.equal(result.body.result.tools.length, 8);
+  assert.ok(result.body.result.tools.every((tool) => tool.description.startsWith('Use this')));
+  assert.ok(result.body.result.tools.every((tool) => tool.annotations && typeof tool.annotations.readOnlyHint === 'boolean'));
+});
+
+test('failed artifact keeps a nonblank owner-controlled death certificate', async (t) => {
+  const server = createServer({ fixtureMode: true });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const spin = await request(base, '/api/spin', { method: 'POST', body: JSON.stringify({ seed: 'failure', requestId: 'failure-spin' }) });
+  const apiIds = spin.body.selectedApis.map((entry) => entry.id);
+  const concept = await request(base, `/api/runs/${spin.body.runId}/concept`, { method: 'POST', body: JSON.stringify({ requestId: 'failure-concept', appName: 'Failure Sample', premise: 'A failure sample where selected sources stage one careful collapse.', playerAction: 'Press the collapse button to observe the safe failure.', noveltyDelta: 'The collapse itself is the specimen.', apiIds, apiRoles: spin.body.selectedApis.map((entry) => ({ apiId: entry.id, essentialRole: `${entry.name} supplies an essential collapse signal.`, operations: entry.operations.map((operation) => operation.id) })), causalChain: spin.body.selectedApis.map((entry, index) => ({ order: index + 1, apiId: entry.id, action: `turn ${entry.name} into a collapse signal` })), dependency: { fromApiId: apiIds[0], to: 'rules', toApiId: apiIds[1], explanation: 'The first signal changes the collapse rule.' }, interaction: { controls: ['collapse'], outcome: 'The collapse stops with a readable cause.' }, visualDirection: { style: 'maximalist failure theatre', palette: 'black and coral', typography: 'oversized serif', motion: 'a red line snaps shut' }, bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'The failure is the deliberately theatrical output.' } }) });
+  assert.equal(concept.response.status, 200);
+  const failed = await request(base, `/api/runs/${spin.body.runId}/artifact`, { method: 'POST', body: JSON.stringify({ requestId: 'failure-artifact', html: '<!doctype html><html><head></head><body>unsafe</body></html>' }) });
+  assert.equal(failed.response.status, 422);
+  const run = await request(base, `/api/runs/${spin.body.runId}`);
+  const page = await fetch(`${base}/c/${run.body.creationId}`);
+  assert.equal(page.status, 200);
+  assert.match(await page.text(), /Failed Creation/);
+});
