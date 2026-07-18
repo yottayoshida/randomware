@@ -11,7 +11,7 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 **Pre-development.** This repository currently contains preparation artifacts only — no application code yet:
 
 - [docs/PRD.md](docs/PRD.md) — product requirements, written before any technical design
-- [docs/api-candidates/report.md](docs/api-candidates/report.md) — 29 public APIs live-verified; 15 primary + 9 backup selected, with captured response fixtures
+- [docs/api-candidates/report.md](docs/api-candidates/report.md) — 35 public APIs live-verified (36 checks); 17 primary + 14 backup selected, with captured response fixtures
 - [docs/BUILD_LOG.md](docs/BUILD_LOG.md) — chronological build log
 
 ## The build challenge

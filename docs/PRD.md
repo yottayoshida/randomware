@@ -47,7 +47,7 @@ Spin (in ChatGPT)
  → the user's GPT-5.6 invents what this combination should become (the Concept)
  → the player triggers the build
  → the user's GPT-5.6 implements a working single-page app; Randomware validates it
- → the creation runs sandboxed — embedded in the conversation and live at its own URL
+ → the creation runs sandboxed at its own URL — embedded in the conversation when the platform allows, linked out otherwise
  → the player enjoys a success, an oddity, or a failure
  → Spin again, or Mutate the same APIs into a different concept
 ```
@@ -87,7 +87,7 @@ Educational value is a welcome side effect, not the goal.
 - User accounts, social features, votes, rankings
 - Breeding / lineage / rarity game systems or API character collections (fun metaphors, not mechanics)
 - Generating multi-file apps or apps with their own backends
-- Permanent hosting of generated apps
+- Permanent hosting of generated apps — creations persist at their URLs at least through the competition and judging window; beyond that there is no availability commitment and the owner may purge at will
 - Users bringing their own API keys or registering arbitrary APIs
 - Production-grade generated apps or guaranteed code safety
 - App Directory listing by submission time — the external review timeline is not a dependency; developer-mode connect plus the public showcase is the MVP bar
@@ -103,7 +103,7 @@ Acceptance criteria:
 - A spin selects 2 APIs by default; with roughly 15% probability a third is added.
 - The same API never appears twice in one spin.
 - Each selected API shows its name, category, and a short capability description.
-- The reels stop one by one — anticipation is part of the experience.
+- The selected APIs are revealed sequentially — anticipation is part of the experience (full slot-machine animation polish is Should-level).
 - Selection avoids: combinations identical to any of the previous 3 spins; combinations whose APIs all share one category; APIs currently marked unhealthy.
 
 ### US-02 — Concept reveal
@@ -115,9 +115,8 @@ Acceptance criteria:
 - Shows: app name, a one-line premise, what the player will do, and how each API contributes.
 - Shows a one-line causal chain of the invention (e.g. "draw a card → the card becomes a country → fetch its weather → the weather picks a radio station"). The chain itself is a punchline, and it makes every API's role visible.
 - Every selected API has an essential role; decorative APIs are not allowed.
-- Boring shapes are rejected before display: plain dashboards, plain search boxes, plain quizzes, plain random-fact display, thin clones of well-known apps.
-- Concepts that read like a plausible startup or utility pitch are rejected as insufficiently eccentric (Creative principles, §4).
-- Target: the concept appears within ~10 seconds of the spin — the first punchline must land fast.
+- Boring-shape and eccentricity gates, split honestly by enforcement point: the concept schema requires a self-assessment against the banned shapes (plain dashboards, plain search boxes, plain quizzes, plain random-fact display, thin clones, plausible-startup-pitch concepts); the referee enforces schema completeness plus a heuristic banned-shape blocklist; semantic eccentricity is steered by the choreography prompts and verified by the owner via the §12 pre-submission check — the referee server has no model of its own and cannot judge semantics.
+- Target (owner-demo environment): the concept appears within ~10 seconds of the spin — the first punchline must land fast.
 - The player can reroll the concept without triggering a build (cheap), or proceed to build.
 
 ### US-03 — Build & run
@@ -126,11 +125,11 @@ As a player, I run the invented app for real.
 
 Acceptance criteria:
 
-- The generated app is a single self-contained page served at its own URL by the companion site and embedded in the ChatGPT conversation.
+- The generated app is a single self-contained page served at its own URL by the companion site, opened from the conversation — embedded inline when the platform allows it (Should, spike-gated), linked out otherwise (the Must bar).
 - It calls the real selected APIs during use.
 - It has visible loading and error states, works at mobile width, and displays API attribution.
-- Build progress is shown in honest, understandable stages (inventing / writing / checking / running / repairing) — no fake progress, no raw model internals.
-- Target: first preview within 90 seconds of the spin.
+- Build progress is staged on observable event boundaries only (build triggered → artifact received → validated → deployed → booted → repairing), with elapsed time shown between boundaries — no fabricated "writing…" stages: the platform exposes no signal while the model is composing.
+- Target (owner-demo environment): first preview within 90 seconds of the spin.
 
 ### US-04 — Inspect
 
@@ -151,7 +150,9 @@ Acceptance criteria:
 
 - No blank screens: every failure produces a Failed Creation view.
 - The failure cause is stated accurately but playfully, distinguishing at least: invalid concept, broken generated code, upstream API failure, response-shape mismatch, blocked/disallowed behavior, timeout, unused API, repair failure.
-- Exactly one automatic repair attempt happens before a failure is declared; repair may fix the implementation but must not change the concept.
+- Exactly one automatic repair attempt happens before a failure is declared; repair may fix the implementation but must not change the concept. A repair attempt is counted only when an artifact was actually received.
+- Choreography non-compliance is a first-class failure cause: if the user's model never calls the expected tool, emits the artifact outside tool arguments, or goes silent, the widget owns a timeout state (persisted via widget state) and re-steers once via a follow-up message — never a blank dead end.
+- The build tool's schema enforces artifact completeness (length bounds, parseable HTML, declared-API lint) and returns structured, re-steering errors.
 - Failed code remains inspectable.
 
 ### US-06 — Again
@@ -172,7 +173,7 @@ Requirement-level description; layout and visuals are design decisions.
 3. **Build progress** — real pipeline stages only, staged as a show; the wait is part of the act, never a silent progress bar.
 4. **Live creation** — the running app plus its name, APIs used, status, entry points to code / traffic / dataflow inspection, Mutate, and Spin Again.
 5. **Failed creation** — a deadpan death certificate: accurate cause of death, an epitaph, inherited traits, survival time, and a specimen number; the remains stay inspectable.
-6. **Showcase site** — every creation at a permanent shareable URL; a public gallery of past successes and corpses; replays; and the entry point into ChatGPT for live spins. Zero setup for visitors.
+6. **Showcase site** — every creation at a shareable URL (retention per §6), rendered inside owner-controlled chrome carrying the AI-generated notice and a report link; a minimal index of recent creations (Must), growing into a curated gallery with replays (Should — a replay re-opens a stored creation with its concept and traffic log; nothing is re-generated); and the entry point into ChatGPT for live spins. Zero setup for visitors.
 
 Every generated app must permanently display an "AI-generated experimental app" notice and must never ask for passwords, personal data, or payment details (§11).
 
@@ -182,7 +183,8 @@ Every generated app must permanently display an "AI-generated experimental app" 
 
 - Only a curated, pre-verified registry of public APIs is used — no runtime discovery of arbitrary APIs.
 - Launch size: 12–18 APIs. Already satisfied by verified candidates; see Appendix A and [api-candidates/report.md](api-candidates/report.md).
-- Every registry entry must be: key-free, HTTPS (or explicitly proxied), JSON, acceptable under its terms for demo use, tolerant of demo-level rate limits, and captured with at least one real example response.
+- Every registry entry must be: key-free (or using a provider-published public demo key with terms that permit demo use), HTTPS (or explicitly proxied), JSON, acceptable under its terms for demo use, tolerant of demo-level rate limits, and captured with at least one real example response.
+- Every registry entry enumerates all secondary asset/media domains its responses reference (image CDNs, sprite hosts, stream hosts); entries whose asset domains are unbounded or unacceptably broad (e.g. `raw.githubusercontent.com` for PokéAPI sprites) are served through the proxy or demoted.
 - Per-API health status (healthy / degraded / disabled) must exist and be respected by selection.
 
 ### Selection behavior
@@ -202,28 +204,27 @@ Every generated app must permanently display an "AI-generated experimental app" 
 - The app's name and copy follow the collision-naming principle (§4); its visual direction must commit to one extreme aesthetic. "Clean minimal SaaS" is banned as a style — the generic default look of AI-generated frontends is treated as a defect.
 - Novelty pressure: the history of previous concepts for the same combination is used to avoid repeats.
 - One repair attempt maximum (US-05).
-- In-product model: GPT-5.6 performs invention, implementation, and repair — running in the executing user's own ChatGPT session, on their plan. Randomware's server referees: it validates artifacts, counts repair attempts, and refuses anything beyond the single-repair limit.
+- In-product generation runs in the executing user's own ChatGPT session, on their plan — GPT-5.6 in all owner-run demos. The platform offers no model pinning and no model visibility, so the choreography must be model-agnostic: schema-enforced structure, not style-dependent prompts. Randomware's server referees: it validates artifacts, counts repair attempts (only on received artifacts), and refuses anything beyond the single-repair limit.
 
 ## 11. Safety requirements
 
-Threat framing: the product intentionally runs freshly AI-generated code in visitors' browsers, so containment is a feature requirement, not an afterthought.
+Threat framing: the product intentionally runs freshly AI-generated code in visitors' browsers AND hosts it at public URLs, so containment and publication policy are feature requirements, not afterthoughts.
 
-- Generated code must not be able to read or manipulate the host page, cookies, or storage.
-- Generated code must not reach any network destination other than the selected, registry-approved API endpoints, via a mediated channel controlled by the host.
-- Attempts to do otherwise must be blocked and surfaced as a failure cause.
+- Enforcement point: the owner's mediated proxy plus per-surface CSP are the containment mechanism on every execution surface — creation pages ship their own CSP headers set by the companion site; the ChatGPT widget's `connectDomains` allowlist is defense-in-depth for the widget surface only, never the primary control (a nested or standalone creation page is not governed by the widget's CSP).
+- Generated code must not be able to read or manipulate any host surface (the ChatGPT conversation, the widget shell, or the showcase site), cookies, or storage. Generated code must never execute in a context where `window.openai` is reachable.
+- Generated code must not reach any network destination other than the selected, registry-approved API endpoints, via the mediated channel. Attempts are blocked and surfaced as a failure cause.
+- Audio/media exception: creations may play stream/media URLs only when the mediation layer itself resolved them from a registry API response (a Radio Browser station stream, an iTunes preview) — generated code never supplies arbitrary media URLs. Community-edited stream hosts are an accepted, named residual risk confined to media playback; connect-style requests never widen.
 - Per-creation limits are required: execution time, request count, and response size.
-- Generation cost lands on the executing user's ChatGPT plan, so the owner's wallet is structurally out of the runtime path. Abuse control is still required for what the owner does host: per-user and global caps on creation storage/serving and on proxied public-API traffic, degrading gracefully (never a raw error).
-- API responses must be treated as untrusted content when rendered, and as untrusted text wherever they enter a model prompt — public API data can contain user-submitted or adversarial content (e.g. Radio Browser station names are community-edited).
+- Generation cost lands on the executing user's ChatGPT plan, so the owner's wallet is structurally out of the runtime path. Abuse control protects what the owner does host: per-conversation/per-creation and global caps on creation storage, serving, and proxied traffic (reliable per-user identity does not exist without accounts, which are a non-goal — the global cap is the real backstop), plus per-upstream-API global budgets with caching for cacheable responses, because the shared proxy concentrates providers' per-IP limits into global ones. All caps degrade gracefully (never a raw error).
+- Publication policy: the build flow states that creations are published at a public URL before building; every creation page renders inside owner-controlled chrome — the AI-generated notice, a "do not enter real personal or payment data" warning, and a report/remove link — living outside the sandboxed frame; the validator machine-rejects artifacts containing password or payment input fields; gallery inclusion is owner-curated or flag-gated, never automatic; the owner can unpublish any creation immediately.
+- API responses must be treated as untrusted content when rendered, and as untrusted text wherever they enter a model prompt — public API data can contain user-submitted or adversarial content.
 - No secrets may ship to the browser; there is nothing for users to configure or leak.
-- Every creation displays the AI-generated notice and a "do not enter real personal or payment data" warning.
-- Accepted residual risk (explicit): this is a short-lived experimental toy, not a hardened code sandbox. The mediation and containment above are the bar; formal sandbox completeness is not.
+- Accepted residual risk (explicit): this is a short-lived experimental toy, not a hardened code sandbox. The mediation, per-surface CSP, and publication controls above are the bar; formal sandbox completeness is not.
 
 ## 12. Success metrics
 
 - A first-time visitor, unassisted, completes spin → concept → run → interact → respin within 3 minutes.
-- Spin-to-concept-reveal ≤ 10 seconds and spin-to-first-preview ≤ 90 seconds (targets).
-- ≥ 70% of 2-API creations boot to an interactive state.
-- ≥ 80% of booted creations actually call every selected API at runtime.
+- Owner-demo environment targets (measured protocol defined in `ACCEPTANCE.md` — median over a fixed number of spins on the owner's plan with GPT-5.6; excluded from automated acceptance because the user's model and plan dominate these numbers): spin-to-concept-reveal ≤ 10 seconds; spin-to-first-preview ≤ 90 seconds; ≥ 70% of 2-API creations boot to an interactive state; ≥ 80% of booted creations call every selected API at runtime.
 - 0 network requests to unapproved hosts from generated code.
 - 100% of failures produce an explanatory Failed Creation view.
 - ≥ 5 API combinations verified end-to-end before submission; the same combination demonstrably yields different concepts.
@@ -236,7 +237,7 @@ The way Randomware is built mirrors what it does, and this is part of the submis
 
 1. This PRD is written before any technical design or code.
 2. One GPT-5.6 Sol session (high reasoning effort) converts the PRD into the full technical design and implementation plan — documents only, no code: `ARCHITECTURE.md`, `PLAN.md`, `ACCEPTANCE.md`, `BUDGET.md`, `GOAL.md`.
-3. The session model is switched to GPT-5.6 Luna (max reasoning effort), and the implementation is executed as a single Codex `/goal` run driven by `GOAL.md`.
+3. The same Codex session is then switched to GPT-5.6 Luna (max reasoning effort) and the implementation is executed as a single `/goal` run driven by `GOAL.md` — design and implementation share one session with a mid-session model switch, and `/feedback` is run from that session after the core implementation is complete.
 4. The majority of core functionality must be implemented in that one Codex session; its `/feedback` Session ID is part of the submission.
 5. Hard budget: the $100 credit grant covers the Codex build (design pass + implementation session). Runtime generation is billed to each executing user's own ChatGPT plan, and development-time test spins run on the owner's own ChatGPT plan (recorded in `BUILD_LOG.md`), so no API-key spend is expected — any that does occur counts inside the $100. Post-submission public usage is out of scope. Auto-recharge stays off. Hosting must add zero incremental cost — a free tier or a service already bundled in an existing plan; paid hosting is out. A reserve must be protected for deployment fixes, README completion, verification, and demo recording; concrete stop conditions live in `BUDGET.md`.
 6. The finished product must be publicly deployed; judges must be able to play without local setup.
@@ -249,9 +250,9 @@ Constraint on the design pass itself: produce documents only. Application code b
 
 ## 15. Scope (MoSCoW)
 
-**Must**: ≥10 verified APIs; 2-API spin with occasional 3; slot experience in the ChatGPT widget; concept and single-page app generation by the user's own GPT-5.6 session; contained execution with a platform-enforced API allowlist; creation pages served at shareable URLs by the companion site; pre-run and runtime checks with server-side repair-attempt limits; single auto-repair; success and failure result views; source view; API traffic view; Mutate; Spin Again; public showcase deployment; judge connect instructions (developer mode); README; demo video; `/feedback` Session ID.
+**Must**: ≥10 verified APIs; 2-API spin with occasional 3; sequential API reveal in the ChatGPT widget; concept and single-page app generation by the user's own ChatGPT session; contained execution behind the owner's mediated proxy with per-surface CSP; creation pages served at shareable URLs by the companion site, opened via link-out from the conversation; pre-run and runtime checks with server-side repair-attempt limits; single auto-repair; success and failure result views (including choreography-non-compliance timeouts); source view; a raw API-request list on the creation page; Mutate; Spin Again; a minimal showcase index of recent creations; judge connect instructions (developer mode, with plan prerequisites); README; demo video; `/feedback` Session ID.
 
-**Should**: Stable / Wild / Chaos moods; dataflow visualization; session-local history; seeded reproducibility; streamed build progress; pre-verified demo combinations with an offline demo mode; a staged "chaos spin" fanfare for rare 3-API spins; a basic showcase gallery of past creations (masterpieces and corpses).
+**Should**: in-conversation embedded execution (`frameDomains`, spike-gated); Stable / Wild / Chaos moods; dataflow visualization and prettified traffic views; session-local history (novelty history may live in widget state and travel in tool arguments — no database required); seeded reproducibility; build progress staged on observable boundaries; pre-verified demo combinations with an offline demo mode; a staged "chaos spin" fanfare for rare 3-API spins; slot-machine animation polish; a curated gallery with replays.
 
 **Could**: favorites, screenshots, curated failed-creation collections, daily combination; a "twist" modifier reel (an injected external constraint such as a tone or genre — held in reserve as an anti-convergence lever only if testing shows concepts becoming samey; the default belief is that eccentricity must come from the API collision itself).
 
@@ -264,7 +265,7 @@ The project is not complete until every requirement in this section is satisfied
 ### 16.1 Working project
 
 - A publicly accessible deployed version of Randomware is available.
-- Judges can reach the experience two ways, both documented in the README: (a) the public showcase site — gallery, replays, and creation pages — with zero setup; (b) live spins by connecting the ChatGPT app (developer-mode MCP connect) via copy-paste instructions.
+- Judges can reach the experience two ways, both documented in the README: (a) the public showcase site — the creation index and creation pages — with zero setup; (b) live spins by connecting the ChatGPT app (developer-mode MCP connect) via copy-paste instructions that state the prerequisites plainly: a paid ChatGPT plan with developer mode (Free plans cannot connect unlisted apps; Business/Enterprise/Edu additionally need a workspace-admin toggle). The README leads with the zero-setup path and the demo video for judges who cannot connect.
 - The primary flow (spin → concept → build → run → inspect → spin/mutate again) works end-to-end in a real ChatGPT session.
 - At least five API combinations tested end-to-end before submission.
 - Failures produce the intentional Failed Creation view, never a blank or broken interface.
@@ -293,7 +294,7 @@ Must clearly explain: what Randomware is; what happens on a spin; how APIs are s
 
 ### 16.6 README
 
-Must include: product overview; elevator pitch; screenshots or an animated demo; deployed showcase URL; ChatGPT app connect instructions (developer mode); architecture overview; requirements and supported environment; local setup; required environment variables; development, test, build, and deployment commands; API registry explanation; sample combinations; known limitations; the security model for generated apps; clear instructions for judges; license.
+Must include: product overview; elevator pitch; screenshots or an animated demo; deployed showcase URL; ChatGPT app connect instructions (developer mode, including plan prerequisites); architecture overview; requirements and supported environment; local setup; required environment variables; development, test, build, and deployment commands; API registry explanation; sample combinations; known limitations; the security model for generated apps; clear instructions for judges; license.
 
 Must also contain a dedicated section titled **Built with Codex and GPT-5.6** explaining: the PRD came first; GPT-5.6 Sol (high effort) produced the technical design; GPT-5.6 Luna (max effort) executed the main `/goal` implementation; what Codex implemented; which decisions required human direction; how Codex accelerated the work; how GPT-5.6 is used inside the finished product; how the build stayed within the $100 allowance.
 
@@ -333,7 +334,9 @@ Rejected (4): Numbers API (no HTTPS), Quotable (TLS failure), Jikan (persistent 
 - 0:20–0:45 — Spin; the reels land on 2–3 APIs.
 - 0:45–1:10 — GPT-5.6's invented concept; how the APIs connect.
 - 1:10–1:50 — Build It; the generated app boots; the player uses it; real APIs respond.
-- 1:50–2:15 — Under the hood: source, requests, dataflow.
-- 2:15–2:35 — Spin again; a completely different result.
-- 2:35–2:50 — A Failed Creation: "Sometimes it creates an app. Sometimes it creates a corpse."
-- 2:50–3:00 — Close: "Real APIs go in. Random apps come out."
+- 1:50–2:10 — Under the hood: source, requests, dataflow.
+- 2:10–2:28 — Spin again; a completely different result.
+- 2:28–2:40 — A Failed Creation: "Sometimes it creates an app. Sometimes it creates a corpse."
+- 2:40–2:48 — Close: "Real APIs go in. Random apps come out."
+
+Total ≤ 2:50 — the "under 3 minutes" submission rule needs headroom, so the outline must never be edited back to a full 3:00.

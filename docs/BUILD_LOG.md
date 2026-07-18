@@ -16,6 +16,12 @@ Chronological record of how Randomware is being built, kept for the OpenAI Build
 - Product shape fixed as **hybrid**: a ChatGPT app (Apps SDK — spin + generation, refereed by MCP tools) plus a companion showcase site (creation URLs, sandboxed execution, gallery). PRD and design brief updated accordingly.
 - Four undocumented Apps SDK risks moved into a mandatory first-milestone spike: tool-argument size for HTML artifacts, widget CSP allowlist reliability, audio playback, `frameDomains` embedding of the companion site.
 
+## 2026-07-18 — Adversarial feasibility review (pre-design)
+
+- An independent adversarial review (a fresh Claude subagent with no shared conversation context, verifying platform claims against official docs) audited the PRD and design brief for design-pass readiness. Verdict: NOT READY — 1 P0, 7 P1, 8 P2, 5 P3 findings. Every finding was individually verified by the orchestrator and all were accepted; none were vacuous.
+- Headline corrections applied: containment enforcement restated as the owner's proxy + per-surface CSP (a widget CSP cannot govern creation pages — the P0); the DOM-injection fallback prohibited (it would expose `window.openai` to generated code); creation retention defined (through the judging window, no commitment beyond); choreography non-compliance made a first-class failure with a widget-owned timeout; model-pinning claims removed (choreography must be model-agnostic); a UGC publication policy added (password/payment-input rejection, owner-controlled chrome with report link, curated gallery, instant unpublish); an audio/media exception defined (mediation-resolved stream URLs only); registry policy extended to secondary asset domains and provider demo keys; latency/quality metrics scoped to the owner's demo environment; per-upstream API budgets added; judge instructions now state developer-mode plan prerequisites; pre-authorized descopes added to §15 (link-out as the Must bar, raw traffic list, minimal showcase index); demo outline re-timed to ≤2:50.
+- Correction to earlier entries: "29 candidate APIs, 15 primary + 9 backup" reflects round 1 only; after round 2 the totals are 35 APIs across 36 checks, 17 primary + 14 backup, 4 rejected.
+
 ### Planned next steps
 
 1. GPT-5.6 Sol (high reasoning effort): technical design pass producing `docs/ARCHITECTURE.md`, `docs/PLAN.md`, `docs/ACCEPTANCE.md`, `docs/BUDGET.md`, `docs/GOAL.md`. Documents only — no code.
