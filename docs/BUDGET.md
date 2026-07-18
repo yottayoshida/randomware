@@ -121,6 +121,8 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Pre-demo/submission | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Reserve-eligible blockers only |
 | Final after `/feedback` | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 0 | Record total, remaining balance, final plan meter |
 
+Meter continuity note (2026-07-18 12:31 JST, owner-transcribed): the ChatGPT Plus weekly plan meter **reset** between the Luna `/goal` start snapshot and Milestone 0 closure. Current snapshot: plan usage **99% of the weekly limit remaining** (fresh weekly window); grant credit balance **2,500** (delta 0 since redemption). Plan-usage percentages are comparable only within one weekly window — do not compare post-reset values against the pre-reset 33% figure. The Milestone 0 end row must be filled from this or a fresher owner-transcribed snapshot.
+
 ## 9. Checkpoint calculation
 
 At each row:
