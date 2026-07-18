@@ -24,6 +24,8 @@ function json(res, status, body, headers = {}) {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers }); res.end(payload);
 }
 
+const runtimeCors = { 'access-control-allow-origin': 'null', 'access-control-allow-methods': 'POST, OPTIONS', 'access-control-allow-headers': 'content-type', 'access-control-max-age': '600', vary: 'Origin' };
+
 function text(res, status, body, headers = {}) {
   res.writeHead(status, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store', ...headers }); res.end(body);
 }
@@ -70,6 +72,14 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
       if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
+      if (url.pathname === '/api/runtime/call') {
+        if (req.headers.origin && req.headers.origin !== 'null') throw new Error('origin_not_allowed');
+        if (req.method === 'OPTIONS') { res.writeHead(204, runtimeCors); return res.end(); }
+        if (req.method === 'POST') {
+          const input = await body(req); const run = store.findByCreation(input.creationId); if (run.unpublished) throw new Error('creation_unpublished'); const capability = signer.verify(input.capability, { creationId: input.creationId, revision: input.revision, apiId: input.apiId, operationId: input.operationId }); store.assertRuntimeQuota(run.id, capability.quotas);
+          const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {} }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, runtimeCors);
+        }
+      }
       if (req.method === 'POST' && url.pathname === '/api/spin') {
         const input = await body(req); const selected = selectApis({ seed: input.seed || cryptoSeed(), registry, history: input.history || [] });
         const run = store.createRun({ requestId: input.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] });
@@ -139,11 +149,6 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
           if (req.headers.authorization !== `Bearer ${expected}`) return json(res, 403, { ok: false, code: 'owner_auth_required' });
           store.unpublishCreation(run.creationId); return json(res, 200, { ok: true, status: 'unpublished' });
         }
-      }
-      if (req.method === 'POST' && url.pathname === '/api/runtime/call') {
-        if (req.headers.origin && req.headers.origin !== 'null') throw new Error('origin_not_allowed');
-        const input = await body(req); const run = store.findByCreation(input.creationId); if (run.unpublished) throw new Error('creation_unpublished'); const capability = signer.verify(input.capability, { creationId: input.creationId, revision: input.revision, apiId: input.apiId, operationId: input.operationId }); store.assertRuntimeQuota(run.id, capability.quotas);
-        const result = await broker.call({ selectedApis: run.selectedApis, apiId: input.apiId, operationId: input.operationId, params: input.params || {} }); store.logRuntime(run.id, { apiId: input.apiId, operationId: input.operationId, status: 'ok', bytes: result.bytes, cacheHit: result.cached }); return json(res, 200, result, { 'access-control-allow-origin': 'null' });
       }
       if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/app.js' || url.pathname === '/styles.css' || url.pathname === '/creation.css')) {
         const file = url.pathname === '/' || url.pathname === '/index.html' ? 'index.html' : url.pathname.slice(1); const content = fs.readFileSync(path.join(PUBLIC, file)); const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html'; return text(res, 200, content, { 'content-type': `${type}; charset=utf-8` });

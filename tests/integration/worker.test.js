@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createWebHandler } = require('../../src/web');
 const { Broker } = require('../../src/core/broker');
+const { RunStore } = require('../../src/core/store');
+const { CapabilitySigner } = require('../../src/core/capability');
 
 test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a listener', async () => {
   const fetchHandler = createWebHandler({ broker: new Broker({ fixtureMode: true }) });
@@ -64,4 +66,31 @@ test('MCP lifecycle negotiates, accepts initialized notifications, and exposes t
 
   const get = await fetchHandler(new Request('https://randomware.example/mcp', { headers: { accept: 'text/event-stream' } }));
   assert.equal(get.status, 405);
+});
+
+test('Worker broker route handles opaque-origin preflight and records a mediated request', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-route-test-secret');
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true }) });
+  const run = store.createRun({ requestId: 'runtime-route-test', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  store.acceptConcept(run.id, { requestId: 'runtime-route-concept', apiIds: ['open-meteo'] });
+  store.acceptArtifact(run.id, { requestId: 'runtime-route-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'open-meteo', operationId: 'forecast' }] });
+
+  const preflight = await fetchHandler(new Request('https://randomware.example/api/runtime/call', {
+    method: 'OPTIONS',
+    headers: { origin: 'null', 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' }
+  }));
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('access-control-allow-origin'), 'null');
+  assert.match(preflight.headers.get('access-control-allow-methods') || '', /POST/);
+
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', {
+    method: 'POST',
+    headers: { origin: 'null', 'content-type': 'application/json' },
+    body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'open-meteo', operationId: 'forecast', params: {}, capability })
+  }));
+  assert.equal(mediated.status, 200);
+  assert.equal((await mediated.json()).ok, true);
+  assert.equal(store.findByCreation(run.creationId).runtimeRequests.length, 1);
 });
