@@ -29,7 +29,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const conceptFor = (run, label) => {
     const apiIds = run.selectedApis.map((api) => api.id);
     return {
-      requestId: `${label}-concept`, appName: `MCP ${label}`, premise: `A bounded collision turns ${label} signals into one theatrical instrument.`, playerAction: `Press the single control to make the ${label} instrument reveal its next state.`, apiIds,
+      runId: run.runId, requestId: `${label}-concept`, appName: `MCP ${label}`, premise: `A bounded collision turns ${label} signals into one theatrical instrument.`, playerAction: `Press the single control to make the ${label} instrument reveal its next state.`, apiIds,
       causalChain: run.selectedApis.map((api, index) => ({ order: index + 1, apiId: api.id, action: `turn ${api.name} into the next ${label} rule` })),
       apiRoles: run.selectedApis.map((api) => ({ apiId: api.id, essentialRole: `${api.name} supplies an essential ${label} signal.`, operations: api.operations.map((operation) => operation.id) })),
       dependency: { fromApiId: apiIds[0], to: 'rules', ...(apiIds[1] ? { toApiId: apiIds[1] } : {}), explanation: `The first ${label} signal determines how the next one is interpreted.` },
