@@ -53,6 +53,14 @@ test('D1 run metadata persists the drawn style and style history', async () => {
   assert.deepEqual(hydrated.styleHistory, ['vhs-jacket']);
 });
 
+test('D1 run metadata preserves the failed choreography phase for honest widget steps', async () => {
+  const store = new D1RunStore(database());
+  const run = await store.createRun({ requestId: 'd1-failure-phase', selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }] });
+  await store.fail(run.id, 'choreography_timeout', 'artifact');
+  const hydrated = await store.getRun(run.id);
+  assert.deepEqual(hydrated.failure, { code: 'choreography_timeout', detail: 'artifact' });
+});
+
 test('showcase migration classifies a boundary-spanning run by accepted revision time', () => {
   const db = database();
   const insertRun = db.sqlite.prepare("INSERT INTO runs (id, request_id, phase, selected_apis_json, history_json, concept_json, created_at, creation_id, repair_count, metadata_json) VALUES (?, ?, 'completed', '[]', '[]', ?, ?, ?, 0, '{\"listed\":true}')");

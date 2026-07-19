@@ -249,6 +249,8 @@ def main():
             assert "AUTO-NUDGE AT" in widget_page.locator("#auto-nudge").inner_text(), "widget_auto_nudge_missing"
             assert "LAST SIGNAL" in widget_page.locator("#heartbeat").inner_text(), "widget_heartbeat_missing"
             assert widget_page.locator("#composing").is_visible(), "widget_composing_animation_missing"
+            assert "DRAFTING CONCEPT" in widget_page.locator("#composing-title").inner_text(), "widget_concept_copy_not_honest"
+            assert "concept contract" in widget_page.locator("#composing-copy").inner_text(), "widget_concept_detail_not_honest"
             assert widget_page.locator("#fallback").is_visible(), "widget_follow_up_fallback_missing"
             fallback_prompt = widget_page.locator("#build-prompt").input_value()
             assert "Use Randomware run widget-run:" in fallback_prompt, "widget_fallback_run_id_missing"
@@ -272,6 +274,8 @@ def main():
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(concept_run))
             assert "Concept accepted" in widget_page.locator("#status").inner_text(), "widget_artifact_transition_missing"
             assert widget_page.locator("#steps [data-step='build']").get_attribute("data-state") == "current", "widget_stepper_build_missing"
+            assert "BUILDING SPECIMEN" in widget_page.locator("#composing-title").inner_text(), "widget_build_title_missing"
+            assert "composing the artifact" in widget_page.locator("#composing-copy").inner_text(), "widget_artifact_copy_not_honest"
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
             assert widget_page.locator("#creation").is_visible(), "widget_creation_section_missing"
             assert not widget_page.locator("#creation-frame").get_attribute("hidden"), "widget_creation_frame_not_embedded"
@@ -289,6 +293,9 @@ def main():
             assert "repair_failed" in widget_page.locator("#failure-copy").inner_text(), "widget_terminal_failure_code_missing"
             assert widget_page.locator("#failure-spin").is_visible(), "widget_failure_spin_missing"
             assert widget_page.locator("#autopsy").is_visible(), "widget_failure_autopsy_missing"
+            artifact_timeout = {**terminal_failure, "creationId": None, "creationUrl": None, "failure": {"code": "choreography_timeout", "detail": "artifact"}, "revisions": []}
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", {"content": [{"type": "text", "text": "timeout"}], "structuredContent": artifact_timeout, "isError": True})
+            assert widget_page.locator("#steps [data-step='build']").get_attribute("data-state") == "failed", "widget_artifact_timeout_step_missing"
             precreation_failure = {**terminal_failure, "creationId": None, "creationUrl": None, "failure": {"code": "choreography_timeout"}, "revisions": []}
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", {"content": [{"type": "text", "text": "timeout"}], "structuredContent": precreation_failure, "isError": True})
             assert not widget_page.locator("#autopsy").is_visible(), "widget_false_autopsy_link_visible"
