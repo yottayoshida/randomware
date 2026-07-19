@@ -1,3 +1,5 @@
+const { STYLE_COMMON_RULE, STYLE_DECK, STYLE_IDS } = require('./style-deck');
+
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   for (const child of Object.values(value)) deepFreeze(child);
@@ -91,6 +93,7 @@ const BANNED_SHAPE_PHRASES = deepFreeze([
 
 const CONCEPT_SEMANTIC_RULES = deepFreeze([
   'apiIds, apiRoles, causalChain, and declaredApiUses must exactly cover the selected API set',
+  'styleId must exactly equal the styleId drawn by spin_apis for this run',
   'apiRoles.operations must use only operation IDs exposed by the corresponding selected API',
   'dependency.fromApiId and optional dependency.toApiId must be selected API IDs',
   'causalChain order is one-based and contains one step per selected API',
@@ -119,6 +122,7 @@ const commonRunFields = {
 
 const conceptFields = {
   ...commonRunFields,
+  styleId: text('Exact style cartridge ID drawn by spin_apis; copy it unchanged and commit visualDirection to that cartridge.', { enum: STYLE_IDS, examples: ['teletext'], 'x-randomware-source': 'spin_apis.structuredContent.styleId', 'x-randomware-exact-match': 'styleId' }),
   appName: text('Sincere collision name of 2–4 words.', { minLength: 4, maxLength: 48, examples: ['Signal Opera'] }),
   premise: text('One-sentence collision premise.', { minLength: 20, maxLength: 180, examples: ['Three unrelated public signals become one theatrical decision instrument.'] }),
   playerAction: text('One understandable action the player performs.', { minLength: 20, maxLength: 180, examples: ['Press the single control to reveal how the signals alter one another.'] }),
@@ -143,11 +147,11 @@ const conceptFields = {
     controls: list('One to four concrete controls.', text('Visible concrete control.', { minLength: 1, examples: ['reveal'] }), { minItems: 1, maxItems: 4 }),
     outcome: text('What visibly changes after interaction.', { minLength: 8, maxLength: 180, examples: ['The stage reveals a changing result.'] })
   }),
-  visualDirection: record('Extreme visual direction; never generic minimal SaaS.', {
-    style: text('Extreme visual style.', { minLength: 4, maxLength: 100, examples: ['maximalist collision theatre'] }),
-    palette: text('Specific palette.', { minLength: 4, maxLength: 100, examples: ['saffron, ink, and cyan'] }),
-    typography: text('Specific typography.', { minLength: 4, maxLength: 100, examples: ['oversized editorial serif'] }),
-    motion: text('Specific motion language.', { minLength: 4, maxLength: 100, examples: ['signals sweep like stage machinery'] })
+  visualDirection: record('Commit every field to the exact style cartridge drawn by spin_apis; never substitute generic minimal SaaS.', {
+    style: text('How the drawn cartridge shapes the complete interface.', { minLength: 4, maxLength: 100, examples: ['teletext broadcast interaction'] }),
+    palette: text('Palette using the drawn cartridge vocabulary.', { minLength: 4, maxLength: 100, examples: ['primary blocks on signal black'] }),
+    typography: text('Typography using the drawn cartridge vocabulary.', { minLength: 4, maxLength: 100, examples: ['fixed character grid'] }),
+    motion: text('Motion using the drawn cartridge vocabulary.', { minLength: 4, maxLength: 100, examples: ['row reveal and page snap'] })
   }),
   bannedShapeAssessment: record('Honest banned-shape assessment; every flag must be literal false.', {
     plainDashboard: bool('Must be literal false.', { const: false }),
@@ -185,6 +189,7 @@ const TOOL_SCHEMAS = deepFreeze({
   open_randomware: record('Mount the Randomware widget.', {}, []),
   spin_apis: record('Select a bounded API collision.', {
     seed: text('Optional deterministic selector seed.', { minLength: 1, maxLength: 160, examples: ['collision-seed'] }),
+    styleHistory: list('Up to three most recent style cartridge IDs from this widget session.', text('Prior style cartridge ID.', { enum: STYLE_IDS }), { maxItems: 3, uniqueItems: true }),
     requestId: id('Client-generated idempotency key.', 'client-generated unique string')
   }, ['requestId']),
   submit_concept: attachRuntime({ ...record('Submit the complete ARCHITECTURE §4.2 concept contract.', conceptFields), 'x-randomware-semantic-rules': CONCEPT_SEMANTIC_RULES }),
@@ -225,7 +230,9 @@ const CONTRACT_MANIFEST = deepFreeze({
   toolInstructions: TOOL_INSTRUCTIONS,
   artifact: ARTIFACT_CONTRACT,
   capability: CAPABILITY_CONTRACT,
-  runtimeData: RUNTIME_DATA_CONTRACT
+  runtimeData: RUNTIME_DATA_CONTRACT,
+  styleDeck: STYLE_DECK,
+  styleCommonRule: STYLE_COMMON_RULE
 });
 
 const ARTIFACT_CONTRACT_LITERALS = deepFreeze([
@@ -287,13 +294,22 @@ function selectedExamplesPrompt(selectedApis) {
   return examples.length ? `SELECTED_ADAPTED_RESPONSE_EXAMPLES=${JSON.stringify(examples)}` : '';
 }
 
-function conceptAcceptedPrompt(runId, selectedApis = []) {
-  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact.`, selectedExamplesPrompt(selectedApis));
+function selectedStylePrompt(style) {
+  if (!style || !style.id) return '';
+  return `DRAWN_STYLE=${JSON.stringify(style)}\nSTYLE_COMMON_RULE=${STYLE_COMMON_RULE}`;
 }
 
-function artifactRepairPrompt({ runId = 'unknown', diagnostics = [], selectedApis = [] } = {}) {
+function selectedContextPrompt(selectedApis, style) {
+  return [selectedExamplesPrompt(selectedApis), selectedStylePrompt(style)].filter(Boolean).join('\n');
+}
+
+function conceptAcceptedPrompt(runId, selectedApis = [], style = null) {
+  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact.`, selectedContextPrompt(selectedApis, style));
+}
+
+function artifactRepairPrompt({ runId = 'unknown', diagnostics = [], selectedApis = [], style = null } = {}) {
   const exactDiagnostics = Array.isArray(diagnostics) && diagnostics.length ? diagnostics : ['the validator supplied no diagnostic detail'];
-  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`, selectedExamplesPrompt(selectedApis));
+  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`, selectedContextPrompt(selectedApis, style));
 }
 
 module.exports = {
@@ -315,5 +331,7 @@ module.exports = {
   artifactRepairPrompt,
   selectedOperationExamples,
   selectedExamplesPrompt,
+  selectedStylePrompt,
+  selectedContextPrompt,
   deepFreeze
 };

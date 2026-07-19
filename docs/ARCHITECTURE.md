@@ -142,7 +142,7 @@ All model-visible tool fields, required paths, enums, literal values, string/arr
 
 ### 4.2 Concept prompt
 
-The concept prompt includes the selected API contracts (names, capability descriptions, allowed operations, response field summaries, attribution), prior concept summaries for this API set, and the creative rules from PRD §4 and §10. It requires sincere collision naming, one understandable player action, an essential role for every API, at least one causal dependency, one extreme visual direction, and an honest banned-shape assessment. It ends with: call `submit_concept` and emit no code.
+The concept prompt includes the selected API contracts (names, capability descriptions, allowed operations, response field summaries, attribution), the independently drawn style cartridge, prior concept summaries for this API set, and the creative rules from PRD §4 and §10. `STYLE_DECK` is an owner-managed, deeply frozen eight-entry deck: Paper Certificate, Video Game HUD, Flash App, Board Game, Gacha App, Retro 90s Pixel, Teletext Dispatch, and VHS Jacket. Each entry supplies an ID, name, symbol, palette, typography, motion, era, and style-specific caution. `spin_apis` draws one cartridge deterministically from the run seed while avoiding the widget session's three most recent styles; the result and run status persist `styleId` plus the complete entry. It requires sincere collision naming, one understandable player action, an essential role for every API, at least one causal dependency, exact commitment to the drawn style, and an honest banned-shape assessment. It ends with: call `submit_concept` and emit no code.
 
 The input schema is equivalent to:
 
@@ -152,6 +152,7 @@ type ConceptSubmission = {
   runId: string;
   runContract: string;
   promptVersion: string;
+  styleId: "paper-certificate" | "video-game-hud" | "flash-app" | "board-game" | "gacha-app" | "retro-90s-pixel" | "teletext" | "vhs-jacket"; // exact drawn cartridge
   appName: string;                 // 2–4 words, 4–48 chars
   premise: string;                 // 20–180 chars
   playerAction: string;            // 20–180 chars
@@ -177,8 +178,8 @@ type ConceptSubmission = {
     outcome: string;               // 8–180 chars
   };
   visualDirection: {
-    style: string;                  // extreme, not minimal SaaS
-    palette: string;               // each visual field 4–100 chars
+    style: string;                  // commit to the drawn cartridge
+    palette: string;               // use its vocabulary; each field 4–100 chars
     typography: string;
     motion: string;
   };
@@ -195,7 +196,7 @@ type ConceptSubmission = {
 };
 ```
 
-The referee verifies exact API-ID coverage, valid operations, ordered chain coverage, a valid dependency, at least one control, all six literal `false` values, nonempty explanations, name/length rules, novelty against normalized prior names/premises, and a case-insensitive banned-shape phrase list. It cannot semantically judge eccentricity; the owner applies the acceptance sample.
+The referee verifies exact API-ID coverage, exact equality between submitted and drawn `styleId`, valid operations, ordered chain coverage, a valid dependency, at least one control, all six literal `false` values, nonempty explanations, name/length rules, novelty against normalized prior names/premises, and a case-insensitive banned-shape phrase list. It cannot semantically judge aesthetic fidelity or eccentricity; the owner applies the acceptance sample.
 
 ### 4.3 Code prompt
 
@@ -212,7 +213,7 @@ The code prompt repeats the immutable accepted concept and gives a compact runti
 - Render response text with safe DOM APIs; never use HTML string sinks.
 - Make every selected API essential and make the declared dependency observable.
 - Include a mobile viewport and work at 390 CSS pixels.
-- Commit to the accepted extreme visual direction; do not create generic SaaS chrome.
+- Commit to the complete drawn style entry injected with the accepted concept: its palette, typography, motion, era, and caution. CSS remains inline and external assets remain forbidden for every cartridge; do not create generic SaaS chrome.
 - Do not ask for or infer personal, authentication, contact, payment, or secret information.
 - Call `submit_artifact` with the complete page in `html`; do not print the page in prose.
 

@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { STYLE_DECK } = require('./style-deck');
 
 function unit(seed, label) {
   const digest = crypto.createHash('sha256').update(`${seed}:${label}`).digest();
@@ -65,4 +66,11 @@ function selectApis({ seed, registry, history = [], unhealthy = new Set() }) {
   return ranked[ranked.length - 1].set;
 }
 
-module.exports = { selectApis, canonical };
+function selectStyle({ seed, history = [] }) {
+  const recent = new Set((Array.isArray(history) ? history : []).slice(-3));
+  const eligible = STYLE_DECK.filter((style) => !recent.has(style.id));
+  const pool = eligible.length ? eligible : STYLE_DECK;
+  return pool[Math.floor(unit(seed, 'style') * pool.length) % pool.length];
+}
+
+module.exports = { selectApis, selectStyle, canonical };

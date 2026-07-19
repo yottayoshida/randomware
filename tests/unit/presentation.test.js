@@ -5,8 +5,8 @@ const { RunStore } = require('../../src/core/store');
 
 function specimen(overrides = {}) {
   return {
-    id: 'run_demo', requestId: 'owner-demo', createdAt: RUNTIME_CONTRACT_CUTOFF_MS + 1, creationId: 'creation_demo', phase: 'completed', listed: true, unpublished: false,
-    concept: { appName: 'Sensible Nonsense', premise: 'A dog settles the weather as paperwork.' },
+    id: 'run_demo', requestId: 'owner-demo', createdAt: RUNTIME_CONTRACT_CUTOFF_MS + 1, creationId: 'creation_demo', phase: 'completed', listed: true, unpublished: false, styleId: 'paper-certificate',
+    concept: { styleId: 'paper-certificate', appName: 'Sensible Nonsense', premise: 'A dog settles the weather as paperwork.' },
     selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }, { apiId: 'open-meteo', operationIds: ['forecast'] }],
     revisions: [{ revision: 1, status: 'accepted', bytes: 12000 }], runtimeRequests: [{ apiId: 'dog-ceo', operationId: 'random', status: 'ok', cacheHit: false, startedAt: RUNTIME_CONTRACT_CUTOFF_MS + 10, endedAt: RUNTIME_CONTRACT_CUTOFF_MS + 45 }], failure: null,
     ...overrides
@@ -23,6 +23,9 @@ test('showcase is server-rendered and excludes unlisted machine specimens', () =
   assert.match(html, /github\.com\/yottayoshida\/randomware#chatgpt-prerequisites-and-connect/);
   assert.match(html, /Real APIs go in\. Random apps come out\./);
   assert.match(html, /Sensible Nonsense/);
+  assert.match(html, /LIVE SPECIMEN — Sensible Nonsense/);
+  assert.match(html, /<iframe[^>]+src="\/run\/creation_demo"/);
+  assert.match(html, /class="hero-machine"/);
   assert.match(html, /🐕/);
   assert.doesNotMatch(html, /Synthetic Gate|Loading/);
 });
@@ -35,6 +38,11 @@ test('creation and autopsy pages render symbols, receipts, navigation, raw links
   assert.doesNotMatch(creation, /<iframe/);
   assert.match(creation, /🐕/);
   assert.match(creation, /Dog CEO<\/a> — get a dog image/);
+  assert.match(creation, /RANDOMWARE SPECIMEN RECORD/);
+  assert.match(creation, /Accepted · Rev 1/);
+  assert.match(creation, /STYLE CARTRIDGE/);
+  assert.match(creation, /Paper Certificate/);
+  assert.match(creation, /category: visual/);
   assert.match(creation, /Randomware showcase/);
   assert.match(creation, /See other specimens/);
   assert.match(creation, /Spin your own/);

@@ -1,4 +1,5 @@
 const { escapeHtml } = require('./artifact');
+const { getStyle } = require('./style-deck');
 
 function lines(value) {
   return Array.isArray(value) ? value : [];
@@ -6,6 +7,7 @@ function lines(value) {
 
 function specText(run) {
   const concept = run.concept || {};
+  const style = run.styleId ? getStyle(run.styleId) : null;
   const roles = lines(concept.apiRoles).map((role) => `- ${role.apiId}: ${role.essentialRole} [${lines(role.operations).join(', ')}]`);
   const chain = lines(concept.causalChain).sort((left, right) => (left.order || 0) - (right.order || 0)).map((item) => `${item.order}. ${item.apiId}: ${item.action}`);
   const visual = concept.visualDirection || {};
@@ -15,6 +17,8 @@ function specText(run) {
     `Name: ${concept.appName || 'Untitled collision'}`,
     `Premise: ${concept.premise || ''}`,
     `Player action: ${concept.playerAction || ''}`,
+    `Style cartridge: ${style ? `${style.symbol} ${style.name} (${style.id})` : concept.styleId || 'not recorded'}`,
+    ...(style ? [`Style palette: ${style.palette}`, `Style typography: ${style.typography}`, `Style motion: ${style.motion}`, `Style era: ${style.era}`, `Style caution: ${style.avoid}`] : []),
     '',
     'Causal chain:',
     ...(chain.length ? chain : ['(not recorded)']),

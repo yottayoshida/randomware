@@ -38,6 +38,7 @@ def make_concept(run, request_id="browser-concept"):
     ids = [entry["id"] for entry in selected]
     return {
         "requestId": request_id,
+        "styleId": run["styleId"],
         "appName": "Browser Chrome Check",
         "premise": "A browser-rendered assertion turns selected public signals into a visible owner chrome specimen.",
         "playerAction": "Press the specimen button to reveal the bounded browser check.",
@@ -102,9 +103,11 @@ def main():
             else:
                 raise AssertionError("local server did not become ready")
 
-        run_tag = f"browser-{int(time.time() * 1000)}"
+        run_tag = f"{'local-showcase' if server else 'browser'}-{int(time.time() * 1000)}"
         _, run = call("/api/spin", {"seed": run_tag, "requestId": f"{run_tag}-spin"})
         concept = make_concept(run, f"{run_tag}-concept")
+        if server:
+            concept["appName"] = "Paperwork Oracle"
         concept["runId"] = run["runId"]
         status, _ = call(f"/api/runs/{run['runId']}/concept", concept)
         assert status == 200, f"concept_status:{status}"
@@ -139,7 +142,10 @@ def main():
             assert "style-src 'self'" in csp and "unsafe-inline" not in csp, f"owner_csp_not_strict:{csp}"
             assert page.locator("style").count() == 0, "inline_style_present"
             assert page.locator("script").count() == 0, "inline_script_present"
-            assert border_width == "2px", f"unstyled_chrome:border={border_width}"
+            assert border_width == "3px", f"unstyled_chrome:border={border_width}"
+            assert page.locator(".rw-stamp").inner_text().lower() == "accepted · rev 1", "creation_stamp_missing"
+            assert "RANDOMWARE SPECIMEN RECORD" in page.locator(".rw-kicker").first.inner_text(), "creation_record_kicker_missing"
+            assert page.locator(".rw-style").is_visible(), "creation_style_cartridge_missing"
             assert frame_height >= 390, f"frame_too_short:{frame_height}"
             assert page.locator(".rw-site-header a").inner_text().endswith("Randomware showcase"), "creation_header_navigation_missing"
             assert page.locator(".rw-site-footer").inner_text().find("See other specimens") >= 0, "creation_footer_navigation_missing"
@@ -173,6 +179,7 @@ def main():
             assert index_page.locator("a[href*='chatgpt-prerequisites-and-connect']").count() >= 1, "connect_link_missing"
             assert "Loading" not in index_page.locator("body").inner_text(), "index_not_server_rendered"
             assert "Browser Chrome Check" not in index_page.locator("body").inner_text(), "test_specimen_listed"
+            assert index_page.locator(".hero-machine iframe").count() == 1, "index_live_hero_missing"
 
             audio_playback = None
             if REQUIRE_AUDIO:
@@ -188,7 +195,7 @@ def main():
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
-            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "creationUrl": None, "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}, {"id": "dog-ceo", "name": "Dog CEO", "operations": []}, {"id": "open-meteo", "name": "Open-Meteo", "operations": []}]}
+            spin_run = {"runId": "widget-run", "phase": "spinned", "styleId": "teletext", "style": {"id": "teletext", "name": "Teletext Dispatch", "symbol": "📟", "palette": "primary blocks", "typography": "fixed grid", "motion": "row reveal", "era": "Ceefax", "avoid": "keep controls visible"}, "statusUrl": f"{BASE}/api/runs/widget-run", "creationUrl": None, "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}, {"id": "dog-ceo", "name": "Dog CEO", "operations": []}, {"id": "open-meteo", "name": "Open-Meteo", "operations": []}]}
             concept_run = {**spin_run, "phase": "concept_accepted"}
             complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation", "creationUrl": f"{BASE}/c/widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
@@ -232,12 +239,15 @@ def main():
             stopped_at = [int(widget_page.locator("#apis .reel").nth(index).get_attribute("data-stopped-at")) for index in range(3)]
             assert stopped_at[0] == first_stop and stopped_at[0] < stopped_at[1] < stopped_at[2], f"widget_stop_order_failed:{stopped_at}"
             assert widget_page.locator("#apis").evaluate("element => element.classList.contains('is-flashing')"), "widget_full_stop_flash_missing"
+            assert widget_page.locator("#lamps").evaluate("element => element.classList.contains('is-active')"), "widget_lamp_bank_missing"
+            assert "STYLE CARTRIDGE: 📟 Teletext Dispatch" in widget_page.locator("#style-cartridge").inner_text(), "widget_style_chip_missing"
             assert widget_page.locator("#steps [data-step='concept']").get_attribute("data-state") == "current", "widget_stepper_concept_missing"
             assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
             widget_page.locator("#build").click()
             assert widget_page.locator("#reassurance").is_visible(), "widget_session_reassurance_missing"
-            assert "elapsed" in widget_page.locator("#elapsed").inner_text(), "widget_elapsed_missing"
-            assert "last activity" in widget_page.locator("#heartbeat").inner_text(), "widget_heartbeat_missing"
+            assert "ELAPSED" in widget_page.locator("#elapsed").inner_text(), "widget_elapsed_missing"
+            assert "AUTO-NUDGE AT" in widget_page.locator("#auto-nudge").inner_text(), "widget_auto_nudge_missing"
+            assert "LAST SIGNAL" in widget_page.locator("#heartbeat").inner_text(), "widget_heartbeat_missing"
             assert widget_page.locator("#composing").is_visible(), "widget_composing_animation_missing"
             assert widget_page.locator("#fallback").is_visible(), "widget_follow_up_fallback_missing"
             fallback_prompt = widget_page.locator("#build-prompt").input_value()
@@ -275,7 +285,9 @@ def main():
             terminal_envelope = {"content": [{"type": "text", "text": "repair failed"}], "structuredContent": terminal_failure, "isError": True}
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", terminal_envelope)
             assert widget_page.locator("#failure").is_visible(), "widget_terminal_failure_missing"
-            assert "repair_failed" in widget_page.locator("#failure-code").inner_text(), "widget_terminal_failure_code_missing"
+            assert "☒ BUILD DECEASED" in widget_page.locator("#failure-code").inner_text(), "widget_terminal_failure_heading_missing"
+            assert "repair_failed" in widget_page.locator("#failure-copy").inner_text(), "widget_terminal_failure_code_missing"
+            assert widget_page.locator("#failure-spin").is_visible(), "widget_failure_spin_missing"
             assert widget_page.locator("#autopsy").is_visible(), "widget_failure_autopsy_missing"
             precreation_failure = {**terminal_failure, "creationId": None, "creationUrl": None, "failure": {"code": "choreography_timeout"}, "revisions": []}
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", {"content": [{"type": "text", "text": "timeout"}], "structuredContent": precreation_failure, "isError": True})
@@ -286,7 +298,7 @@ def main():
             assert report_page.locator("form").is_visible(), "report_confirm_missing"
             with report_page.expect_navigation():
                 report_page.locator("button[type='submit']").click()
-            assert "Report received" in report_page.locator("body").inner_text(), "report_post_failed"
+            assert "report received" in report_page.locator("body").inner_text().lower(), "report_post_failed"
             print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "desktopFrameHeight": desktop_frame_height, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True, "showcaseServerRendered": True, "autopsyTables": True}))
             browser.close()
     finally:

@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { selectApis } = require('../../src/core/selection');
+const { selectApis, selectStyle } = require('../../src/core/selection');
+const { STYLE_DECK } = require('../../src/core/style-deck');
 
 const registry = [
   { id: 'deck', name: 'Deck', category: 'games', sensory: [] },
@@ -35,4 +36,21 @@ test('selector remains near-uniform while preserving the three-way band', () => 
   const values = Object.values(counts);
   assert.ok(three / 5000 > 0.14 && three / 5000 < 0.16);
   assert.ok(Math.max(...values) / Math.min(...values) < 2.5);
+});
+
+test('style deck has eight immutable owner-curated cartridges', () => {
+  assert.equal(STYLE_DECK.length, 8);
+  assert.deepEqual(STYLE_DECK.map((style) => style.id), ['paper-certificate', 'video-game-hud', 'flash-app', 'board-game', 'gacha-app', 'retro-90s-pixel', 'teletext', 'vhs-jacket']);
+  for (const style of STYLE_DECK) {
+    assert.equal(Object.isFrozen(style), true);
+    for (const field of ['name', 'symbol', 'palette', 'typography', 'motion', 'era', 'avoid']) assert.ok(style[field]);
+  }
+});
+
+test('style draw is deterministic and avoids the three most recent cartridges', () => {
+  const first = selectStyle({ seed: 'style-seed', history: [] });
+  assert.equal(selectStyle({ seed: 'style-seed', history: [] }).id, first.id);
+  const recent = STYLE_DECK.slice(0, 3).map((style) => style.id);
+  const selected = selectStyle({ seed: 'style-history-seed', history: recent });
+  assert.ok(!recent.includes(selected.id));
 });

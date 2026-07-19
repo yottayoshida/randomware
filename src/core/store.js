@@ -20,11 +20,11 @@ class RunStore {
     return [...this.runs.values()].filter((run) => run.creationId).sort((left, right) => right.createdAt - left.createdAt);
   }
 
-  createRun({ requestId, selectedApis, history = [] }) {
+  createRun({ requestId, selectedApis, history = [], styleId = null, styleHistory = [] }) {
     if (this.requestIndex.has(requestId)) return this.runs.get(this.requestIndex.get(requestId));
     const now = Date.now();
     const run = {
-      id: id('run'), requestId, phase: phases.SPINNED, selectedApis: structuredClone(selectedApis), history: structuredClone(history),
+      id: id('run'), requestId, phase: phases.SPINNED, selectedApis: structuredClone(selectedApis), history: structuredClone(history), styleId, styleHistory: structuredClone(styleHistory),
       concept: null, conceptHistory: [], revisions: [], repairCount: 0, failure: null, events: [{ type: 'spin_received', at: now }], createdAt: now,
       choreography: startChoreography(phases.SPINNED, now),
       creationId: null, runtimeRequests: [], listed: false
@@ -55,6 +55,7 @@ class RunStore {
     if (run.phase !== phases.SPINNED || run.concept) throw new Error('phase_or_idempotency');
     const selectedIds = run.selectedApis.map((api) => api.apiId).sort();
     if (JSON.stringify(selectedIds) !== JSON.stringify([...concept.apiIds].sort())) throw new Error('immutable_api_set');
+    if (run.styleId && concept.styleId !== run.styleId) throw new Error('immutable_style');
     run.concept = structuredClone(concept); run.phase = phases.CONCEPT_ACCEPTED;
     run.events.push({ type: 'concept_accepted', at: Date.now() }); advanceChoreography(run); return run;
   }

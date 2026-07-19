@@ -4,6 +4,7 @@ const { specText, specHtml } = require('../../src/core/keeper');
 
 const run = {
   creationId: 'creation_keeper',
+  styleId: 'paper-certificate',
   concept: {
     appName: 'Bark Exchange',
     premise: 'A deadpan kiosk reads a dog and a rate as an omen.',
@@ -22,6 +23,7 @@ test('keeper spec sheet includes the accepted concept contract without raw artif
   assert.match(text, /Bark Exchange/);
   assert.match(text, /dog-ceo/);
   assert.match(text, /causal chain/i);
+  assert.match(text, /paper-certificate/);
   assert.doesNotMatch(text, /<html/i);
   assert.match(specHtml(run), /Bark Exchange/);
 });

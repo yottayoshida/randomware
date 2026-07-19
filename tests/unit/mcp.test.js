@@ -26,6 +26,9 @@ test('MCP schemas describe every concept and artifact nested contract', () => {
   assert.deepEqual(toolSchemas.submit_repair.required.slice(-2), ['failedRevisionId', 'diagnosticCodes']);
   assert.equal(tools().find((tool) => tool.name === 'submit_concept').inputSchema.properties.apiRoles.items.properties.operations.items.type, 'string');
   const concept = toolSchemas.submit_concept.properties;
+  assert.equal(concept.styleId.type, 'string');
+  assert.equal(concept.styleId.enum.length, 8);
+  assert.deepEqual(toolSchemas.spin_apis.properties.styleHistory.items.enum, concept.styleId.enum);
   assert.deepEqual(concept.dependency.properties.to.enum, ['api_input', 'rules', 'interface_state']);
   assert.deepEqual([concept.appName.minLength, concept.appName.maxLength], [4, 48]);
   assert.deepEqual([concept.interaction.properties.controls.minItems, concept.interaction.properties.controls.maxItems], [1, 4]);
@@ -37,7 +40,7 @@ test('MCP schemas describe every concept and artifact nested contract', () => {
 
 test('MCP validation enforces generated enum, range, and literal constraints', () => {
   const base = {
-    requestId: 'r', runId: 'run', runContract: 'contract', promptVersion: 'concept-v1', appName: 'Name', premise: 'A premise that is long enough for the contract.', playerAction: 'A player action that is long enough for the contract.', apiIds: ['open-meteo', 'librivox'],
+    requestId: 'r', runId: 'run', runContract: 'contract', promptVersion: 'concept-v1', styleId: 'teletext', appName: 'Name', premise: 'A premise that is long enough for the contract.', playerAction: 'A player action that is long enough for the contract.', apiIds: ['open-meteo', 'librivox'],
     causalChain: [{ order: 1, apiId: 'open-meteo', action: 'turn weather into the next rule' }, { order: 2, apiId: 'librivox', action: 'turn audio into the next rule' }], apiRoles: [{ apiId: 'open-meteo', essentialRole: 'Supplies the weather signal for the collision.', operations: ['forecast'] }, { apiId: 'librivox', essentialRole: 'Supplies the audio signal for the collision.', operations: ['book'] }],
     dependency: { fromApiId: 'open-meteo', to: 'rules', explanation: 'The weather determines the rule.' }, interaction: { controls: ['reveal'], outcome: 'Reveal one result.' },
     visualDirection: { style: 'bold', palette: 'cyan', typography: 'serif', motion: 'sweep' }, bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'This is not a generic shape.' }, noveltyDelta: 'A new collision.'
@@ -48,6 +51,8 @@ test('MCP validation enforces generated enum, range, and literal constraints', (
   assert.equal(validateToolArguments('submit_concept', badRange).code, 'arguments_appName_length');
   const badConst = structuredClone(base); badConst.bannedShapeAssessment.plainDashboard = true;
   assert.equal(validateToolArguments('submit_concept', badConst).code, 'arguments_bannedShapeAssessment_plainDashboard_const');
+  const badStyle = structuredClone(base); badStyle.styleId = 'dark-theatre';
+  assert.equal(validateToolArguments('submit_concept', badStyle).code, 'arguments_styleId_enum');
 });
 
 test('MCP argument validation names omitted nested role operations', () => {
@@ -66,7 +71,7 @@ test('widget opens a routable creation in-frame and exposes an openExternal fall
   assert.match(widget, /id="creation-frame"/);
   assert.match(widget, /\/c\//);
   assert.match(widget, /openExternal\(\{href/);
-  assert.match(widget, /Download or open the creation/);
+  assert.match(widget, /OPEN OUTSIDE CHAT/);
   assert.match(widget, /https:\/\/randomware\.example/);
   assert.doesNotMatch(widget, /new URL\(run\.statusUrl,window\.location/);
   assert.doesNotMatch(widget, /window\.location\.origin/);
@@ -81,12 +86,20 @@ test('widget exposes honest progress, symbol reels, heartbeat, and failure recov
   assert.match(widget, /stoppedAt/);
   assert.match(widget, /is-flashing/);
   assert.match(widget, /server\. Its finished specimen will appear on the showcase/);
-  assert.match(widget, /last activity/);
-  assert.match(widget, /Read the autopsy/);
-  assert.match(widget, /Spin again/);
+  assert.match(widget, /LAST SIGNAL/);
+  assert.match(widget, /READ THE AUTOPSY/);
+  assert.match(widget, /SPIN AGAIN/);
   assert.match(widget, /🐕/);
   assert.match(widget, /Dog CEO/);
   assert.match(widget, /get a dog image/);
+});
+
+test('widget ships the approved RANDOMWARE.EXE machine surface', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  for (const text of ['RANDOMWARE.EXE — API SLOT DIVISION', 'KEEP THIS WINDOW OPEN.', 'STYLE CARTRIDGE:', 'BUILDING SPECIMEN', 'AUTO-NUDGE AT', '☒ BUILD DECEASED', 'READ THE AUTOPSY', 'LAST SIGNAL']) assert.match(widget, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  for (const token of ['--teal:#2aa8a0', '--grape:#6c3bd9', '--grape-deep:#4a2496', '--magenta:#e93a9a', '--tangerine:#f5a623', '--cream:#f2e7d8', '--paper:#f4efdc', '--stamp:#c0392b']) assert.ok(widget.includes(token), token);
+  assert.match(widget, /prefers-reduced-motion/);
+  assert.match(widget, /styleHistory/);
 });
 
 test('registry symbols stay on display surfaces and out of run artifact inputs', () => {
@@ -116,11 +129,13 @@ test('widget consumes the real CallToolResult envelope and ignores a stale mount
 });
 
 test('widget fallback prompt binds the active run and required build choreography', () => {
-  const prompt = widgetBuildPrompt({ runId: 'run_fallback_123' });
+  const prompt = widgetBuildPrompt({ runId: 'run_fallback_123', styleId: 'teletext', style: { id: 'teletext', name: 'Teletext Dispatch', symbol: '📟', palette: 'primary blocks', typography: 'fixed grid', motion: 'page snap', era: 'Ceefax', avoid: 'no fake browser chrome' } });
   assert.match(prompt, /Use Randomware run run_fallback_123:/);
   assert.match(prompt, /call get_run/);
   assert.match(prompt, /then submit_concept/);
   assert.match(prompt, /submit the complete artifact via submit_artifact/);
+  assert.match(prompt, /DRAWN_STYLE=.*teletext/);
+  assert.match(prompt, /inline CSS only/i);
 });
 
 test('every prompt surface carries the shared artifact contract literals', () => {

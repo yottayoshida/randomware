@@ -45,6 +45,14 @@ test('D1 moderation flags survive a later narrow capability-expiry update', asyn
   assert.equal(unpublished.events.at(-1).type, 'unpublished');
 });
 
+test('D1 run metadata persists the drawn style and style history', async () => {
+  const store = new D1RunStore(database());
+  const run = await store.createRun({ requestId: 'd1-style', selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }], styleId: 'teletext', styleHistory: ['vhs-jacket'] });
+  const hydrated = await store.getRun(run.id);
+  assert.equal(hydrated.styleId, 'teletext');
+  assert.deepEqual(hydrated.styleHistory, ['vhs-jacket']);
+});
+
 test('showcase migration classifies a boundary-spanning run by accepted revision time', () => {
   const db = database();
   const insertRun = db.sqlite.prepare("INSERT INTO runs (id, request_id, phase, selected_apis_json, history_json, concept_json, created_at, creation_id, repair_count, metadata_json) VALUES (?, ?, 'completed', '[]', '[]', ?, ?, ?, 0, '{\"listed\":true}')");

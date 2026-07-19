@@ -107,6 +107,7 @@ function fitString(schema, fallback) {
 }
 
 function modelValue(schema, context, path = '', currentApi = null, apiIndex = 0) {
+  if (path === 'styleId' && context.run?.styleId) return context.run.styleId;
   const key = parts(path).at(-1) || '';
   if (schema.type === 'object') {
     const output = {};
@@ -190,6 +191,7 @@ async function runSynthetic(base) {
   const widgetText = (await resourceResponse.json()).result.contents[0].text; assertWidgetScriptParses(widgetText); assert.deepEqual(extractManifest(widgetText), manifest, 'widget_prompt_manifest_drift');
   assert.ok(widgetText.includes('submit the complete artifact via submit_artifact'), 'widget_build_prompt_missing');
   assert.ok(widgetText.includes('Exact rejection diagnostics:'), 'widget_repair_prompt_missing');
+  assert.ok(widgetText.includes("'DRAWN_STYLE='+JSON.stringify(run.style)"), 'widget_drawn_style_prompt_missing');
 
   let callId = 10;
   const call = async (name, args, expectedStatus = 200) => {
@@ -213,12 +215,13 @@ async function runSynthetic(base) {
     if (candidate.selectedApis.map((api) => api.id).sort().join('|') === 'librivox|nager-date|radio-browser') { run = candidate; break; }
   }
   assert.ok(run, 'three_api_audio_selection_failed');
+  assert.ok(run.styleId && run.style?.id === run.styleId, 'drawn_style_missing');
   for (const api of run.selectedApis) for (const operation of api.operations) {
     assert.ok(operation.responseExample && operation.outputSchema && operation.semanticFieldPaths?.length, `spin_response_contract_missing:${api.id}/${operation.id}`);
   }
   const html = artifactFromVisibleContract(run, manifest);
   const conceptArgs = modelValue(byName.submit_concept.inputSchema, { run, tag, requestLabel: 'concept' });
-  const concept = await call('submit_concept', conceptArgs); assert.equal(concept.result.structuredContent.phase, 'concept_accepted'); assert.deepEqual(extractManifest(concept.result.content[0].text), manifest, 'concept_result_manifest_drift');
+  const concept = await call('submit_concept', conceptArgs); assert.equal(concept.result.structuredContent.phase, 'concept_accepted'); assert.deepEqual(extractManifest(concept.result.content[0].text), manifest, 'concept_result_manifest_drift'); assert.ok(concept.result.content[0].text.includes(`DRAWN_STYLE=${JSON.stringify(run.style)}`), 'concept_drawn_style_prompt_missing');
   const acceptedRun = concept.result.structuredContent;
   const artifactArgs = modelValue(byName.submit_artifact.inputSchema, { run: acceptedRun, tag, requestLabel: 'artifact', html });
   const artifact = await call('submit_artifact', artifactArgs); assert.equal(artifact.result.structuredContent.phase, 'completed'); const completed = artifact.result.structuredContent;
@@ -251,7 +254,7 @@ async function runSynthetic(base) {
   const repairConceptArgs = modelValue(byName.submit_concept.inputSchema, { run: repairRun, tag, requestLabel: 'repair-concept' });
   const repairConcept = await call('submit_concept', repairConceptArgs); const repairState = repairConcept.result.structuredContent;
   const badArtifactArgs = modelValue(byName.submit_artifact.inputSchema, { run: repairState, tag, requestLabel: 'bad-artifact', html: '<!doctype html><html><body>invalid</body></html>' });
-  const rejected = await call('submit_artifact', badArtifactArgs); assert.equal(rejected.result.isError, true); assert.deepEqual(extractManifest(rejected.result.content[0].text), manifest, 'repair_result_manifest_drift');
+  const rejected = await call('submit_artifact', badArtifactArgs); assert.equal(rejected.result.isError, true); assert.deepEqual(extractManifest(rejected.result.content[0].text), manifest, 'repair_result_manifest_drift'); assert.ok(rejected.result.content[0].text.includes(`DRAWN_STYLE=${JSON.stringify(repairRun.style)}`), 'repair_drawn_style_prompt_missing');
 
   const bases = {
     open_randomware: {},
@@ -264,7 +267,7 @@ async function runSynthetic(base) {
     record_choreography_failure: modelValue(byName.record_choreography_failure.inputSchema, { run: repairRun, tag })
   };
 
-  let fuzzCases = 0; let enumCases = 0; let constCases = 0; let rangeCaseCount = 0;
+  let fuzzCases = 0; let enumCases = 0; let constCases = 0; let rangeCaseCount = 0; let styleEnumRejected = false;
   const assertStructured4xx = async (name, args, field, label) => {
     const result = await call(name, args, 400); fuzzCases += 1; const code = String(result.error?.code || '');
     assert.ok(code.toLowerCase().includes(field.toLowerCase()), `fuzz_code:${name}:${label}:${code}`);
@@ -288,6 +291,7 @@ async function runSynthetic(base) {
     for (const candidate of pending) {
       const args = clone(bases[tool.name]); setPath(args, candidate.path, candidate.value); const field = parts(candidate.path).filter((part) => !/^\d+$/.test(part)).at(-1);
       await assertStructured4xx(tool.name, args, field, `${candidate.path}:${candidate.kind}`);
+      if (tool.name === 'submit_concept' && candidate.path === 'styleId' && candidate.kind === 'enum') styleEnumRejected = true;
     }
     for (const candidate of rangeCases(schema)) {
       const args = clone(bases[tool.name]); setPath(args, candidate.path, candidate.value); const field = parts(candidate.path).filter((part) => !/^\d+$/.test(part)).at(-1);
@@ -306,6 +310,7 @@ async function runSynthetic(base) {
     constCases,
     rangeCases: rangeCaseCount,
     schemaConstraints: constraintCount,
+    styleEnumRejected,
     tools: tools.length,
     promptSurfaces: tools.length + 4
   };

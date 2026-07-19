@@ -4,7 +4,7 @@ const { validateConcept } = require('../../src/core/concept');
 
 const selectedApis = [{ apiId: 'art', operationIds: ['artwork'] }, { apiId: 'weather', operationIds: ['forecast'] }];
 const valid = {
-  requestId: 'concept-1', runId: 'run-concept-1', runContract: 'run:run-concept-1', promptVersion: 'concept-v1', appName: 'Weather Canvas', premise: 'A painted forecast where a museum object changes the mood of tomorrow.', playerAction: 'Press the brush button to let weather recolor the selected artwork.', noveltyDelta: 'Make the weather a material, not a report.', apiIds: ['art', 'weather'],
+  requestId: 'concept-1', runId: 'run-concept-1', runContract: 'run:run-concept-1', promptVersion: 'concept-v1', styleId: 'paper-certificate', appName: 'Weather Canvas', premise: 'A painted forecast where a museum object changes the mood of tomorrow.', playerAction: 'Press the brush button to let weather recolor the selected artwork.', noveltyDelta: 'Make the weather a material, not a report.', apiIds: ['art', 'weather'],
   apiRoles: [{ apiId: 'art', essentialRole: 'Supplies the visual object that receives the weather mood.', operations: ['artwork'] }, { apiId: 'weather', essentialRole: 'Supplies current conditions that choose the object palette.', operations: ['forecast'] }],
   causalChain: [{ order: 1, apiId: 'art', action: 'choose the visual object' }, { order: 2, apiId: 'weather', action: 'turn conditions into pigment' }],
   dependency: { fromApiId: 'weather', to: 'api_input', explanation: 'The forecast determines the artwork palette.' },
@@ -13,7 +13,11 @@ const valid = {
   bannedShapeAssessment: { plainDashboard: false, plainSearch: false, plainQuiz: false, randomFactDisplay: false, thinClone: false, plausibleStartupPitch: false, explanation: 'This is an intentionally theatrical collision.' }
 };
 
-test('concept validator accepts complete collision contract', () => assert.equal(validateConcept(valid, { selectedApis }).ok, true));
+test('concept validator accepts complete collision contract', () => assert.equal(validateConcept(valid, { selectedApis, styleId: 'paper-certificate' }).ok, true));
+test('concept validator requires the exact drawn style', () => {
+  assert.equal(validateConcept({ ...valid, styleId: 'teletext' }, { selectedApis, styleId: 'paper-certificate' }).code, 'style_id_must_match_selection');
+  assert.equal(validateConcept({ ...valid, styleId: 'not-a-style' }, { selectedApis, styleId: 'paper-certificate' }).code, 'style_id_invalid');
+});
 test('concept validator rejects missing API roles and banned shapes', () => {
   const result = validateConcept({ ...valid, premise: 'A plain dashboard for weather', apiRoles: valid.apiRoles.slice(0, 1) }, { selectedApis });
   assert.equal(result.code, 'api_roles_must_cover_selection');

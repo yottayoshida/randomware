@@ -5,9 +5,11 @@ const { RunStore, phases } = require('../../src/core/store');
 
 test('run store enforces concept before artifact and immutable selected APIs', () => {
   const store = new RunStore();
-  const run = store.createRun({ requestId: 'r1', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  const run = store.createRun({ requestId: 'r1', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }], styleId: 'teletext', styleHistory: ['board-game'] });
   assert.equal(run.phase, phases.SPINNED);
-  store.acceptConcept(run.id, { requestId: 'c1', appName: 'Weather Dealer', premise: 'A weather auction', apiIds: ['open-meteo'] });
+  assert.equal(run.styleId, 'teletext');
+  assert.deepEqual(run.styleHistory, ['board-game']);
+  store.acceptConcept(run.id, { requestId: 'c1', appName: 'Weather Dealer', premise: 'A weather auction', apiIds: ['open-meteo'], styleId: 'teletext' });
   assert.equal(store.getRun(run.id).phase, phases.CONCEPT_ACCEPTED);
   assert.throws(() => store.acceptConcept(run.id, { requestId: 'c2', appName: 'Other', premise: 'Other', apiIds: ['deck-of-cards'] }), /phase_or_idempotency/);
 });

@@ -4,7 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { URL } = require('node:url');
 const { registry, getRegistryEntry } = require('./core/registry');
-const { selectApis } = require('./core/selection');
+const { selectApis, selectStyle } = require('./core/selection');
+const { getStyle } = require('./core/style-deck');
 const { validateArtifact } = require('./core/validator');
 const { RunStore, phases } = require('./core/store');
 const { Broker } = require('./core/broker');
@@ -53,7 +54,7 @@ async function formBody(req) {
 
 function runSummary(run, origin) {
   return {
-    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, ...runUrls(run, origin), phase: run.phase, choreography: run.choreography || null, createdAt: run.createdAt, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
+    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, ...runUrls(run, origin), phase: run.phase, choreography: run.choreography || null, createdAt: run.createdAt, creationId: run.creationId, styleId: run.styleId || null, style: run.styleId ? getStyle(run.styleId) : null, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
     concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount
   };
 }
@@ -85,7 +86,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, symbol, category, capability, docsUrl, attribution }) => ({ id, name, symbol, category, capability, docsUrl, attribution })));
       if (req.method === 'GET' && url.pathname === '/api/tools') return json(res, 200, createMcpTools(app));
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished && ['completed', 'failed'].includes(run.phase)).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
-      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return text(res, 200, showcasePage(store.listCreations()), { ...securityHeaders("default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
+      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return text(res, 200, showcasePage(store.listCreations()), { ...securityHeaders("default-src 'none'; style-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
       if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
       const assetMatch = url.pathname.match(/^\/api\/runtime\/asset\/([^/]+)$/);
@@ -134,8 +135,8 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         }
       }
       if (req.method === 'POST' && url.pathname === '/api/spin') {
-        const input = await body(req); const selected = selectApis({ seed: input.seed || cryptoSeed(), registry, history: input.history || [] });
-        const run = store.createRun({ requestId: input.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [] });
+        const input = await body(req); const spinSeed = input.seed || cryptoSeed(); const selected = selectApis({ seed: spinSeed, registry, history: input.history || [] }); const style = selectStyle({ seed: spinSeed, history: input.styleHistory || [] });
+        const run = store.createRun({ requestId: input.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), history: input.history || [], styleId: style.id, styleHistory: input.styleHistory || [] });
         return json(res, 200, { ...runSummary(run, url.origin), disclosure: 'Building publishes this experimental AI-generated app at a public URL.' });
       }
       const rerollMatch = url.pathname.match(/^\/api\/runs\/([^/]+)\/reroll$/);
@@ -147,7 +148,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         if (req.method === 'GET' && !action) return json(res, 200, runSummary(store.getRun(runId), url.origin), publicReadCors);
         if (req.method === 'POST' && action === 'concept') {
           const input = await body(req); store.noteActivity(runId); const run = store.getRun(runId); const concept = { ...input, apiIds: input.apiIds || run.selectedApis.map((entry) => entry.apiId) };
-          const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
+          const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [], styleId: run.styleId });
           if (!check.ok) return json(res, 422, check);
           const accepted = store.acceptConcept(runId, concept); return json(res, 200, runSummary(accepted, url.origin));
         }
@@ -250,16 +251,16 @@ async function handleMcp(req, res, app) {
     const name = input.params?.name; const args = input.params?.arguments || {};
     const contract = validateToolArguments(name, args); if (!contract.ok) return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: contract.code, message: 'invalid_tool_input', data: { diagnostics: contract.diagnostics } } });
     if (name === 'open_randomware') return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ok: true, registry: registry.length }, 'Randomware slot mounted.') });
-    if (name === 'spin_apis') { const selected = selectApis({ seed: args.seed || cryptoSeed(), registry }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })) }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run, origin), `Selected ${run.selectedApis.length} APIs.`) }); }
+    if (name === 'spin_apis') { const spinSeed = args.seed || cryptoSeed(); const selected = selectApis({ seed: spinSeed, registry }); const style = selectStyle({ seed: spinSeed, history: args.styleHistory || [] }); const run = app.store.createRun({ requestId: args.requestId || cryptoSeed(), selectedApis: selected.map((entry) => ({ apiId: entry.id, operationIds: entry.operations.map((op) => op.id) })), styleId: style.id, styleHistory: args.styleHistory || [] }); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run, origin), `Selected ${run.selectedApis.length} APIs and style ${style.name}.`) }); }
     if (name === 'get_run') { app.store.noteActivity(args.runId); const run = app.store.getRun(args.runId); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(run, origin), `Run ${run.id} is ${run.phase}.`) }); }
     if (name === 'submit_concept') {
-      app.store.noteActivity(args.runId, Date.now(), [phases.SPINNED]); const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [] });
+      app.store.noteActivity(args.runId, Date.now(), [phases.SPINNED]); const run = app.store.getRun(args.runId); const concept = { ...args, apiIds: args.apiIds || run.selectedApis.map((entry) => entry.apiId) }; const check = validateConcept(concept, { selectedApis: run.selectedApis, prior: run.history || [], styleId: run.styleId });
       if (!check.ok) return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...runSummary(run, origin), ...check }, `Concept rejected: ${check.code}.`, { isError: true }) });
-      const accepted = app.store.acceptConcept(args.runId, concept); const summary = runSummary(accepted, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(summary, conceptAcceptedPrompt(args.runId, summary.selectedApis)) });
+      const accepted = app.store.acceptConcept(args.runId, concept); const summary = runSummary(accepted, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(summary, conceptAcceptedPrompt(args.runId, summary.selectedApis, summary.style)) });
     }
     if (name === 'submit_artifact' || name === 'submit_repair') {
       app.store.noteActivity(args.runId, Date.now(), name === 'submit_repair' ? [phases.REPAIR_REQUESTED] : [phases.CONCEPT_ACCEPTED, phases.BUILDING]); const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis, declaredApiUses: args.declaredApiUses });
-      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; const failed = name === 'submit_repair' ? app.store.recordRepairFailure(args.runId, failureArgs) : app.store.recordArtifactFailure(args.runId, failureArgs); const summary = runSummary(failed, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...summary, ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics, selectedApis: summary.selectedApis }), { isError: true }) }); }
+      if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; const failed = name === 'submit_repair' ? app.store.recordRepairFailure(args.runId, failureArgs) : app.store.recordArtifactFailure(args.runId, failureArgs); const summary = runSummary(failed, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...summary, ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics, selectedApis: summary.selectedApis, style: summary.style }), { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
       return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted, origin), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
     }

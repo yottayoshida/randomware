@@ -18,10 +18,12 @@ function array(value, label, errors) {
   return true;
 }
 
-function validateConcept(concept, { selectedApis = [], prior = [] } = {}) {
+function validateConcept(concept, { selectedApis = [], prior = [], styleId = null } = {}) {
   try {
     if (!concept || typeof concept !== 'object' || Array.isArray(concept)) return fail('invalid_concept', ['concept_type']);
     const errors = [];
+    if (typeof concept.styleId !== 'string' || !CONCEPT_SCHEMA.styleId.enum.includes(concept.styleId)) errors.push('style_id_invalid');
+    else if (styleId && concept.styleId !== styleId) errors.push('style_id_must_match_selection');
     for (const [key, label] of [['appName', 'app_name'], ['premise', 'premise'], ['playerAction', 'player_action'], ['noveltyDelta', 'novelty_delta']]) {
       const error = text(concept[key], CONCEPT_SCHEMA[key], label); if (error) errors.push(error);
     }
