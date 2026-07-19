@@ -8,12 +8,32 @@ const baseArg = process.argv.find((arg) => arg.startsWith('--base-url='));
 const base = (baseArg ? baseArg.slice('--base-url='.length) : process.env.RANDOMWARE_PUBLIC_URL || '').replace(/\/$/, '');
 if (!base) { console.error('test:e2e:deployed requires --base-url=HTTPS_URL or RANDOMWARE_PUBLIC_URL'); process.exit(2); }
 if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); process.exit(2); }
+const nativeFetch = globalThis.fetch.bind(globalThis);
+const fetch = async (input, init = {}) => {
+  const target = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
+  const method = String(init.method || (typeof input === 'object' && input.method) || 'GET').toUpperCase();
+  const safeRead = target.origin === base && ['GET', 'HEAD', 'OPTIONS'].includes(method) && !target.pathname.startsWith('/media/') && !target.pathname.startsWith('/api/runtime/asset/');
+  for (let attempt = 0; attempt <= (safeRead ? 1 : 0); attempt += 1) {
+    try { return await nativeFetch(input, init); } catch (error) {
+      if (attempt < (safeRead ? 1 : 0)) continue;
+      throw new Error(`fetch_failed:${method}:${target.pathname}:${error?.message || 'network_error'}`);
+    }
+  }
+  throw new Error(`fetch_failed:${method}:${target.pathname}:network_error`);
+};
 
 (async () => {
   const health = await fetch(`${base}/healthz`); if (!health.ok) throw new Error(`health_status:${health.status}`);
   const healthBody = await health.json(); if (healthBody.ok !== true || healthBody.registry < 10) throw new Error('health_contract_failed');
   const registryResponse = await fetch(`${base}/api/registry`); const deployedRegistry = await registryResponse.json(); if (!registryResponse.ok || deployedRegistry.length !== 21 || deployedRegistry.find((entry) => entry.id === 'librivox')?.selectionEnabled !== false || deployedRegistry.find((entry) => entry.id === 'wikimedia-commons-audio')?.symbol !== '🔔') throw new Error('audio_roster_contract_failed');
-  const mcp = (message) => fetch(`${base}/mcp`, { method: 'POST', headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json' }, body: JSON.stringify(message) });
+  const mcp = async (message) => {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try { return await fetch(`${base}/mcp`, { method: 'POST', headers: { accept: 'application/json, text/event-stream', 'content-type': 'application/json' }, body: JSON.stringify(message) }); } catch (error) {
+        if (attempt === 1) throw new Error(`mcp_network_failed:${message.method}:${message.params?.name || 'lifecycle'}:${error.message}`);
+      }
+    }
+    throw new Error(`mcp_network_failed:${message.method}:network_error`);
+  };
   const initialize = await mcp({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'randomware-deployed-e2e', version: '1.0.0' } } });
   if (!initialize.ok) throw new Error(`mcp_initialize_status:${initialize.status}`);
   const initializeBody = await initialize.json(); if (initializeBody.result?.protocolVersion !== '2025-06-18' || !initializeBody.result?.capabilities?.tools || !initializeBody.result?.capabilities?.resources) throw new Error('mcp_initialize_contract_failed');

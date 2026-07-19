@@ -174,6 +174,8 @@ test('deployed e2e invokes the real browser semantic renderer', () => {
   assert.match(source, /RANDOMWARE_BROWSER_BASE/);
   assert.match(source, /RANDOMWARE_BROWSER_REQUIRE_AUDIO/);
   assert.match(source, /RANDOMWARE_BROWSER_AUDIO_API: 'wikimedia-commons-audio'/);
+  assert.match(source, /fetch_failed:\$\{method\}:\$\{target\.pathname\}/);
+  assert.match(source, /mcp_network_failed:/);
   assert.match(source, /semanticValues/);
   assert.match(source, /reconnectResponse/);
   assert.match(source, /Range: 'bytes=0-4095'/);
