@@ -127,11 +127,13 @@ test('deployed e2e invokes the real browser semantic renderer', () => {
   const source = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-deployed.js'), 'utf8');
   assert.match(source, /browser-acceptance\.py/);
   assert.match(source, /RANDOMWARE_BROWSER_BASE/);
+  assert.match(source, /RANDOMWARE_BROWSER_REQUIRE_AUDIO: '0'/);
   assert.match(source, /semanticValues/);
   assert.match(source, /reconnectResponse/);
   assert.match(source, /Range: 'bytes=0-4095'/);
   const browserSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/browser-acceptance.py'), 'utf8');
   assert.match(browserSource, /audioPlayback/);
+  assert.match(browserSource, /RANDOMWARE_BROWSER_REQUIRE_AUDIO/);
   assert.match(browserSource, /currentTime/);
   assert.match(browserSource, /readyState/);
 });

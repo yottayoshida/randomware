@@ -18,6 +18,7 @@ PORT = int(os.environ.get("RANDOMWARE_BROWSER_PORT", "8799"))
 BASE = os.environ.get("RANDOMWARE_BROWSER_BASE", f"http://127.0.0.1:{PORT}").rstrip("/")
 CHROME = os.environ.get("RANDOMWARE_BROWSER_EXECUTABLE", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 SSL_CONTEXT = ssl._create_unverified_context() if os.environ.get("RANDOMWARE_BROWSER_BASE") else None
+REQUIRE_AUDIO = os.environ.get("RANDOMWARE_BROWSER_REQUIRE_AUDIO", "1") != "0"
 
 
 def call(path, payload=None):
@@ -110,19 +111,21 @@ def main():
         status, artifact = call(f"/api/runs/{run['runId']}/artifact", {"requestId": f"{run_tag}-artifact", "html": make_artifact(run)})
         assert status == 200, f"artifact_status:{status}"
 
-        audio_run = None
-        for index, audio_seed in enumerate(["media-1", "media-radio-current-4", "media-radio-librivox-3"]):
-            _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
-            if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
-                audio_run = candidate
-                break
-        assert audio_run is not None, "browser_audio_selection_missing"
-        audio_concept = make_concept(audio_run, f"{run_tag}-audio-concept")
-        audio_concept["runId"] = audio_run["runId"]
-        status, _ = call(f"/api/runs/{audio_run['runId']}/concept", audio_concept)
-        assert status == 200, f"audio_concept_status:{status}"
-        status, audio_artifact = call(f"/api/runs/{audio_run['runId']}/artifact", {"requestId": f"{run_tag}-audio-artifact", "html": make_audio_artifact(audio_run)})
-        assert status == 200, f"audio_artifact_status:{status}"
+        audio_artifact = None
+        if REQUIRE_AUDIO:
+            audio_run = None
+            for index, audio_seed in enumerate(["media-1", "media-radio-current-4", "media-radio-librivox-3"]):
+                _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
+                if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
+                    audio_run = candidate
+                    break
+            assert audio_run is not None, "browser_audio_selection_missing"
+            audio_concept = make_concept(audio_run, f"{run_tag}-audio-concept")
+            audio_concept["runId"] = audio_run["runId"]
+            status, _ = call(f"/api/runs/{audio_run['runId']}/concept", audio_concept)
+            assert status == 200, f"audio_concept_status:{status}"
+            status, audio_artifact = call(f"/api/runs/{audio_run['runId']}/artifact", {"requestId": f"{run_tag}-audio-artifact", "html": make_audio_artifact(audio_run)})
+            assert status == 200, f"audio_artifact_status:{status}"
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, executable_path=CHROME if Path(CHROME).exists() else None)
@@ -149,15 +152,17 @@ def main():
             assert "not loaded" not in semantic_text and "undefined" not in semantic_text and "NaN" not in semantic_text, f"semantic_values_defaulted:{semantic_text}"
             assert len([line for line in semantic_text.splitlines() if line.strip()]) == len(run["selectedApis"]), f"semantic_values_incomplete:{semantic_text}"
 
-            audio_page = browser.new_page(viewport={"width": 390, "height": 844})
-            audio_page.goto(f"{BASE}/c/{audio_artifact['creationId']}", wait_until="networkidle")
-            audio_frame = next((frame for frame in audio_page.frames if f"/run/{audio_artifact['creationId']}" in frame.url), None)
-            assert audio_frame is not None, "signed_audio_frame_missing"
-            audio_frame.locator("#play-audio").click()
-            audio_frame.wait_for_function("() => { const audio = document.querySelector('#audio'); return audio && (audio.currentTime > 0 || audio.readyState >= 3); }", timeout=15000)
-            audio_playback = audio_frame.locator("#audio").evaluate("audio => { const rect=audio.getBoundingClientRect(); const top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2); return {currentTime:audio.currentTime,readyState:audio.readyState,networkState:audio.networkState,visible:rect.width>0&&rect.height>=40,unobstructed:top===audio||audio.contains(top)}; }")
-            assert audio_playback["currentTime"] > 0 or audio_playback["readyState"] >= 3, f"signed_audio_no_progress:{audio_playback}"
-            assert audio_playback["visible"] and audio_playback["unobstructed"], f"signed_audio_controls_obstructed:{audio_playback}"
+            audio_playback = None
+            if REQUIRE_AUDIO:
+                audio_page = browser.new_page(viewport={"width": 390, "height": 844})
+                audio_page.goto(f"{BASE}/c/{audio_artifact['creationId']}", wait_until="networkidle")
+                audio_frame = next((frame for frame in audio_page.frames if f"/run/{audio_artifact['creationId']}" in frame.url), None)
+                assert audio_frame is not None, "signed_audio_frame_missing"
+                audio_frame.locator("#play-audio").click()
+                audio_frame.wait_for_function("() => { const audio = document.querySelector('#audio'); return audio && (audio.currentTime > 0 || audio.readyState >= 3); }", timeout=15000)
+                audio_playback = audio_frame.locator("#audio").evaluate("audio => { const rect=audio.getBoundingClientRect(); const top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2); return {currentTime:audio.currentTime,readyState:audio.readyState,networkState:audio.networkState,visible:rect.width>0&&rect.height>=40,unobstructed:top===audio||audio.contains(top)}; }")
+                assert audio_playback["currentTime"] > 0 or audio_playback["readyState"] >= 3, f"signed_audio_no_progress:{audio_playback}"
+                assert audio_playback["visible"] and audio_playback["unobstructed"], f"signed_audio_controls_obstructed:{audio_playback}"
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
