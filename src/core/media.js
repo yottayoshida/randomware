@@ -56,13 +56,16 @@ function extractLibrivoxAudioUrl(xml) {
 async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 'radio-browser', timeoutMs = MEDIA_LIMITS.streamMs } = {}) {
   let current = validateMediaUrl(target, { kind });
   const range = request?.headers?.get('range');
+  const requestHeaders = {};
+  if (range) requestHeaders.range = range;
+  if (kind === 'wikimedia-commons') requestHeaders['user-agent'] = 'Randomware/0.1 (https://github.com/yottayoshida/randomware; competition demo)';
   for (let redirect = 0; redirect <= MEDIA_LIMITS.maxRedirects; redirect += 1) {
     let upstream;
     try {
       upstream = await fetcher(current.toString(), {
         method: 'GET',
         redirect: 'manual',
-        headers: range ? { range } : {},
+        headers: requestHeaders,
         signal: AbortSignal.timeout(timeoutMs)
       });
     } catch (error) {

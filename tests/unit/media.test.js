@@ -44,6 +44,22 @@ test('media fetch follows at most two validated redirects and preserves the audi
   await assert.rejects(() => fetchMedia({ target: 'https://radio.example/live', fetcher: async () => new Response(null, { status: 302, headers: { location: 'https://cdn.example/next' } }), request: new Request('https://randomware.example/media/test') }), /media_redirect_limit/);
 });
 
+test('Wikimedia Commons media fetch identifies the server-side client', async () => {
+  let headers;
+  const result = await fetchMedia({
+    target: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/bell.mp3',
+    kind: 'wikimedia-commons',
+    request: new Request('https://randomware.example/media/test', { headers: { range: 'bytes=0-0' } }),
+    fetcher: async (_target, options) => {
+      headers = new Headers(options.headers);
+      return new Response(Buffer.from('ID3commons'), { status: 206, headers: { 'content-type': 'audio/mpeg' } });
+    }
+  });
+  assert.match(headers.get('user-agent') || '', /^Randomware\/0\.1/);
+  assert.equal(headers.get('range'), 'bytes=0-0');
+  await result.response.body.cancel();
+});
+
 test('limited media streams stop at the page byte cap', async () => {
   const stream = limitedStream(new Response(Buffer.alloc(5)).body, 4, async () => {});
   await assert.rejects(() => new Response(stream).arrayBuffer(), /media_bytes_cap/);
