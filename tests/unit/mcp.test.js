@@ -180,6 +180,8 @@ test('deployed e2e invokes the real browser semantic renderer', () => {
   assert.match(source, /cross-origin-resource-policy/);
   const syntheticSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-synthetic-deployed.js'), 'utf8');
   assert.match(syntheticSource, /audioEvidence\.apiId.*wikimedia-commons-audio/);
+  assert.match(syntheticSource, /RANDOMWARE_DEPLOYED_AUDIO_SEED/);
+  assert.match(syntheticSource, /selectedApis\.length, 3/);
   assert.doesNotMatch(syntheticSource, /assert\.ok\([^\n]+await mediaResponse\.text\(\)/);
   const browserSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/browser-acceptance.py'), 'utf8');
   assert.match(browserSource, /audioPlayback/);

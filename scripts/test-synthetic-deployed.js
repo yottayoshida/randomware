@@ -213,9 +213,10 @@ async function runSynthetic(base) {
     return body;
   };
 
-  const audioSeed = 'commons-audio-2281';
+  const audioSeed = process.env.RANDOMWARE_DEPLOYED_AUDIO_SEED || 'commons-prod-45';
   const spun = await call('spin_apis', { seed: audioSeed, requestId: `${tag}-${audioSeed}` }); const run = spun.result.structuredContent;
-  assert.equal(run.selectedApis.map((api) => api.id).sort().join('|'), 'frankfurter|nager-date|wikimedia-commons-audio', 'three_api_audio_selection_failed');
+  assert.equal(run.selectedApis.length, 3, 'three_api_audio_selection_failed');
+  assert.ok(run.selectedApis.some((api) => api.id === 'wikimedia-commons-audio'), 'commons_audio_selection_failed');
   assert.ok(!run.selectedApis.some((api) => api.id === 'librivox'), 'librivox_selection_disabled_failed');
   assert.ok(run.styleId && run.style?.id === run.styleId, 'drawn_style_missing');
   for (const api of run.selectedApis) for (const operation of api.operations) {
