@@ -4,6 +4,7 @@ const { createWebHandler } = require('../../src/web');
 const { Broker } = require('../../src/core/broker');
 const { RunStore } = require('../../src/core/store');
 const { CapabilitySigner } = require('../../src/core/capability');
+const { RUNTIME_CONTRACT_CUTOFF_MS } = require('../../src/core/presentation');
 
 test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a listener', async () => {
   const fetchHandler = createWebHandler({ broker: new Broker({ fixtureMode: true }) });
@@ -104,6 +105,23 @@ test('Worker inspection and report views stay closed after owner unpublish', asy
     assert.equal(result.status, 200);
     assert.match(await result.text(), /Creation removed/);
   }
+});
+
+test('Worker refuses to execute a preserved pre-runtime-contract artifact', async () => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'worker-early-runtime', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  store.acceptConcept(run.id, { requestId: 'worker-early-concept', appName: 'Early Weather Clerk', apiIds: ['open-meteo'] });
+  store.acceptArtifact(run.id, { requestId: 'worker-early-artifact', html: '<script>window.earlyArtifactExecuted=true</script>', bytes: 50 });
+  run.revisions[0].at = RUNTIME_CONTRACT_CUTOFF_MS - 1;
+  const fetchHandler = createWebHandler({ store, broker: new Broker({ fixtureMode: true }) });
+
+  const response = await fetchHandler(new Request(`https://randomware.example/run/${run.creationId}`));
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(html, /Runtime retired/);
+  assert.match(html, /pre-contract specimen is not executed/);
+  assert.doesNotMatch(html, /window\.randomware|earlyArtifactExecuted/);
+  assert.equal(run.lastCapabilityExpiresAt, undefined);
 });
 
 test('Worker broker route handles opaque-origin preflight and records a mediated request', async () => {

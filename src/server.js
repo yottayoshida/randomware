@@ -20,7 +20,7 @@ const { fetchAsset, limitedAssetStream, ASSET_LIMITS } = require('./core/asset')
 const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
 const { companionUrl, runUrls } = require('./core/urls');
 const { fixtureMediaFetcher } = require('./core/fixture-media');
-const { showcasePage, creationPage, failurePage: companionFailurePage, requestsPage, dataflowPage, reportPage } = require('./core/presentation');
+const { showcasePage, creationPage, failurePage: companionFailurePage, requestsPage, dataflowPage, reportPage, retiredRuntimePage, isEarlySpecimen } = require('./core/presentation');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -171,6 +171,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
           const csp = `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
           const html = creationPage(run, revision); return text(res, 200, html, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8' });
         }
+        if (isEarlySpecimen(run)) return text(res, 200, retiredRuntimePage(run), { ...securityHeaders(`default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors ${url.origin} ${CHATGPT_FRAME_ANCESTORS.join(' ')}`), 'content-type': 'text/html; charset=utf-8' });
         store.setCapabilityExpiry(run.id, Date.now() + 600000); const token = signer.issue({ creationId: run.creationId, revision: revision.revision, selected: run.selectedApis.flatMap((entry) => entry.operationIds.map((operationId) => ({ apiId: entry.apiId, operationId }))) });
         const harness = `<script>window.randomware=Object.freeze({call:async(a,o,p)=>{const r=await fetch('/api/runtime/call',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({creationId:${JSON.stringify(run.creationId)},revision:${revision.revision},apiId:a,operationId:o,params:p,capability:${JSON.stringify(token)}})});if(!r.ok)throw new Error('broker_failure');return r.json()},ready:()=>parent.postMessage({channel:'randomware',type:'ready'},'*')});</script>`;
         const csp = `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: 'self'; media-src blob: ${url.origin}; connect-src 'self'; font-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${url.origin} ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;

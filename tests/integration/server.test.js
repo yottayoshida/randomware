@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createServer } = require('../../src/server');
 const { createArtifact } = require('../../src/core/artifact');
+const { RunStore } = require('../../src/core/store');
+const { RUNTIME_CONTRACT_CUTOFF_MS } = require('../../src/core/presentation');
 
 async function request(base, path, options = {}) {
   const response = await fetch(`${base}${path}`, { ...options, headers: { 'content-type': 'application/json', ...(options.headers || {}) } });
@@ -88,6 +90,25 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   assert.equal(unpublished.body.status, 'unpublished');
   const removed = await fetch(`${base}/c/${artifact.body.creationId}`);
   assert.match(await removed.text(), /Creation removed/);
+});
+
+test('server refuses to execute a preserved pre-runtime-contract artifact', async (t) => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'server-early-runtime', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  store.acceptConcept(run.id, { requestId: 'server-early-concept', appName: 'Early Weather Clerk', apiIds: ['open-meteo'] });
+  store.acceptArtifact(run.id, { requestId: 'server-early-artifact', html: '<script>window.earlyArtifactExecuted=true</script>', bytes: 50 });
+  run.revisions[0].at = RUNTIME_CONTRACT_CUTOFF_MS - 1;
+  const server = createServer({ fixtureMode: true, store });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/run/${run.creationId}`);
+  const html = await response.text();
+  assert.equal(response.status, 200);
+  assert.match(html, /Runtime retired/);
+  assert.match(html, /pre-contract specimen is not executed/);
+  assert.doesNotMatch(html, /window\.randomware|earlyArtifactExecuted/);
+  assert.equal(run.lastCapabilityExpiresAt, undefined);
 });
 
 test('MCP surface exposes eight annotated tools', async (t) => {

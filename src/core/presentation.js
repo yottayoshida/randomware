@@ -102,4 +102,8 @@ function reportPage(run, posted = false) {
   return pageShell('Report specimen', `<section class="rw-chrome"><p class="rw-kicker">Moderation desk</p><h1>Report or remove</h1><p>A report hides this specimen from public lists immediately. Owner removal uses the authenticated owner route and is not offered by this public form.</p><form method="post" action="/api/creations/${encodeURIComponent(run.creationId)}/report"><label for="reason">Reason</label><select id="reason" name="reason"><option value="unsafe">Unsafe or harmful</option><option value="broken">Broken or misleading</option><option value="rights">Rights or attribution concern</option><option value="other">Other</option></select><button type="submit">Report and hide</button></form></section>`);
 }
 
-module.exports = { RUNTIME_CONTRACT_CUTOFF_MS, CONNECT_URL, REPOSITORY_URL, escapeHtml, selectedDisplay, isEarlySpecimen, isMachineSpecimen, applyListingPolicy, showcasePage, creationPage, failurePage, requestsPage, dataflowPage, reportPage };
+function retiredRuntimePage(run) {
+  return pageShell('Runtime retired', `${earlyBanner(run)}<section class="rw-preserved"><h1>Runtime retired</h1><p>The frozen source and receipts remain inspectable. This pre-contract specimen is not executed.</p></section>`);
+}
+
+module.exports = { RUNTIME_CONTRACT_CUTOFF_MS, CONNECT_URL, REPOSITORY_URL, escapeHtml, selectedDisplay, isEarlySpecimen, isMachineSpecimen, applyListingPolicy, showcasePage, creationPage, failurePage, requestsPage, dataflowPage, reportPage, retiredRuntimePage };
