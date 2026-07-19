@@ -4,7 +4,7 @@
   "main": "src/worker.mjs",
   "compatibility_date": "2026-07-18",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/", "/index.html"] },
   "d1_databases": [{ "binding": "DB", "database_name": "randomware", "database_id": "ece51c24-5807-45d2-8c5f-9c2d080cf5de", "migrations_dir": "migrations" }],
   "triggers": { "crons": ["0 * * * *"] },
   "vars": { "RANDOMWARE_FIXTURES": "0" }
