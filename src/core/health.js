@@ -13,6 +13,10 @@ function transition(previous = {}, result, now = Date.now()) {
 async function runHealthCheck({ broker, entries = registry, previous = new Map(), now = Date.now() } = {}) {
   const rows = [];
   for (const entry of entries) {
+    if (entry.selectionEnabled === false) {
+      rows.push({ apiId: entry.id, status: 'disabled', consecutiveFailures: 0, consecutiveSuccesses: 0, latencyMs: null, checkedAt: now, reason: 'owner_selection_disabled' });
+      continue;
+    }
     const operation = entry.operations[0]; const started = Date.now(); let result;
     try {
       const response = await broker.call({ selectedApis: [{ apiId: entry.id, operationIds: [operation.id] }], apiId: entry.id, operationId: operation.id, params: {}, media: { origin: 'https://health.randomware.invalid', runId: 'health', creationId: 'health', revision: 1, capability: { nonce: 'health', expiresAt: now + 600000 }, tokenSigner: { issueAsset: () => 'health-asset', issueMedia: () => 'health-media' }, mediaStore: { createAssetToken: async () => {}, createMediaToken: async () => {} } } });

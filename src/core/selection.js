@@ -34,7 +34,7 @@ function combinations(items, size) {
 }
 
 function selectApis({ seed, registry, history = [], unhealthy = new Set() }) {
-  const eligible = registry.filter((api) => !unhealthy.has(api.id));
+  const eligible = registry.filter((api) => api.selectionEnabled !== false && !unhealthy.has(api.id));
   const recent = new Set(history.slice(-3).map(canonical));
   const arity = unit(seed, 'arity') < 0.15 ? 3 : 2;
   const candidates = combinations(eligible, arity).filter((set) => {

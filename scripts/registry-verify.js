@@ -18,4 +18,4 @@ for (const entry of registry) {
     JSON.parse(fs.readFileSync(adapted, 'utf8'));
   }
 }
-console.log(`registry:verify passed (${registry.length} enabled entries)`);
+console.log(`registry:verify passed (${registry.length} compatibility entries; ${registry.filter((entry) => entry.selectionEnabled !== false).length} selectable)`);

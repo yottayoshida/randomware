@@ -16,6 +16,10 @@ function archiveHost(hostname) {
   return host === 'archive.org' || host.endsWith('.archive.org');
 }
 
+function wikimediaCommonsMediaHost(hostname) {
+  return String(hostname || '').toLowerCase().replace(/\.$/, '') === 'upload.wikimedia.org';
+}
+
 function validateMediaUrl(value, { kind = 'radio-browser' } = {}) {
   let url;
   try { url = new URL(String(value)); } catch { throw new Error('media_url_invalid'); }
@@ -23,6 +27,7 @@ function validateMediaUrl(value, { kind = 'radio-browser' } = {}) {
   if (url.username || url.password) throw new Error('media_credentials_rejected');
   if (isIpLiteral(url.hostname) || isLocalHostname(url.hostname)) throw new Error('media_private_host_rejected');
   if (kind === 'librivox' && !archiveHost(url.hostname)) throw new Error('media_host_rejected');
+  if (kind === 'wikimedia-commons' && !wikimediaCommonsMediaHost(url.hostname)) throw new Error('media_host_rejected');
   return url;
 }
 
@@ -77,7 +82,7 @@ async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 
     const contentLength = Number(upstream.headers.get('content-length'));
     if (Number.isFinite(contentLength) && contentLength > MEDIA_LIMITS.bytesPerPage) throw new Error('media_bytes_cap');
     if (!upstream.body) throw new Error('media_body_missing');
-    return { response: upstream, url: current, contentType };
+    return { response: upstream, url: current, contentType: String(contentType).split(';', 1)[0].trim().toLowerCase() === 'application/ogg' ? 'audio/ogg' : contentType };
   }
   throw new Error('media_redirect_limit');
 }
@@ -108,4 +113,4 @@ function limitedStream(body, limit, onComplete, { signal } = {}) {
   });
 }
 
-module.exports = { MEDIA_LIMITS, isIpLiteral, isLocalHostname, archiveHost, validateMediaUrl, mediaMimeAllowed, extractLibrivoxAudioUrl, fetchMedia, limitedStream };
+module.exports = { MEDIA_LIMITS, isIpLiteral, isLocalHostname, archiveHost, wikimediaCommonsMediaHost, validateMediaUrl, mediaMimeAllowed, extractLibrivoxAudioUrl, fetchMedia, limitedStream };

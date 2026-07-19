@@ -2,6 +2,7 @@ const crypto = require('node:crypto');
 const { phases } = require('./store');
 const { startChoreography, noteChoreographyActivity, advanceChoreography } = require('./choreography');
 const { applyListingPolicy } = require('./presentation');
+const { registry } = require('./registry');
 
 const makeId = (prefix) => `${prefix}_${crypto.randomBytes(16).toString('hex')}`;
 const parse = (value, fallback) => { try { return value ? JSON.parse(value) : fallback; } catch { return fallback; } };
@@ -34,7 +35,11 @@ class D1RunStore {
 
   async findByCreation(creationId) { const row = await this.db.prepare('SELECT * FROM runs WHERE creation_id = ?').bind(creationId).first(); return this.hydrate(row); }
   async listCreations() { const rows = await this.db.prepare('SELECT * FROM runs WHERE creation_id IS NOT NULL ORDER BY created_at DESC LIMIT 2000').all(); return Promise.all((rows.results || []).map((row) => this.hydrate(row))); }
-  async unhealthyIds() { const rows = await this.db.prepare("SELECT api_id FROM api_health WHERE status != 'healthy'").all(); return new Set((rows.results || []).map((row) => row.api_id)); }
+  async unhealthyIds() {
+    const rows = await this.db.prepare('SELECT api_id, status FROM api_health').all();
+    const statuses = new Map((rows.results || []).map((row) => [row.api_id, row.status]));
+    return new Set(registry.filter((entry) => entry.selectionEnabled === false || statuses.get(entry.id) !== 'healthy').map((entry) => entry.id));
+  }
 
   async noteActivity(runId, now = Date.now(), expectedPhases = null) { const run = await this.getRun(runId); if (run.phase !== phases.COMPLETED && run.phase !== phases.FAILED && (!expectedPhases || expectedPhases.includes(run.phase))) { noteChoreographyActivity(run, now); await this.save(run); } return run; }
 

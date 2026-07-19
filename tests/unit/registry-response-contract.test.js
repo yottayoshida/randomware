@@ -8,7 +8,7 @@ const { Broker } = require('../../src/core/broker');
 const { goldenMedia } = require('../../scripts/adapt-fixtures');
 
 test('every registry operation projects a bounded adapted response contract', () => {
-  assert.equal(registry.length, 20);
+  assert.equal(registry.length, 21);
   for (const entry of registry) {
     for (const operation of entry.operations) {
       assert.ok(['object', 'array'].includes(operation.outputSchema.type), `${entry.id}:output_type`);

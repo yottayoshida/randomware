@@ -28,6 +28,12 @@ const assetPolicies = {
   'loc-photos': { allowedHosts: ['tile.loc.gov'], resolvedPaths: ['results.*.imageUrl'] }
 };
 
+const mediaPolicies = Object.freeze({
+  'radio-browser': { kind: 'radio-browser', allowedHosts: [] },
+  librivox: { kind: 'librivox', allowedHosts: ['archive.org', '*.archive.org'] },
+  'wikimedia-commons-audio': { kind: 'wikimedia-commons', allowedHosts: ['upload.wikimedia.org'] }
+});
+
 const rows = [
   ['deck-of-cards', 'Deck of Cards', 'games', 'https://deckofcardsapi.com/', 'https://deckofcardsapi.com/', ['deckofcardsapi.com'], operation('draw', 'draw a card', '/api/deck/new/draw/?count=1', 'deck-of-cards.json')],
   ['poetrydb', 'PoetryDB', 'text', 'https://github.com/thundercomb/poetrydb', 'https://github.com/thundercomb/poetrydb', ['poetrydb.org'], operation('random', 'get a poem', '/random', 'poetrydb.json')],
@@ -48,20 +54,24 @@ const rows = [
   ['librivox', 'LibriVox', 'books', 'https://librivox.org/api/info', 'https://librivox.org/pages/public-domain/', ['librivox.org', 'archive.org'], operation('book', 'get a public-domain audiobook', '/api/feed/audiobooks/?id=47&format=json&fields=id,title,authors,url_librivox,url_rss,url_zip_file', 'librivox.json', 10000)],
   ['themealdb', 'TheMealDB', 'food', 'https://www.themealdb.com/docs_api_guide.php', 'https://www.themealdb.com/terms_of_use.php', ['www.themealdb.com'], operation('meal', 'get a meal', '/api/json/v1/1/random.php', 'themealdb.json')],
   ['nasa-images', 'NASA Image and Video Library', 'visual', 'https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf', 'https://www.nasa.gov/nasa-brand-center/images-and-media/', ['images-api.nasa.gov', 'images-assets.nasa.gov'], operation('search', 'find a NASA image', '/search?q=PIA12348&media_type=image', 'nasa-images.json', 4000, 200_000, 300)],
-  ['loc-photos', 'Library of Congress Photos', 'visual', 'https://www.loc.gov/apis/json-and-yaml/', 'https://www.loc.gov/legal/', ['www.loc.gov', 'tile.loc.gov'], operation('search', 'find a Library of Congress photograph', '/photos/?q=moon&fo=json&c=2', 'loc-photos.json', 6000, 200_000, 300)]
+  ['loc-photos', 'Library of Congress Photos', 'visual', 'https://www.loc.gov/apis/json-and-yaml/', 'https://www.loc.gov/legal/', ['www.loc.gov', 'tile.loc.gov'], operation('search', 'find a Library of Congress photograph', '/photos/?q=moon&fo=json&c=2', 'loc-photos.json', 6000, 200_000, 300)],
+  ['wikimedia-commons-audio', 'Wikimedia Commons Audio', 'audio', 'https://www.mediawiki.org/wiki/API:Imageinfo', 'https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use', ['commons.wikimedia.org'], operation('recording', 'find a bounded field recording', '/w/api.php?action=query&generator=search&gsrsearch=field%20recording%20filetype%3Aaudio%20filesize%3A%3E100&gsrnamespace=6&gsrlimit=4&prop=imageinfo&iiprop=url%7Csize%7Cmime%7Cextmetadata&iiextmetadatafilter=LicenseShortName&format=json&formatversion=2', 'wikimedia-commons-audio.json', 5000, 200_000, 300)]
 ];
 
 const symbols = Object.freeze({
   'dog-ceo': '🐕', 'open-meteo': '🌤️', frankfurter: '💱', 'usgs-quakes': '🌋', rickandmorty: '🛸',
   'deck-of-cards': '🃏', datamuse: '🔤', randomuser: '👤', 'open-food-facts': '🥫', 'radio-browser': '📻',
   librivox: '🎧', artic: '🖼️', 'met-museum': '🏛️', tvmaze: '📺', poetrydb: '📜',
-  'wiki-onthisday': '📅', 'nager-date': '🗓️', themealdb: '🍲', 'nasa-images': '🪐', 'loc-photos': '📚'
+  'wiki-onthisday': '📅', 'nager-date': '🗓️', themealdb: '🍲', 'nasa-images': '🪐', 'loc-photos': '📚',
+  'wikimedia-commons-audio': '🔔'
 });
 
 const registry = deepFreeze(rows.map(([id, name, category, docsUrl, termsUrl, upstreamHosts, op]) => ({
-  id, name, symbol: symbols[id], category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [],
-  docsUrl, termsUrl, attribution: { text: `${name} attribution`, url: docsUrl, license: 'provider terms' },
-  upstreamHosts, assetPolicy: { ...(assetPolicies[id] || { allowedHosts: [], resolvedPaths: [] }), variableMediaHost: category === 'audio' },
+  id, name, symbol: symbols[id], category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [], selectionEnabled: id !== 'librivox',
+  docsUrl, termsUrl, attribution: id === 'wikimedia-commons-audio'
+    ? { text: 'Credit Wikimedia Commons and display result.data.recording.license', url: 'https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia', license: 'file-specific LicenseShortName' }
+    : { text: `${name} attribution`, url: docsUrl, license: 'provider terms' },
+  upstreamHosts, assetPolicy: { ...(assetPolicies[id] || { allowedHosts: [], resolvedPaths: [] }), variableMediaHost: category === 'audio' }, mediaPolicy: mediaPolicies[id] || null,
   fixturePath: `docs/api-candidates/samples/${op.fixturePath}`, defaultWeight: 1, dailyBudget: id === 'loc-photos' ? 240 : 250,
   operations: [op]
 })));

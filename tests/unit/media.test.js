@@ -10,6 +10,9 @@ test('media URL validation rejects credentials, IP literals, local names, and no
   assert.equal(validateMediaUrl('https://www.archive.org/download/book/chapter.mp3', { kind: 'librivox' }).hostname, 'www.archive.org');
   assert.equal(validateMediaUrl('https://dn720708.ca.archive.org/0/items/book/chapter.mp3', { kind: 'librivox' }).hostname, 'dn720708.ca.archive.org');
   assert.throws(() => validateMediaUrl('https://notarchive.org/audio.mp3', { kind: 'librivox' }), /media_host_rejected/);
+  assert.equal(validateMediaUrl('https://upload.wikimedia.org/wikipedia/commons/a/a1/bell.mp3', { kind: 'wikimedia-commons' }).hostname, 'upload.wikimedia.org');
+  assert.throws(() => validateMediaUrl('https://commons.wikimedia.org/wiki/File:bell.mp3', { kind: 'wikimedia-commons' }), /media_host_rejected/);
+  assert.throws(() => validateMediaUrl('https://evil.upload.wikimedia.org/bell.mp3', { kind: 'wikimedia-commons' }), /media_host_rejected/);
 });
 
 test('LibriVox media follows the observed www to apex to non-US archive node chain', async () => {

@@ -18,6 +18,15 @@ test('health runner uses one fixed operation per entry', async () => {
   assert.equal(rows.length, 2); assert.equal(calls.length, 2); assert.deepEqual(calls.map((call) => call.operationId), ['op', 'op2']);
 });
 
+test('health runner records owner-disabled compatibility entries without probing them', async () => {
+  const calls = [];
+  const rows = await runHealthCheck({ entries: [{ id: 'librivox', selectionEnabled: false, operations: [{ id: 'book' }] }], broker: { call: async (input) => calls.push(input) }, now: 10 });
+  assert.deepEqual(calls, []);
+  assert.equal(rows[0].apiId, 'librivox');
+  assert.equal(rows[0].status, 'disabled');
+  assert.equal(rows[0].reason, 'owner_selection_disabled');
+});
+
 test('hourly health path degrades adapted shape drift instead of re-enabling it', async () => {
   const operation = { id: 'rates', timeoutMs: 4000, shapeSignature: { '$': 'object', '$.rate': 'scalar' } };
   const rows = await runHealthCheck({ entries: [{ id: 'frankfurter', operations: [operation] }], broker: { call: async () => ({ data: { rates: { JPY: 162.4 } } }) }, now: 10 });

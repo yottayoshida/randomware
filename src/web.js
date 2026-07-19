@@ -75,7 +75,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
     const summarize = (run) => summary(run, url.origin);
     try {
       if (request.method === 'GET' && url.pathname === '/healthz') return response({ ok: true, service: 'randomware', registry: registry.length });
-      if (request.method === 'GET' && url.pathname === '/api/registry') return response(registry.map(({ id, name, symbol, category, capability, docsUrl, attribution }) => ({ id, name, symbol, category, capability, docsUrl, attribution })));
+      if (request.method === 'GET' && url.pathname === '/api/registry') return response(registry.map(({ id, name, symbol, category, capability, docsUrl, attribution, selectionEnabled }) => ({ id, name, symbol, category, capability, docsUrl, attribution, selectionEnabled })));
       if (request.method === 'GET' && url.pathname === '/api/tools') return response(tools());
       if (request.method === 'GET' && url.pathname === '/api/creations/recent') return response((await callStore('listCreations')).filter((run) => run.listed !== false && !run.unpublished && ['completed', 'failed'].includes(run.phase)).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
       if (request.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return response(showcasePage(await callStore('listCreations')), 200, 'text/html; charset=utf-8', { 'content-security-policy': "default-src 'none'; style-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; frame-ancestors 'none'" });
@@ -129,7 +129,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         };
         let upstream;
         try {
-          upstream = await fetchMedia({ target: stored.resolvedUrl, request, fetcher: broker.fetcher || globalThis.fetch, kind: mediaToken.apiId === 'librivox' ? 'librivox' : 'radio-browser' });
+          upstream = await fetchMedia({ target: stored.resolvedUrl, request, fetcher: broker.fetcher || globalThis.fetch, kind: getRegistryEntry(mediaToken.apiId).mediaPolicy?.kind || 'radio-browser' });
         } catch (error) {
           await cleanup();
           throw error;

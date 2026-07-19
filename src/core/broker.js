@@ -99,8 +99,47 @@ async function librivoxAudio(book, { fetcher, fixtureMode, timeoutMs = 6000 }) {
   throw new Error('media_audio_source_missing');
 }
 
+function commonsPages(value) {
+  const pages = value?.query?.pages;
+  if (Array.isArray(pages)) return pages;
+  return pages && typeof pages === 'object' ? Object.values(pages) : [];
+}
+
+async function wikimediaCommonsAudio(value, { fetcher, fixtureMode, timeoutMs = 5000 }) {
+  let rejection;
+  for (const page of commonsPages(value)) {
+    const info = Array.isArray(page?.imageinfo) ? page.imageinfo[0] : null;
+    const pageid = Number(page?.pageid);
+    const title = typeof page?.title === 'string' ? bounded(page.title).trim() : '';
+    const license = typeof info?.extmetadata?.LicenseShortName?.value === 'string' ? bounded(info.extmetadata.LicenseShortName.value).trim() : '';
+    const size = Number(info?.size);
+    const mime = String(info?.mime || '').toLowerCase();
+    if (!info || !Number.isFinite(size) || size <= 0 || size > MEDIA_LIMITS.bytesPerPage) continue;
+    if (!Number.isInteger(pageid) || pageid <= 0 || !title || !license) continue;
+    if (!mime.startsWith('audio/') && mime !== 'application/ogg') continue;
+    let resolved;
+    try {
+      resolved = validateMediaUrl(info.url, { kind: 'wikimedia-commons' });
+      if (!fixtureMode) {
+        const probe = await fetchMedia({ target: resolved.href, request: new Request('https://randomware.invalid/media-probe', { headers: { range: 'bytes=0-0' } }), fetcher, kind: 'wikimedia-commons', timeoutMs: Math.min(timeoutMs, 5000) });
+        resolved = probe.url;
+        await probe.response.body?.cancel('probe_complete');
+      }
+    } catch (error) { rejection = error; continue; }
+    return {
+      data: {
+        recording: { pageid, title, size, mime, license },
+        media: { kind: 'audio', format: mime }
+      },
+      mediaCandidate: { kind: 'wikimedia-commons', resolvedUrl: resolved.toString() }
+    };
+  }
+  throw rejection || new Error('media_audio_source_missing');
+}
+
 async function adaptAudio(apiId, value, context) {
   if (apiId === 'radio-browser') return radioAdapter(value, context);
+  if (apiId === 'wikimedia-commons-audio') return wikimediaCommonsAudio(value, context);
   if (apiId !== 'librivox') return { data: bounded(value) };
   const book = (Array.isArray(value?.books) ? value.books : []).find((candidate) => candidate && candidate.id);
   if (!book) throw new Error('media_audio_source_missing');

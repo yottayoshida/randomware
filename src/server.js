@@ -83,7 +83,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     try {
       if (req.method === 'GET' && url.pathname === '/healthz') return json(res, 200, { ok: true, service: 'randomware', registry: registry.length });
-      if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, symbol, category, capability, docsUrl, attribution }) => ({ id, name, symbol, category, capability, docsUrl, attribution })));
+      if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, symbol, category, capability, docsUrl, attribution, selectionEnabled }) => ({ id, name, symbol, category, capability, docsUrl, attribution, selectionEnabled })));
       if (req.method === 'GET' && url.pathname === '/api/tools') return json(res, 200, createMcpTools(app));
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished && ['completed', 'failed'].includes(run.phase)).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
       if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return text(res, 200, showcasePage(store.listCreations()), { ...securityHeaders("default-src 'none'; style-src 'self'; img-src 'self' data:; frame-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
@@ -111,7 +111,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
           return cleanupTask;
         };
         let upstream;
-        try { upstream = await fetchMedia({ target: stored.resolvedUrl, request: new Request(`http://${req.headers.host || 'localhost'}${req.url}`, { method: 'GET', headers: req.headers }), fetcher: broker.fetcher || globalThis.fetch, kind: mediaToken.apiId === 'librivox' ? 'librivox' : 'radio-browser' }); }
+        try { upstream = await fetchMedia({ target: stored.resolvedUrl, request: new Request(`http://${req.headers.host || 'localhost'}${req.url}`, { method: 'GET', headers: req.headers }), fetcher: broker.fetcher || globalThis.fetch, kind: getRegistryEntry(mediaToken.apiId).mediaPolicy?.kind || 'radio-browser' }); }
         catch (error) { await cleanup(); throw error; }
         const remaining = Math.min(mediaToken.maxBytes, MEDIA_LIMITS.bytesPerPage) - (started.bytesServed || 0);
         const stream = limitedStream(upstream.response.body, remaining, cleanup);

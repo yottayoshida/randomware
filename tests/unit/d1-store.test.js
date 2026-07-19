@@ -61,6 +61,15 @@ test('D1 run metadata preserves the failed choreography phase for honest widget 
   assert.deepEqual(hydrated.failure, { code: 'choreography_timeout', detail: 'artifact' });
 });
 
+test('D1 health gating treats a missing registry row as unhealthy until explicitly published healthy', async () => {
+  const db = database();
+  const store = new D1RunStore(db);
+  assert.equal((await store.unhealthyIds()).has('wikimedia-commons-audio'), true);
+  db.sqlite.prepare("INSERT INTO api_health (api_id, status, consecutive_failures, consecutive_successes, checked_at) VALUES (?, 'healthy', 0, 1, ?)").run('wikimedia-commons-audio', Date.now());
+  assert.equal((await store.unhealthyIds()).has('wikimedia-commons-audio'), false);
+  assert.equal((await store.unhealthyIds()).has('librivox'), true);
+});
+
 test('showcase migration classifies a boundary-spanning run by accepted revision time', () => {
   const db = database();
   const insertRun = db.sqlite.prepare("INSERT INTO runs (id, request_id, phase, selected_apis_json, history_json, concept_json, created_at, creation_id, repair_count, metadata_json) VALUES (?, ?, 'completed', '[]', '[]', ?, ?, ?, 0, '{\"listed\":true}')");

@@ -10,7 +10,7 @@ test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a lis
   const fetchHandler = createWebHandler({ broker: new Broker({ fixtureMode: true }) });
   const health = await fetchHandler(new Request('https://randomware.example/healthz'));
   assert.equal(health.status, 200);
-  assert.equal((await health.json()).registry, 20);
+  assert.equal((await health.json()).registry, 21);
   const tools = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) }));
   assert.equal((await tools.json()).result.tools.length, 8);
   const open = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1.1, method: 'tools/call', params: { name: 'open_randomware', arguments: {} } }) }));
@@ -273,6 +273,29 @@ test('Worker media route applies the archive.org policy to LibriVox audio', asyn
   assert.equal(streamed.status, 200);
   assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
   assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3librivox-audio');
+});
+
+test('Worker media route serves signed Wikimedia Commons audio only from upload.wikimedia.org', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-commons-media-test-secret');
+  const fetcher = async (target) => {
+    assert.match(String(target), /^https:\/\/upload\.wikimedia\.org\//);
+    return new Response(Buffer.from('OggScommons-audio'), { status: 200, headers: { 'content-type': 'application/ogg' } });
+  };
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true, fetcher }) });
+  const run = store.createRun({ requestId: 'commons-media-route-test', selectedApis: [{ apiId: 'wikimedia-commons-audio', operationIds: ['recording'] }] });
+  store.acceptConcept(run.id, { requestId: 'commons-media-route-concept', apiIds: ['wikimedia-commons-audio'] });
+  store.acceptArtifact(run.id, { requestId: 'commons-media-route-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'wikimedia-commons-audio', operationId: 'recording' }] });
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', { method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' }, body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'wikimedia-commons-audio', operationId: 'recording', params: {}, capability }) }));
+  assert.equal(mediated.status, 200);
+  const body = await mediated.json();
+  assert.equal(body.data.recording.license, 'CC BY-SA 4.0');
+  const streamed = await fetchHandler(new Request(body.data.mediaUrl, { headers: { origin: 'https://web-sandbox.oaiusercontent.com' } }));
+  assert.equal(streamed.status, 200);
+  assert.equal(streamed.headers.get('content-type'), 'audio/ogg');
+  assert.equal(streamed.headers.get('access-control-allow-origin'), '*');
+  assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'OggScommons-audio');
 });
 
 test('Worker asset route serves a signed allowlisted image and binds the page quota', async () => {

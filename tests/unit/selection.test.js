@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { selectApis, selectStyle } = require('../../src/core/selection');
 const { STYLE_DECK } = require('../../src/core/style-deck');
+const { registry: launchRegistry } = require('../../src/core/registry');
 
 const registry = [
   { id: 'deck', name: 'Deck', category: 'games', sensory: [] },
@@ -27,6 +28,21 @@ test('selector excludes exact recent combinations and unhealthy entries', () => 
   });
   assert.notDeepEqual(result.map((api) => api.id).sort(), ['deck', 'poetry']);
   assert.ok(!result.some((api) => api.id === 'radio'));
+});
+
+test('selector permanently excludes registry entries disabled for selection', () => {
+  const withDisabled = registry.map((entry) => entry.id === 'radio' ? { ...entry, selectionEnabled: false } : entry);
+  for (let index = 0; index < 500; index += 1) {
+    const result = selectApis({ seed: `disabled-${index}`, registry: withDisabled });
+    assert.ok(!result.some((entry) => entry.id === 'radio'));
+  }
+});
+
+test('launch selector never returns the retained LibriVox compatibility entry', () => {
+  for (let index = 0; index < 5000; index += 1) {
+    const result = selectApis({ seed: `launch-disabled-${index}`, registry: launchRegistry });
+    assert.ok(!result.some((entry) => entry.id === 'librivox'));
+  }
 });
 
 test('selector remains near-uniform while preserving the three-way band', () => {

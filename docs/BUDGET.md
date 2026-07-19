@@ -121,6 +121,7 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Post-deployment E2E | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Stop non-reserve work |
 | Owner meter update | 2026-07-19 JST | 0% of the weekly limit remaining | 2,111 | 389 since the 2,500-credit snapshot | 300 reserve | Owner-transcribed memo; weekly plan allowance is exhausted, so no non-reserve work starts |
 | Retro chrome/style-deck reserve checkpoint | 2026-07-19 JST | Not re-measured; last owner-transcribed value is 0% remaining | Not re-measured; last owner-transcribed balance is 2,111 | Not inferred | 300 reserve | Owner explicitly authorized this as required demo/acceptance work under the reserve policy; no optional live-API iteration was added |
+| Commons audio roster reserve checkpoint | 2026-07-19 JST | Not re-measured; last owner-transcribed value is 0% remaining | Not re-measured; last owner-transcribed balance is 2,111 | Not inferred | 300 reserve | Owner replaced unstable LibriVox with bounded Commons audio as required launch/deployment acceptance work; one fixed fixture capture, one machine gate, and one production gate only |
 | Pre-demo/submission | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Reserve-eligible blockers only |
 | Final after `/feedback` | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 0 | Record total, remaining balance, final plan meter |
 

@@ -2,8 +2,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { registry, getRegistryEntry } = require('../../src/core/registry');
 
-test('launch registry has 20 fixed entries with bounded operations and attribution', () => {
-  assert.equal(registry.length, 20);
+test('launch registry has 21 compatibility entries and 20 selectable entries with bounded operations and attribution', () => {
+  assert.equal(registry.length, 21);
+  assert.equal(registry.filter((entry) => entry.selectionEnabled !== false).length, 20);
   for (const entry of registry) {
     assert.match(entry.id, /^[a-z0-9-]+$/);
     assert.ok(entry.docsUrl.startsWith('https://'));
@@ -17,7 +18,7 @@ test('launch registry has 20 fixed entries with bounded operations and attributi
       assert.match(operation.pathTemplate, /^\//);
       if (entry.id === 'librivox') assert.equal(operation.timeoutMs, 10000);
       else assert.ok(operation.timeoutMs <= 6000);
-      if (['nasa-images', 'loc-photos'].includes(entry.id)) assert.equal(operation.maxRawBytes, 200_000);
+      if (['nasa-images', 'loc-photos', 'wikimedia-commons-audio'].includes(entry.id)) assert.equal(operation.maxRawBytes, 200_000);
       assert.equal(operation.paramsSchema.additionalProperties, false);
     }
   }
@@ -25,8 +26,32 @@ test('launch registry has 20 fixed entries with bounded operations and attributi
 
 test('registry symbols are the owner-curated display-only strip', () => {
   assert.deepEqual(Object.fromEntries(registry.map((entry) => [entry.id, entry.symbol])), {
-    'deck-of-cards': '🃏', poetrydb: '📜', datamuse: '🔤', artic: '🖼️', 'dog-ceo': '🐕', 'radio-browser': '📻', 'open-meteo': '🌤️', frankfurter: '💱', randomuser: '👤', 'wiki-onthisday': '📅', 'usgs-quakes': '🌋', 'met-museum': '🏛️', 'nager-date': '🗓️', tvmaze: '📺', rickandmorty: '🛸', 'open-food-facts': '🥫', librivox: '🎧', themealdb: '🍲', 'nasa-images': '🪐', 'loc-photos': '📚'
+    'deck-of-cards': '🃏', poetrydb: '📜', datamuse: '🔤', artic: '🖼️', 'dog-ceo': '🐕', 'radio-browser': '📻', 'open-meteo': '🌤️', frankfurter: '💱', randomuser: '👤', 'wiki-onthisday': '📅', 'usgs-quakes': '🌋', 'met-museum': '🏛️', 'nager-date': '🗓️', tvmaze: '📺', rickandmorty: '🛸', 'open-food-facts': '🥫', librivox: '🎧', themealdb: '🍲', 'nasa-images': '🪐', 'loc-photos': '📚', 'wikimedia-commons-audio': '🔔'
   });
+});
+
+test('LibriVox remains runtime-compatible but disabled for selection', () => {
+  const entry = getRegistryEntry('librivox');
+  assert.equal(entry.selectionEnabled, false);
+  assert.equal(entry.operations[0].id, 'book');
+});
+
+test('Wikimedia Commons audio uses one fixed bounded search and exact media host policy', () => {
+  const entry = getRegistryEntry('wikimedia-commons-audio');
+  const operation = entry.operations[0];
+  assert.equal(entry.symbol, '🔔');
+  assert.equal(entry.category, 'audio');
+  assert.equal(operation.id, 'recording');
+  assert.equal(operation.maxRawBytes, 200_000);
+  assert.equal(operation.paramsSchema.additionalProperties, false);
+  assert.match(operation.pathTemplate, /gsrsearch=field%20recording%20filetype%3Aaudio%20filesize%3A%3E100/);
+  assert.match(operation.pathTemplate, /gsrlimit=4/);
+  assert.match(operation.pathTemplate, /iiprop=url%7Csize%7Cmime%7Cextmetadata/);
+  assert.match(operation.pathTemplate, /iiextmetadatafilter=LicenseShortName/);
+  assert.doesNotMatch(operation.pathTemplate, /100\.\.2000/);
+  assert.deepEqual(entry.mediaPolicy, { kind: 'wikimedia-commons', allowedHosts: ['upload.wikimedia.org'] });
+  assert.match(entry.attribution.text, /recording\.license/);
+  assert.equal(entry.attribution.license, 'file-specific LicenseShortName');
 });
 
 test('new visual sources use fixed bounded operations and fixture-confirmed asset hosts', () => {

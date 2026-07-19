@@ -19,6 +19,7 @@ BASE = os.environ.get("RANDOMWARE_BROWSER_BASE", f"http://127.0.0.1:{PORT}").rst
 CHROME = os.environ.get("RANDOMWARE_BROWSER_EXECUTABLE", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 SSL_CONTEXT = ssl._create_unverified_context() if os.environ.get("RANDOMWARE_BROWSER_BASE") else None
 REQUIRE_AUDIO = os.environ.get("RANDOMWARE_BROWSER_REQUIRE_AUDIO", "1") != "0"
+AUDIO_API = os.environ.get("RANDOMWARE_BROWSER_AUDIO_API", "wikimedia-commons-audio")
 
 
 def call(path, payload=None):
@@ -74,14 +75,14 @@ def make_artifact(run):
     return html
 
 
-def make_audio_artifact(run):
+def make_audio_artifact(run, audio_api):
     calls = []
     sources = []
     for entry in run["selectedApis"]:
         operation = entry["operations"][0]
         calls.append(f'window.randomware.call("{entry["id"]}","{operation["id"]}",{{}})')
         sources.append(entry["id"])
-    script = f'''const sources={json.dumps(sources)};const status=document.querySelector('#audio-status');const audio=document.querySelector('#audio');document.querySelector('#play-audio').addEventListener('click',async()=>{{const settled=await Promise.allSettled([{','.join(calls)}]);const index=sources.indexOf('radio-browser');const item=settled[index];if(!item||item.status!=='fulfilled'||!item.value.data?.mediaUrl){{status.textContent='Source unavailable: radio-browser';return}}audio.src=item.value.data.mediaUrl;try{{await audio.play();status.textContent='Signed audio playing'}}catch(error){{status.textContent='Source unavailable: '+String(error.message||'playback_failed')}}}});window.randomware.ready();'''
+    script = f'''const sources={json.dumps(sources)};const status=document.querySelector('#audio-status');const audio=document.querySelector('#audio');document.querySelector('#play-audio').addEventListener('click',async()=>{{const settled=await Promise.allSettled([{','.join(calls)}]);const index=sources.indexOf({json.dumps(audio_api)});const item=settled[index];if(!item||item.status!=='fulfilled'||!item.value.data?.mediaUrl){{status.textContent='Source unavailable: '+{json.dumps(audio_api)};return}}audio.src=item.value.data.mediaUrl;try{{await audio.play();status.textContent='Signed audio playing'}}catch(error){{status.textContent='Source unavailable: '+String(error.message||'playback_failed')}}}});window.randomware.ready();'''
     return f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signed audio check</title><style>body{{margin:0;padding:24px;background:#15122b;color:#fff;font:16px system-ui}}main{{max-width:680px;margin:auto}}audio{{display:block;position:relative;z-index:1;width:100%;min-height:54px;margin:24px 0}}button{{padding:14px 18px}}</style></head><body><main><section data-randomware="loading" hidden>loading</section><h1>Signed audio check</h1><button id="play-audio" type="button">Play signed audio</button><section data-randomware="interactive"><audio id="audio" controls crossorigin="anonymous"></audio><p id="audio-status">Ready</p></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">Randomware signed fixture audio.</footer></main><script>{script}</script><!-- {'audio-browser-check ' * 900} --></body></html>'''
 
 
@@ -117,10 +118,10 @@ def main():
         audio_artifact = None
         if REQUIRE_AUDIO:
             audio_run = None
-            audio_seeds = [seed for seed in [os.environ.get("RANDOMWARE_BROWSER_AUDIO_SEED"), "media-audio-2", "contract-audio-20-8822", "contract-audio-20-9376"] if seed]
+            audio_seeds = [seed for seed in [os.environ.get("RANDOMWARE_BROWSER_AUDIO_SEED"), "commons-audio-2281"] if seed]
             for index, audio_seed in enumerate(audio_seeds):
                 _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
-                if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
+                if any(entry["id"] == AUDIO_API for entry in candidate["selectedApis"]):
                     audio_run = candidate
                     break
             assert audio_run is not None, "browser_audio_selection_missing"
@@ -128,7 +129,7 @@ def main():
             audio_concept["runId"] = audio_run["runId"]
             status, _ = call(f"/api/runs/{audio_run['runId']}/concept", audio_concept)
             assert status == 200, f"audio_concept_status:{status}"
-            status, audio_artifact = call(f"/api/runs/{audio_run['runId']}/artifact", {"requestId": f"{run_tag}-audio-artifact", "html": make_audio_artifact(audio_run)})
+            status, audio_artifact = call(f"/api/runs/{audio_run['runId']}/artifact", {"requestId": f"{run_tag}-audio-artifact", "html": make_audio_artifact(audio_run, AUDIO_API)})
             assert status == 200, f"audio_artifact_status:{status}"
 
         with sync_playwright() as playwright:
@@ -200,7 +201,7 @@ def main():
             concept_run = {**spin_run, "phase": "concept_accepted"}
             complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation", "creationUrl": f"{BASE}/c/widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
-            mount_output = json.dumps({"ok": True, "registry": 20})
+            mount_output = json.dumps({"ok": True, "registry": 21})
             init_script = (
                 "window.openai = {toolOutput: " + mount_output + ", widgetState: null, "
                 "setWidgetState: state => window.__widgetState = state, "

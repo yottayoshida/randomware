@@ -213,12 +213,10 @@ async function runSynthetic(base) {
     return body;
   };
 
-  let run;
-  for (const seed of ['contract-audio-20-8187', 'contract-audio-20-8822', 'contract-audio-20-9376', 'contract-audio-20-13915', 'contract-audio-2433', 'contract-audio-live-1826']) {
-    const spun = await call('spin_apis', { seed, requestId: `${tag}-${seed}` }); const candidate = spun.result.structuredContent;
-    if (candidate.selectedApis.map((api) => api.id).sort().join('|') === 'librivox|nager-date|radio-browser') { run = candidate; break; }
-  }
-  assert.ok(run, 'three_api_audio_selection_failed');
+  const audioSeed = 'commons-audio-2281';
+  const spun = await call('spin_apis', { seed: audioSeed, requestId: `${tag}-${audioSeed}` }); const run = spun.result.structuredContent;
+  assert.equal(run.selectedApis.map((api) => api.id).sort().join('|'), 'frankfurter|nager-date|wikimedia-commons-audio', 'three_api_audio_selection_failed');
+  assert.ok(!run.selectedApis.some((api) => api.id === 'librivox'), 'librivox_selection_disabled_failed');
   assert.ok(run.styleId && run.style?.id === run.styleId, 'drawn_style_missing');
   for (const api of run.selectedApis) for (const operation of api.operations) {
     assert.ok(operation.responseExample && operation.outputSchema && operation.semanticFieldPaths?.length, `spin_response_contract_missing:${api.id}/${operation.id}`);
@@ -244,15 +242,15 @@ async function runSynthetic(base) {
       semanticEvidence.push({ apiId: api.id, operationId: operation.id, path, value: String(value).slice(0, 80) });
     }
   }
-  const librivoxEnvelope = semanticEnvelopes.get('librivox'); const mediaUrl = librivoxEnvelope?.data?.mediaUrl;
-  assert.ok(mediaUrl && new URL(mediaUrl).origin === base && new URL(mediaUrl).pathname.startsWith('/media/'), 'librivox_signed_url_missing');
+  const commonsEnvelope = semanticEnvelopes.get('wikimedia-commons-audio'); const mediaUrl = commonsEnvelope?.data?.mediaUrl;
+  assert.ok(mediaUrl && new URL(mediaUrl).origin === base && new URL(mediaUrl).pathname.startsWith('/media/'), 'commons_signed_url_missing');
   const mediaResponse = await fetch(mediaUrl, { headers: { Origin: 'https://web-sandbox.oaiusercontent.com', Range: 'bytes=0-4095' } }); const mediaType = mediaResponse.headers.get('content-type') || '';
-  if (![200, 206].includes(mediaResponse.status)) throw new Error(`librivox_stream_status:${mediaResponse.status}:${await mediaResponse.text()}`);
-  assert.ok(mediaType.startsWith('audio/') || mediaType === 'application/ogg', `librivox_stream_type:${mediaType}`);
-  assert.equal(mediaResponse.headers.get('cross-origin-resource-policy'), 'cross-origin', 'librivox_stream_corp');
-  const reader = mediaResponse.body?.getReader(); assert.ok(reader, 'librivox_stream_body_missing'); const firstChunk = await reader.read(); assert.ok(!firstChunk.done && firstChunk.value?.byteLength, 'librivox_stream_empty'); await reader.cancel();
-  const audioEvidence = { apiId: 'librivox', status: mediaResponse.status, contentType: mediaType, firstChunkBytes: firstChunk.value.byteLength };
-  assert.equal(audioEvidence.apiId, 'librivox');
+  if (![200, 206].includes(mediaResponse.status)) throw new Error(`commons_stream_status:${mediaResponse.status}:${await mediaResponse.text()}`);
+  assert.ok(mediaType.startsWith('audio/'), `commons_stream_type:${mediaType}`);
+  assert.equal(mediaResponse.headers.get('cross-origin-resource-policy'), 'cross-origin', 'commons_stream_corp');
+  const reader = mediaResponse.body?.getReader(); assert.ok(reader, 'commons_stream_body_missing'); const firstChunk = await reader.read(); assert.ok(!firstChunk.done && firstChunk.value?.byteLength, 'commons_stream_empty'); await reader.cancel();
+  const audioEvidence = { apiId: 'wikimedia-commons-audio', status: mediaResponse.status, contentType: mediaType, firstChunkBytes: firstChunk.value.byteLength };
+  assert.equal(audioEvidence.apiId, 'wikimedia-commons-audio');
 
   const repairSpinBody = await call('spin_apis', { seed: `${tag}-repair`, requestId: `${tag}-repair-spin` }); const repairRun = repairSpinBody.result.structuredContent;
   const repairConceptArgs = modelValue(byName.submit_concept.inputSchema, { run: repairRun, tag, requestLabel: 'repair-concept' });

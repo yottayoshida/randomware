@@ -6,6 +6,7 @@ const { compareShape } = require('../src/core/response-contract');
 const { capture } = require('./adapt-fixtures');
 
 async function check(entry) {
+  if (entry.selectionEnabled === false) return { id: entry.id, status: 'disabled', reason: 'owner_selection_disabled', latencyMs: 0, url: null };
   const operation = entry.operations[0];
   const url = `https://${entry.upstreamHosts[0]}${operation.pathTemplate}`;
   const started = Date.now();

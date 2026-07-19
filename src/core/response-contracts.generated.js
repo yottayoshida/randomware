@@ -2797,5 +2797,103 @@ module.exports = Object.freeze({
       "$.selected[].text": "scalar",
       "$.selected[].year": "scalar"
     }
+  },
+  "wikimedia-commons-audio.json": {
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "media": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "kind": {
+              "type": "string",
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "format",
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        "mediaUrl": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "recording": {
+          "type": "object",
+          "properties": {
+            "license": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "mime": {
+              "type": "string",
+              "maxLength": 4000
+            },
+            "pageid": {
+              "type": "number"
+            },
+            "size": {
+              "type": "number"
+            },
+            "title": {
+              "type": "string",
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "license",
+            "mime",
+            "pageid",
+            "size",
+            "title"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "media",
+        "mediaUrl",
+        "recording"
+      ],
+      "additionalProperties": false
+    },
+    "responseExample": {
+      "recording": {
+        "pageid": 119485791,
+        "title": "File:Earth's Magnetic Field Recording June 19 2022.ogg",
+        "size": 2186836,
+        "mime": "application/ogg",
+        "license": "CC BY-SA 4.0"
+      },
+      "media": {
+        "kind": "audio",
+        "format": "application/ogg"
+      },
+      "mediaUrl": "https://randomware.example/media/golden-media-wikimedia-commons-audio-recording"
+    },
+    "semanticFieldPaths": [
+      "recording.title",
+      "mediaUrl",
+      "recording.pageid"
+    ],
+    "shapeSignature": {
+      "$": "object",
+      "$.media": "object",
+      "$.media.format": "scalar",
+      "$.media.kind": "scalar",
+      "$.mediaUrl": "scalar",
+      "$.recording": "object",
+      "$.recording.license": "scalar",
+      "$.recording.mime": "scalar",
+      "$.recording.pageid": "scalar",
+      "$.recording.size": "scalar",
+      "$.recording.title": "scalar"
+    }
   }
 });

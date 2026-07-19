@@ -1,0 +1,24 @@
+{
+  "apiId": "wikimedia-commons-audio",
+  "operationId": "recording",
+  "data": {
+    "recording": {
+      "pageid": 119485791,
+      "title": "File:Earth's Magnetic Field Recording June 19 2022.ogg",
+      "size": 2186836,
+      "mime": "application/ogg",
+      "license": "CC BY-SA 4.0"
+    },
+    "media": {
+      "kind": "audio",
+      "format": "application/ogg"
+    },
+    "mediaUrl": "https://randomware.example/media/golden-media-wikimedia-commons-audio-recording"
+  },
+  "fixtureSources": {
+    "assets": [],
+    "media": {
+      "resolvedUrl": "https://upload.wikimedia.org/wikipedia/commons/1/11/Earth%27s_Magnetic_Field_Recording_June_19_2022.ogg"
+    }
+  }
+}

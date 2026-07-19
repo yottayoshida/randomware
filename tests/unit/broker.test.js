@@ -105,6 +105,51 @@ test('LibriVox adapter emits stable nullable book and author fields', async () =
   assert.equal(adapted.data.book.authors[0].last_name, null);
 });
 
+test('Wikimedia Commons audio adapter rejects oversized and off-policy candidates before signing', async () => {
+  const adapted = await adaptAudio('wikimedia-commons-audio', {
+    query: { pages: [
+      { pageid: 1, title: 'File:Oversized.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/oversized.mp3', size: 8 * 1024 * 1024 + 1, mime: 'audio/mpeg', extmetadata: { LicenseShortName: { value: 'CC BY 4.0' } } }] },
+      { pageid: 2, title: 'File:Wrong host.mp3', imageinfo: [{ url: 'https://evil.example/audio.mp3', size: 940416, mime: 'audio/mpeg', extmetadata: { LicenseShortName: { value: 'CC0' } } }] },
+      { pageid: 3, title: 'File:Field bell.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Field_bell.mp3', size: 940416, mime: 'audio/mpeg', extmetadata: { LicenseShortName: { value: '<b>CC BY-SA 4.0</b>' } } }] }
+    ] }
+  }, { fixtureMode: true, fetcher: async () => { throw new Error('unexpected_fetch'); } });
+  assert.deepEqual(adapted.data, {
+    recording: { pageid: 3, title: 'File:Field bell.mp3', size: 940416, mime: 'audio/mpeg', license: 'CC BY-SA 4.0' },
+    media: { kind: 'audio', format: 'audio/mpeg' }
+  });
+  assert.deepEqual(adapted.mediaCandidate, { kind: 'wikimedia-commons', resolvedUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Field_bell.mp3' });
+});
+
+test('Wikimedia Commons audio adapter probes live candidates and keeps only an audio response', async () => {
+  const visited = [];
+  const adapted = await adaptAudio('wikimedia-commons-audio', {
+    query: { pages: [{ pageid: 4, title: 'File:Forest.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Forest.mp3', size: 940416, mime: 'audio/mpeg', extmetadata: { LicenseShortName: { value: 'CC0' } } }] }] }
+  }, {
+    fixtureMode: false,
+    timeoutMs: 5000,
+    fetcher: async (target, init) => {
+      visited.push({ target: String(target), range: init?.headers?.range });
+      return new Response(Buffer.from('ID3'), { status: 206, headers: { 'content-type': 'audio/mpeg', 'content-length': '3', 'content-range': 'bytes 0-2/940416' } });
+    }
+  });
+  assert.equal(adapted.mediaCandidate.resolvedUrl, 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Forest.mp3');
+  assert.deepEqual(visited, [{ target: 'https://upload.wikimedia.org/wikipedia/commons/f/f1/Forest.mp3', range: 'bytes=0-0' }]);
+});
+
+test('Wikimedia Commons audio adapter rejects candidates missing model-visible attribution fields', async () => {
+  const adapted = await adaptAudio('wikimedia-commons-audio', {
+    query: { pages: [
+      { pageid: 5, title: 'File:No license.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/no-license.mp3', size: 1000, mime: 'audio/mpeg', extmetadata: {} }] },
+      { pageid: 6, title: 'File:Licensed.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/licensed.mp3', size: 2000, mime: 'audio/mpeg', extmetadata: { LicenseShortName: { value: 'CC0' } } }] }
+    ] }
+  }, { fixtureMode: true, fetcher: async () => { throw new Error('unexpected_fetch'); } });
+  assert.equal(adapted.data.recording.pageid, 6);
+  assert.equal(adapted.data.recording.license, 'CC0');
+  await assert.rejects(() => adaptAudio('wikimedia-commons-audio', {
+    query: { pages: [{ pageid: 7, title: 'File:Still no license.mp3', imageinfo: [{ url: 'https://upload.wikimedia.org/still-no-license.mp3', size: 1000, mime: 'audio/mpeg' }] }] }
+  }, { fixtureMode: true, fetcher: async () => { throw new Error('unexpected_fetch'); } }), /media_audio_source_missing/);
+});
+
 test('image adapters replace raw fields in place with signed same-origin asset URLs', async () => {
   const created = [];
   const broker = new Broker({ fixtureMode: true });
