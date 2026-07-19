@@ -5,6 +5,13 @@ const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, wid
 const { tools, summary } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
 const { CONTRACT_PROMPT_LITERALS } = require('../../src/core/artifact-contract');
+const { setPath } = require('../../scripts/test-synthetic-deployed');
+
+test('synthetic fuzz constructs optional schema containers before mutating nested constraints', () => {
+  const payload = { requestId: 'optional-enum' };
+  setPath(payload, 'styleHistory[0]', 'invalid_styleHistory');
+  assert.deepEqual(payload.styleHistory, ['invalid_styleHistory']);
+});
 
 test('CallToolResult includes concise content alongside structuredContent', () => {
   const structuredContent = { ok: true, registry: 18 };

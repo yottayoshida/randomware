@@ -28,7 +28,7 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   for (const name of ['submit_concept', 'submit_artifact', 'submit_repair']) if (annotations[name]?.openWorldHint !== true) throw new Error(`mcp_${name}_annotation_failed`);
   const synthetic = await runSynthetic(base);
   if (!synthetic.styleEnumRejected) throw new Error('synthetic_style_enum_negative_missing');
-  const browserRun = spawnSync(process.env.PYTHON || 'python3', [path.join(__dirname, 'browser-acceptance.py')], { cwd: path.resolve(__dirname, '..'), env: { ...process.env, RANDOMWARE_BROWSER_BASE: base, RANDOMWARE_BROWSER_REQUIRE_AUDIO: '1' }, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+  const browserRun = spawnSync(process.env.PYTHON || 'python3', [path.join(__dirname, 'browser-acceptance.py')], { cwd: path.resolve(__dirname, '..'), env: { ...process.env, RANDOMWARE_BROWSER_BASE: base, RANDOMWARE_BROWSER_REQUIRE_AUDIO: process.env.RANDOMWARE_BROWSER_REQUIRE_AUDIO ?? '1' }, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
   if (browserRun.status !== 0) throw new Error(`deployed_browser_semantic_failed:${browserRun.stderr || browserRun.stdout}`);
   const browserLine = String(browserRun.stdout || '').trim().split('\n').filter(Boolean).at(-1);
   const browserSemantic = JSON.parse(browserLine); if (browserSemantic.ok !== true || !Array.isArray(browserSemantic.semanticValues) || browserSemantic.semanticValues.some((value) => /undefined|NaN|not loaded/.test(value))) throw new Error(`deployed_browser_semantic_invalid:${browserLine}`);
@@ -90,7 +90,8 @@ if (!/^https:\/\//i.test(base)) { console.error('deployed URL must use HTTPS'); 
   const requestsAfterResponse = await fetch(`${base}/api/creations/${creationId}/requests?format=raw`); if (!requestsAfterResponse.ok) throw new Error('runtime_requests_after_failed'); const requestsAfter = await requestsAfterResponse.json(); const latestRequest = requestsAfter[requestsAfter.length - 1];
   if (requestsAfter.length <= requestsBefore.length || latestRequest?.status !== 'ok' || latestRequest.apiId !== selectedApi.id || latestRequest.operationId !== selectedOperation.id) throw new Error('runtime_request_row_failed');
   let mediaRun;
-  for (const [index, seed] of ['media-1', 'media-radio-current-4', 'media-radio-librivox-3'].entries()) {
+  const mediaSeeds = [process.env.RANDOMWARE_DEPLOYED_AUDIO_SEED, 'media-1', 'media-radio-current-4', 'media-radio-librivox-3'].filter(Boolean);
+  for (const [index, seed] of mediaSeeds.entries()) {
     const candidate = (await call(`18-${index}`, 'spin_apis', { seed, requestId: `${testTag}-media-spin-${index}` })).structuredContent;
     if (candidate.selectedApis.some((api) => api.id === 'radio-browser')) { mediaRun = candidate; break; }
   }

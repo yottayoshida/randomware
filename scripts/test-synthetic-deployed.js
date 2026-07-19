@@ -8,7 +8,11 @@ function parts(path) { return path.replace(/\[(\d+)\]/g, '.$1').split('.').filte
 
 function setPath(target, path, value) {
   const segments = parts(path); let cursor = target;
-  for (let index = 0; index < segments.length - 1; index += 1) cursor = cursor[segments[index]];
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    const segment = segments[index];
+    if (cursor[segment] == null) cursor[segment] = /^\d+$/.test(segments[index + 1]) ? [] : {};
+    cursor = cursor[segment];
+  }
   cursor[segments.at(-1)] = value;
 }
 
@@ -323,4 +327,4 @@ if (require.main === module) {
   runSynthetic(base).then((result) => console.log(JSON.stringify({ ok: true, ...result }))).catch((error) => { console.error(`synthetic deployed acceptance failed: ${error.message}`); process.exitCode = 1; });
 }
 
-module.exports = { runSynthetic, requiredPaths, schemaCompleteness };
+module.exports = { runSynthetic, requiredPaths, schemaCompleteness, setPath };

@@ -117,7 +117,8 @@ def main():
         audio_artifact = None
         if REQUIRE_AUDIO:
             audio_run = None
-            for index, audio_seed in enumerate(["media-audio-2", "contract-audio-20-8822", "contract-audio-20-9376"]):
+            audio_seeds = [seed for seed in [os.environ.get("RANDOMWARE_BROWSER_AUDIO_SEED"), "media-audio-2", "contract-audio-20-8822", "contract-audio-20-9376"] if seed]
+            for index, audio_seed in enumerate(audio_seeds):
                 _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
                 if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
                     audio_run = candidate
