@@ -240,7 +240,7 @@ async function runSynthetic(base) {
   const librivoxEnvelope = semanticEnvelopes.get('librivox'); const mediaUrl = librivoxEnvelope?.data?.mediaUrl;
   assert.ok(mediaUrl && new URL(mediaUrl).origin === base && new URL(mediaUrl).pathname.startsWith('/media/'), 'librivox_signed_url_missing');
   const mediaResponse = await fetch(mediaUrl, { headers: { Origin: 'https://web-sandbox.oaiusercontent.com', Range: 'bytes=0-4095' } }); const mediaType = mediaResponse.headers.get('content-type') || '';
-  assert.ok([200, 206].includes(mediaResponse.status), `librivox_stream_status:${mediaResponse.status}:${await mediaResponse.text()}`);
+  if (![200, 206].includes(mediaResponse.status)) throw new Error(`librivox_stream_status:${mediaResponse.status}:${await mediaResponse.text()}`);
   assert.ok(mediaType.startsWith('audio/') || mediaType === 'application/ogg', `librivox_stream_type:${mediaType}`);
   assert.equal(mediaResponse.headers.get('cross-origin-resource-policy'), 'cross-origin', 'librivox_stream_corp');
   const reader = mediaResponse.body?.getReader(); assert.ok(reader, 'librivox_stream_body_missing'); const firstChunk = await reader.read(); assert.ok(!firstChunk.done && firstChunk.value?.byteLength, 'librivox_stream_empty'); await reader.cancel();

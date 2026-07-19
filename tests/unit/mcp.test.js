@@ -157,6 +157,7 @@ test('deployed e2e invokes the real browser semantic renderer', () => {
   assert.match(source, /cross-origin-resource-policy/);
   const syntheticSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-synthetic-deployed.js'), 'utf8');
   assert.match(syntheticSource, /audioEvidence\.apiId.*librivox/);
+  assert.doesNotMatch(syntheticSource, /assert\.ok\([^\n]+await mediaResponse\.text\(\)/);
   const browserSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/browser-acceptance.py'), 'utf8');
   assert.match(browserSource, /audioPlayback/);
   assert.match(browserSource, /RANDOMWARE_BROWSER_REQUIRE_AUDIO/);
