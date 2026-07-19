@@ -27,6 +27,7 @@ const ARTIFACT_BLOCKED_PATTERN_SOURCES = deepFreeze([
   String.raw`<\s*(?:input|textarea)[^>]+(?:password|credit-card|cvv|ssn|email|phone|address|bank|login|secret)`,
   String.raw`<\s*(?:script|link|style)[^>]+(?:src|href)=\s*["'](?:https?:|\/\/)`,
   String.raw`<\s*(?:img|audio|video|source|track)[^>]+(?:src|srcset)=\s*["'](?!data:|#|\/api\/)`,
+  String.raw`<\s*(?:audio|video)\b[^>]*\sautoplay(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?(?=\s|\/?>)`,
   String.raw`url\(\s*["']?(?:https?:|\/\/|javascript:)`,
   String.raw`<\s*meta[^>]+http-equiv=\s*["']refresh`,
   String.raw`<\s*(?:svg|math|form)\b`,
@@ -52,6 +53,7 @@ const ARTIFACT_CONTRACT = deepFreeze({
   semanticRules: [
     'one complete UTF-8 HTML5 document with inline CSS and JavaScript',
     'one literal broker call for every selected API operation',
+    'audio and video autoplay attributes are forbidden; playback starts only from explicit user action',
     'no direct network primitive, external URL, storage, cookie, parent/top/opener access, unsafe HTML sink, credential field, nested frame, form, SVG, MathML, worker, or dynamic code execution',
     'safe DOM text rendering, every selected API essential, declared dependency observable, and usable at 390 CSS pixels'
   ]
@@ -77,7 +79,10 @@ const RUNTIME_DATA_CONTRACT = deepFreeze({
     'image-bearing fields are rewritten to same-origin signed URLs and must be assigned verbatim to img.src',
     'audio is available only through a signed /media URL in result.data.mediaUrl',
     'fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent; render partial results and an honest per-source failure line instead of blanking the entire app; every selected API remains essential to the concept',
-    'native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers'
+    'native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers',
+    'audio and video playback must begin only from an explicit user action; autoplay attributes and load-time or data-arrival play() calls are forbidden',
+    'while waiting for mediaUrl, show an honest nearby source-resolution status such as TUNING THE CARRIER; assign audio.src only after mediaUrl arrives and do not present enabled-looking controls before then; fake buffering is forbidden',
+    'ok:false or a missing mediaUrl is an honest per-source failure and must not blank the rest of the app'
   ]
 });
 
@@ -256,7 +261,12 @@ const CONTRACT_PROMPT_LITERALS = deepFreeze([
   '"payloadExpression":"result.data"',
   'Error(\\"broker_failure\\")',
   'Promise.allSettled',
-  'native audio controls'
+  'native audio controls',
+  'explicit user action',
+  'TUNING THE CARRIER',
+  'fake buffering',
+  'Target 10–16 KiB of compact, dense code',
+  'same requestId'
 ]);
 
 function artifactContractPrompt() {
@@ -266,11 +276,15 @@ function artifactContractPrompt() {
     `${ARTIFACT_CONTRACT.ready};`,
     `one literal ${ARTIFACT_CONTRACT.call} per selected operation`,
     `${ARTIFACT_CONTRACT.bytes};`,
+    'Target 10–16 KiB of compact, dense code; the 40 KiB ceiling is a hard cap, not a goal.',
     `include a viewport tag beginning ${ARTIFACT_CONTRACT.viewport}`,
     'Runtime data contract: window.randomware.call resolves {ok:true, apiId, operationId, data, bytes, sourceUrl, cached}; on any HTTP failure it rejects with Error("broker_failure"). The app payload is exactly result.data.',
     'result.data uses the operation ADAPTED shape from responseExample, never the public API raw shape; deep values may be bounded/truncated. Image-bearing fields are same-origin signed URLs: use them verbatim in img.src. Audio is exposed only by a signed /media URL in result.data.mediaUrl.',
     'Fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent. Render partial results and an honest per-source failure line instead of blanking the entire app. Every selected API remains essential to the concept; runtime degradation must stay honest.',
-    'When audio is present, native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers.'
+    'When audio is present, native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers.',
+    'Audio and video playback must begin only from an explicit user action such as a click. Never use an autoplay attribute, and never call play() on load or merely when data arrives.',
+    'Until result.data.mediaUrl arrives, show an honest status next to the audio element such as TUNING THE CARRIER. Assign audio.src only after mediaUrl arrives and do not make controls look enabled before then. Fake buffering is forbidden. Treat ok:false or a missing mediaUrl as the existing honest per-source failure case.',
+    'If a submit_artifact or submit_repair call returns no tool result or is interrupted, repeat the same call once with the same requestId; the server is idempotent and will not accept it twice.'
   ].join(' ');
 }
 
@@ -304,12 +318,12 @@ function selectedContextPrompt(selectedApis, style) {
 }
 
 function conceptAcceptedPrompt(runId, selectedApis = [], style = null) {
-  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact.`, selectedContextPrompt(selectedApis, style));
+  return promptSurface(`Concept accepted for ${runId}. Next, submit the complete artifact via submit_artifact. If your submit call did not return a tool result, call submit_artifact again with the SAME requestId — the server is idempotent and will not accept it twice.`, selectedContextPrompt(selectedApis, style));
 }
 
 function artifactRepairPrompt({ runId = 'unknown', diagnostics = [], selectedApis = [], style = null } = {}) {
   const exactDiagnostics = Array.isArray(diagnostics) && diagnostics.length ? diagnostics : ['the validator supplied no diagnostic detail'];
-  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`, selectedContextPrompt(selectedApis, style));
+  return promptSurface(`Artifact rejected for Randomware run ${runId}. Use submit_repair once with a complete replacement artifact. If your submit call did not return a tool result, call submit_repair again with the SAME requestId — the server is idempotent and will not accept it twice. Target 10–16 KiB of compact, dense code; the 40 KiB ceiling is a hard cap, not a goal. Exact rejection diagnostics: ${exactDiagnostics.map((diagnostic) => String(diagnostic)).join('; ')}`, selectedContextPrompt(selectedApis, style));
 }
 
 module.exports = {

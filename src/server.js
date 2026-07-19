@@ -184,7 +184,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
         if (keeperMatch[2] === 'download') { const accepted = [...run.revisions].reverse().find((item) => item.status === 'accepted'); if (!accepted) return text(res, 409, failurePage(run), { 'content-type': 'text/html; charset=utf-8' }); return text(res, 200, accepted.html, { 'content-type': 'text/html; charset=utf-8', 'content-disposition': `attachment; filename="randomware-${run.creationId}.html"`, 'x-content-type-options': 'nosniff' }); }
         if (keeperMatch[2] === 'spec/download') return text(res, 200, specText(run), { 'content-type': 'text/plain; charset=utf-8', 'content-disposition': `attachment; filename="randomware-${run.creationId}-spec.txt"` });
-        return text(res, 200, specHtml(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
+        return text(res, 200, specHtml(run), { ...securityHeaders("default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
       }
       const sourceMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/(source|requests)$/);
       if (sourceMatch && req.method === 'GET') {

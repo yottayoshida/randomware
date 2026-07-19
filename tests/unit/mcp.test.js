@@ -99,6 +99,8 @@ test('widget exposes honest progress, symbol reels, heartbeat, and failure recov
   assert.match(widget, /🐕/);
   assert.match(widget, /Dog CEO/);
   assert.match(widget, /get a dog image/);
+  assert.match(widget, /If your submit call did not return a tool result, call submit_artifact again with the SAME requestId/);
+  assert.match(widget, /If your submit call did not return a tool result, call submit_repair again with the SAME requestId/);
 });
 
 test('widget ships the approved RANDOMWARE.EXE machine surface', () => {
@@ -230,10 +232,25 @@ test('artifact-facing prompts teach the broker envelope, adapted payload, and se
     assert.match(surface, /every selected API remains essential/i);
     assert.match(surface, /native audio controls/i);
     assert.match(surface, /fully visible and unobstructed/i);
+    assert.match(surface, /explicit user action/i);
+    assert.match(surface, /TUNING THE CARRIER/i);
+    assert.match(surface, /fake buffering/i);
+    assert.match(surface, /Target 10–16 KiB of compact, dense code/);
+    assert.match(surface, /same requestId/i);
   }
   for (const surface of surfaces.slice(1)) {
     assert.match(surface, /"apiId":"frankfurter"/);
     assert.match(surface, /"rate":162\.35/);
     assert.match(surface, /"semanticFieldPaths":\["rate"\]/);
+  }
+  const accepted = conceptAcceptedPrompt('run_data_contract', selectedApis);
+  const repair = widgetRepairPrompt({ runId: 'run_data_contract', selectedApis, diagnostics: ['data path missing'] });
+  assert.match(accepted, /call submit_artifact again with the SAME requestId/);
+  assert.match(repair, /call submit_repair again with the SAME requestId/);
+  const syntheticSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/test-synthetic-deployed.js'), 'utf8');
+  const browserSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/browser-acceptance.py'), 'utf8');
+  for (const source of [syntheticSource, browserSource]) {
+    assert.match(source, /TUNING THE CARRIER/);
+    assert.doesNotMatch(source, /<audio[^>]+autoplay/i);
   }
 });

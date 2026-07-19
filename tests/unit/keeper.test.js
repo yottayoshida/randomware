@@ -25,5 +25,15 @@ test('keeper spec sheet includes the accepted concept contract without raw artif
   assert.match(text, /causal chain/i);
   assert.match(text, /paper-certificate/);
   assert.doesNotMatch(text, /<html/i);
-  assert.match(specHtml(run), /Bark Exchange/);
+  const html = specHtml(run);
+  assert.match(html, /Bark Exchange/);
+  assert.match(html, /href="\/creation\.css"/);
+  assert.match(html, /class="rw-shell"/);
+  assert.match(html, /rw-chrome rw-record rw-keeper/);
+  assert.match(html, /class="rw-stamp"/);
+  assert.match(html, /class="rw-dataflow"/);
+  assert.match(html, /<table/);
+  assert.match(html, /href="\/c\/creation_keeper"/);
+  assert.match(html, /href="\/"/);
+  assert.doesNotMatch(html, /<style/i);
 });

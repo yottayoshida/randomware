@@ -202,12 +202,14 @@ The referee verifies exact API-ID coverage, exact equality between submitted and
 
 The code prompt repeats the immutable accepted concept and gives a compact runtime contract:
 
-- Return one UTF-8 HTML5 document, 10,000–40,000 bytes, with all CSS and JavaScript inline.
+- Return one UTF-8 HTML5 document, 10,000–40,000 bytes, with all CSS and JavaScript inline. Target **10–16 KiB of compact, dense code**; the 40 KiB ceiling is a hard cap, not a goal.
 - Use only literal `window.randomware.call(apiId, operationId, params)` calls from the supplied operations. Never use a network primitive or external URL.
 - Treat each call result as the fixed broker envelope `{ ok: true, apiId, operationId, data, bytes, sourceUrl, cached }`; on an HTTP failure the harness rejects with `Error("broker_failure")`. The app payload is exactly `result.data`, not a raw public-API top-level field.
 - Read `result.data` only by the selected operation's supplied adapted `outputSchema` and bounded `responseExample`. Adapted values may be bounded/truncated; image fields are already same-origin signed URLs for verbatim `img.src` assignment, and audio is available only through a signed `/media` URL.
 - Fetch selected operations with per-call failure isolation (`Promise.allSettled` or equivalent). Render all fulfilled sources plus an honest per-source failure line for each rejected source; one runtime outage must not blank the whole app. Every selected API remains conceptually essential even when runtime degradation is partial.
 - Keep native audio controls fully visible and unobstructed by labels, overlays, or decorative layers so the browser play control remains usable.
+- Start audio/video playback only from an explicit user action such as a click. `<audio autoplay>` and `<video autoplay>` are statically rejected; load-time and data-arrival `play()` calls are forbidden by prompt contract.
+- While a selected audio call is resolving, show an honest nearby status such as `TUNING THE CARRIER…`. Assign `audio.src` only after `result.data.mediaUrl` arrives and do not present enabled-looking controls before then. Fake buffering is forbidden. `ok:false` or a missing `mediaUrl` uses the same honest per-source failure rule.
 - Call `window.randomware.ready()` after interactive controls are bound.
 - Provide visible loading, error, interactive, and attribution regions using exact `data-randomware` markers.
 - Render response text with safe DOM APIs; never use HTML string sinks.
@@ -216,6 +218,7 @@ The code prompt repeats the immutable accepted concept and gives a compact runti
 - Commit to the complete drawn style entry injected with the accepted concept: its palette, typography, motion, era, and caution. CSS remains inline and external assets remain forbidden for every cartridge; do not create generic SaaS chrome.
 - Do not ask for or infer personal, authentication, contact, payment, or secret information.
 - Call `submit_artifact` with the complete page in `html`; do not print the page in prose.
+- If `submit_artifact` returns no tool result or is interrupted, repeat the identical call once with the same `requestId`; server idempotency prevents duplicate acceptance.
 
 ```ts
 type ArtifactSubmission = {
@@ -236,7 +239,7 @@ The artifact result is a discriminated union with `accepted`, `repair_required`,
 
 ### 4.4 Repair prompt
 
-Repair receives the immutable concept, selected operation contracts, prior artifact diagnostics, and source revision ID. It says to preserve behavior and concept, replace the entire page, fix only diagnosed problems plus necessary consequences, and call `submit_repair` exactly once. The schema is `ArtifactSubmission` plus `failedRevisionId` and `diagnosticCodes`. Server state, not model text, enforces one received repair artifact.
+Repair receives the immutable concept, selected operation contracts, prior artifact diagnostics, and source revision ID. It says to preserve behavior and concept, replace the entire page, fix only diagnosed problems plus necessary consequences, target 10–16 KiB, and call `submit_repair` exactly once. If the tool result is missing or interrupted, it repeats the same call once with the same `requestId`; server idempotency prevents duplicate acceptance. The schema is `ArtifactSubmission` plus `failedRevisionId` and `diagnosticCodes`. Server state, not model text, enforces one received repair artifact.
 
 ### 4.5 Output-data minimization
 

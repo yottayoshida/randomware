@@ -55,7 +55,13 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   assert.match(await download.text(), /window\.randomware/);
   const spec = await fetch(`${base}/api/creations/${artifact.body.creationId}/spec`);
   assert.equal(spec.status, 200);
-  assert.match(await spec.text(), /Weather Dealer/);
+  assert.match(spec.headers.get('content-security-policy'), /style-src 'self'/);
+  assert.doesNotMatch(spec.headers.get('content-security-policy'), /unsafe-inline/);
+  const specHtml = await spec.text();
+  assert.match(specHtml, /Weather Dealer/);
+  assert.match(specHtml, /rw-chrome rw-record rw-keeper/);
+  assert.match(specHtml, /href="\/creation\.css"/);
+  assert.doesNotMatch(specHtml, /<style/i);
   const specDownload = await fetch(`${base}/api/creations/${artifact.body.creationId}/spec/download`);
   assert.match(specDownload.headers.get('content-disposition'), /attachment/);
   assert.match(await specDownload.text(), /causal chain/i);

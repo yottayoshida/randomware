@@ -82,8 +82,8 @@ def make_audio_artifact(run, audio_api):
         operation = entry["operations"][0]
         calls.append(f'window.randomware.call("{entry["id"]}","{operation["id"]}",{{}})')
         sources.append(entry["id"])
-    script = f'''const sources={json.dumps(sources)};const status=document.querySelector('#audio-status');const audio=document.querySelector('#audio');document.querySelector('#play-audio').addEventListener('click',async()=>{{const settled=await Promise.allSettled([{','.join(calls)}]);const index=sources.indexOf({json.dumps(audio_api)});const item=settled[index];if(!item||item.status!=='fulfilled'||!item.value.data?.mediaUrl){{status.textContent='Source unavailable: '+{json.dumps(audio_api)};return}}audio.src=item.value.data.mediaUrl;try{{await audio.play();status.textContent='Signed audio playing'}}catch(error){{status.textContent='Source unavailable: '+String(error.message||'playback_failed')}}}});window.randomware.ready();'''
-    return f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signed audio check</title><style>body{{margin:0;padding:24px;background:#15122b;color:#fff;font:16px system-ui}}main{{max-width:680px;margin:auto}}audio{{display:block;position:relative;z-index:1;width:100%;min-height:54px;margin:24px 0}}button{{padding:14px 18px}}</style></head><body><main><section data-randomware="loading" hidden>loading</section><h1>Signed audio check</h1><button id="play-audio" type="button">Play signed audio</button><section data-randomware="interactive"><audio id="audio" controls crossorigin="anonymous"></audio><p id="audio-status">Ready</p></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">Randomware signed fixture audio.</footer></main><script>{script}</script><!-- {'audio-browser-check ' * 900} --></body></html>'''
+    script = f'''const sources={json.dumps(sources)};const status=document.querySelector('#audio-status');const audio=document.querySelector('#audio');document.querySelector('#play-audio').addEventListener('click',async()=>{{status.textContent='TUNING THE CARRIER…';audio.hidden=true;audio.removeAttribute('src');const settled=await Promise.allSettled([{','.join(calls)}]);const index=sources.indexOf({json.dumps(audio_api)});const item=settled[index];if(!item||item.status!=='fulfilled'||item.value.ok!==true||!item.value.data?.mediaUrl){{status.textContent='Source unavailable: '+{json.dumps(audio_api)};return}}audio.src=item.value.data.mediaUrl;audio.hidden=false;try{{await audio.play();status.textContent='Signed audio playing'}}catch(error){{status.textContent='Source unavailable: '+String(error.message||'playback_failed')}}}});window.randomware.ready();'''
+    return f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signed audio check</title><style>body{{margin:0;padding:24px;background:#15122b;color:#fff;font:16px system-ui}}main{{max-width:680px;margin:auto}}audio{{display:block;position:relative;z-index:1;width:100%;min-height:54px;margin:24px 0}}button{{padding:14px 18px}}</style></head><body><main><section data-randomware="loading" hidden>loading</section><h1>Signed audio check</h1><button id="play-audio" type="button">Play signed audio</button><section data-randomware="interactive"><p id="audio-status" aria-live="polite">Carrier idle. Press play to tune.</p><audio id="audio" controls preload="none" crossorigin="anonymous" hidden></audio></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">Randomware signed fixture audio.</footer></main><script>{script}</script><!-- {'audio-browser-check ' * 900} --></body></html>'''
 
 
 def main():
@@ -175,6 +175,14 @@ def main():
             dataflow_page = browser.new_page(viewport={"width": 390, "height": 844})
             dataflow_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/dataflow", wait_until="domcontentloaded")
             assert dataflow_page.locator(".rw-dataflow").is_visible(), "dataflow_autopsy_missing"
+            keeper_page = browser.new_page(viewport={"width": 390, "height": 844})
+            keeper_response = keeper_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/spec", wait_until="networkidle")
+            keeper_csp = keeper_response.headers.get("content-security-policy", "")
+            keeper_border = keeper_page.locator(".rw-keeper").evaluate("element => getComputedStyle(element).borderTopWidth")
+            assert "style-src 'self'" in keeper_csp and "unsafe-inline" not in keeper_csp, f"keeper_csp_not_strict:{keeper_csp}"
+            assert keeper_page.locator("link[href='/creation.css']").count() == 1, "keeper_external_stylesheet_missing"
+            assert keeper_page.locator("style").count() == 0, "keeper_inline_style_present"
+            assert keeper_border == "3px", f"keeper_paper_unstyled:border={keeper_border}"
             index_page = browser.new_page(viewport={"width": 390, "height": 844})
             index_page.goto(f"{BASE}/", wait_until="domcontentloaded")
             assert index_page.locator("#for-judges").is_visible(), "judge_bridge_missing"
@@ -308,7 +316,7 @@ def main():
             with report_page.expect_navigation():
                 report_page.locator("button[type='submit']").click()
             assert "report received" in report_page.locator("body").inner_text().lower(), "report_post_failed"
-            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "desktopFrameHeight": desktop_frame_height, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True, "showcaseServerRendered": True, "autopsyTables": True}))
+            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "desktopFrameHeight": desktop_frame_height, "keeperPaper": True, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True, "showcaseServerRendered": True, "autopsyTables": True}))
             browser.close()
     finally:
         if server:

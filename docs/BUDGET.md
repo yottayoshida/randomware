@@ -122,12 +122,15 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Owner meter update | 2026-07-19 JST | 0% of the weekly limit remaining | 2,111 | 389 since the 2,500-credit snapshot | 300 reserve | Owner-transcribed memo; weekly plan allowance is exhausted, so no non-reserve work starts |
 | Retro chrome/style-deck reserve checkpoint | 2026-07-19 JST | Not re-measured; last owner-transcribed value is 0% remaining | Not re-measured; last owner-transcribed balance is 2,111 | Not inferred | 300 reserve | Owner explicitly authorized this as required demo/acceptance work under the reserve policy; no optional live-API iteration was added |
 | Commons audio roster reserve checkpoint | 2026-07-19 JST | Not re-measured; last owner-transcribed value is 0% remaining | Not re-measured; last owner-transcribed balance is 2,111 | Not inferred | 300 reserve | Owner replaced unstable LibriVox with bounded Commons audio as required launch/deployment acceptance work; one fixed fixture capture, one machine gate, and one production gate only |
+| Owner low-credit checkpoint | 2026-07-19 JST | 0% of the weekly limit remaining | 590 | 1,521 since the 2,111-credit snapshot | Required fixes only | Owner stopped the long deployed E2E; remaining work is restricted to keeper layout plus prompt/validator contract fixes and focused local verification |
 | Pre-demo/submission | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Reserve-eligible blockers only |
 | Final after `/feedback` | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 0 | Record total, remaining balance, final plan meter |
 
 Meter continuity note (2026-07-18 12:31 JST, owner-transcribed): the ChatGPT Plus weekly plan meter **reset** between the Luna `/goal` start snapshot and Milestone 0 closure. Current snapshot: plan usage **99% of the weekly limit remaining** (fresh weekly window); grant credit balance **2,500** (delta 0 since redemption). Plan-usage percentages are comparable only within one weekly window — do not compare post-reset values against the pre-reset 33% figure. The Milestone 0 end row must be filled from this or a fresher owner-transcribed snapshot.
 
 Meter update note (2026-07-19 JST, owner-transcribed): the weekly plan now shows **0% remaining** and the grant balance is **2,111** (a 389-credit decrease from the prior 2,500 snapshot). The hard-stop/reserve policy applies; do not begin non-reserve work or optional iteration.
+
+Low-credit update (2026-07-19 JST, owner-transcribed): weekly plan remains **0% remaining** and the grant balance is **590/2,500**. The owner explicitly stopped the long deployed E2E. Do not resume it; use only focused verification for required remaining fixes.
 
 ## 9. Checkpoint calculation
 
