@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
-const { tools } = require('../../src/web');
+const { tools, summary } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
 const { CONTRACT_PROMPT_LITERALS } = require('../../src/core/artifact-contract');
 
@@ -70,6 +70,29 @@ test('widget opens a routable creation in-frame and exposes an openExternal fall
   assert.match(widget, /https:\/\/randomware\.example/);
   assert.doesNotMatch(widget, /new URL\(run\.statusUrl,window\.location/);
   assert.doesNotMatch(widget, /window\.location\.origin/);
+});
+
+test('widget exposes honest progress, symbol reels, heartbeat, and failure recovery', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  for (const id of ['steps', 'elapsed', 'heartbeat', 'composing', 'reassurance', 'failure-code', 'autopsy', 'failure-spin']) assert.match(widget, new RegExp(`id="${id}"`));
+  for (const label of ['spin', 'concept', 'build', 'boot']) assert.match(widget, new RegExp(`data-step="${label}"`));
+  assert.match(widget, /symbolStrip/);
+  assert.match(widget, /data-state='shuffling'|dataset\.state=reveal\?'shuffling'/);
+  assert.match(widget, /stoppedAt/);
+  assert.match(widget, /is-flashing/);
+  assert.match(widget, /server\. Its finished specimen will appear on the showcase/);
+  assert.match(widget, /last activity/);
+  assert.match(widget, /Read the autopsy/);
+  assert.match(widget, /Spin again/);
+  assert.match(widget, /🐕/);
+  assert.match(widget, /Dog CEO/);
+  assert.match(widget, /get a dog image/);
+});
+
+test('registry symbols stay on display surfaces and out of run artifact inputs', () => {
+  const run = { id: 'run_display', createdAt: Date.now(), phase: 'spinned', choreography: null, creationId: null, selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }], concept: null, conceptHistory: [], failure: null, revisions: [], events: [], repairCount: 0 };
+  assert.equal(summary(run, 'https://randomware.example').selectedApis[0].symbol, undefined);
+  assert.equal(summary(run, 'https://randomware.example').selectedApis[0].docsUrl, undefined);
 });
 
 test('widget refreshes server-owned choreography deadlines and clears stale phase state on repair', () => {

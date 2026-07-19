@@ -47,8 +47,15 @@ const rows = [
   ['themealdb', 'TheMealDB', 'food', 'https://www.themealdb.com/docs_api_guide.php', 'https://www.themealdb.com/terms_of_use.php', ['www.themealdb.com'], operation('meal', 'get a meal', '/api/json/v1/1/random.php', 'themealdb.json')]
 ];
 
+const symbols = Object.freeze({
+  'dog-ceo': '🐕', 'open-meteo': '🌤️', frankfurter: '💱', 'usgs-quakes': '🌋', rickandmorty: '🛸',
+  'deck-of-cards': '🃏', datamuse: '🔤', randomuser: '👤', 'open-food-facts': '🥫', 'radio-browser': '📻',
+  librivox: '🎧', artic: '🖼️', 'met-museum': '🏛️', tvmaze: '📺', poetrydb: '📜',
+  'wiki-onthisday': '📅', 'nager-date': '🗓️', themealdb: '🍲'
+});
+
 const registry = deepFreeze(rows.map(([id, name, category, docsUrl, termsUrl, upstreamHosts, op]) => ({
-  id, name, category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [],
+  id, name, symbol: symbols[id], category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [],
   docsUrl, termsUrl, attribution: { text: `${name} attribution`, url: docsUrl, license: 'provider terms' },
   upstreamHosts, assetPolicy: { ...(assetPolicies[id] || { allowedHosts: [], resolvedPaths: [] }), variableMediaHost: category === 'audio' },
   fixturePath: `docs/api-candidates/samples/${op.fixturePath}`, defaultWeight: 1, dailyBudget: 250,

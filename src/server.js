@@ -20,6 +20,7 @@ const { fetchAsset, limitedAssetStream, ASSET_LIMITS } = require('./core/asset')
 const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
 const { companionUrl, runUrls } = require('./core/urls');
 const { fixtureMediaFetcher } = require('./core/fixture-media');
+const { showcasePage, creationPage, failurePage: companionFailurePage, requestsPage, dataflowPage, reportPage } = require('./core/presentation');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -44,9 +45,15 @@ async function body(req) {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
 
+async function formBody(req) {
+  const chunks = []; let size = 0;
+  for await (const chunk of req) { size += chunk.length; if (size > 60000) throw new Error('payload_too_large'); chunks.push(chunk); }
+  return Object.fromEntries(new URLSearchParams(Buffer.concat(chunks).toString('utf8')));
+}
+
 function runSummary(run, origin) {
   return {
-    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, ...runUrls(run, origin), phase: run.phase, choreography: run.choreography || null, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
+    runId: run.id, runContract: run.runContract || `run:${run.id}`, promptVersion: 'concept-v1', conceptId: run.concept?.requestId || null, ...runUrls(run, origin), phase: run.phase, choreography: run.choreography || null, createdAt: run.createdAt, creationId: run.creationId, selectedApis: run.selectedApis.map(({ apiId, operationIds }) => { const entry = registry.find((item) => item.id === apiId); return { id: apiId, name: entry.name, category: entry.category, capability: entry.capability, operations: entry.operations.filter((op) => operationIds.includes(op.id)) }; }),
     concept: run.concept, conceptHistory: run.conceptHistory || [], failure: run.failure, revisions: run.revisions.map(({ revision, bytes, sha256, status, at }) => ({ revision, bytes, sha256, status, at })), events: run.events, repairCount: run.repairCount
   };
 }
@@ -75,9 +82,10 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     try {
       if (req.method === 'GET' && url.pathname === '/healthz') return json(res, 200, { ok: true, service: 'randomware', registry: registry.length });
-      if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, category, capability, docsUrl, attribution }) => ({ id, name, category, capability, docsUrl, attribution })));
+      if (req.method === 'GET' && url.pathname === '/api/registry') return json(res, 200, registry.map(({ id, name, symbol, category, capability, docsUrl, attribution }) => ({ id, name, symbol, category, capability, docsUrl, attribution })));
       if (req.method === 'GET' && url.pathname === '/api/tools') return json(res, 200, createMcpTools(app));
       if (req.method === 'GET' && url.pathname === '/api/creations/recent') return json(res, 200, store.listCreations().filter((run) => run.listed !== false && !run.unpublished).map((run) => ({ creationId: run.creationId, appName: run.concept?.appName, premise: run.concept?.premise, phase: run.phase, selectedApis: run.selectedApis.map((entry) => entry.apiId) })));
+      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) return text(res, 200, showcasePage(store.listCreations()), { ...securityHeaders("default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
       if (url.pathname === '/mcp' && req.method === 'GET') { res.writeHead(405, { allow: 'POST' }); return res.end(); }
       if (req.method === 'POST' && url.pathname === '/mcp') return handleMcp(req, res, app);
       const assetMatch = url.pathname.match(/^\/api\/runtime\/asset\/([^/]+)$/);
@@ -158,10 +166,10 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
       if (creationMatch && req.method === 'GET') {
         const run = store.findByCreation(creationMatch[2]); const revision = [...run.revisions].reverse().find((item) => item.status === 'accepted');
         if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
-        if (!revision) return text(res, 200, failurePage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
+        if (!revision) return text(res, 200, companionFailurePage(run), { ...securityHeaders(`default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors ${CHATGPT_FRAME_ANCESTORS.join(' ')}`), 'content-type': 'text/html; charset=utf-8' });
         if (creationMatch[1] === 'c') {
           const csp = `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors ${CHATGPT_FRAME_ANCESTORS.join(' ')}`;
-          const html = ownerPage(run, revision); return text(res, 200, html, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8' });
+          const html = creationPage(run, revision); return text(res, 200, html, { ...securityHeaders(csp), 'content-type': 'text/html; charset=utf-8' });
         }
         run.lastCapabilityExpiresAt = Date.now() + 600000; const token = signer.issue({ creationId: run.creationId, revision: revision.revision, selected: run.selectedApis.flatMap((entry) => entry.operationIds.map((operationId) => ({ apiId: entry.apiId, operationId }))) });
         const harness = `<script>window.randomware=Object.freeze({call:async(a,o,p)=>{const r=await fetch('/api/runtime/call',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({creationId:${JSON.stringify(run.creationId)},revision:${revision.revision},apiId:a,operationId:o,params:p,capability:${JSON.stringify(token)}})});if(!r.ok)throw new Error('broker_failure');return r.json()},ready:()=>parent.postMessage({channel:'randomware',type:'ready'},'*')});</script>`;
@@ -181,23 +189,24 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         const run = store.findByCreation(sourceMatch[1]);
         if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
         if (sourceMatch[2] === 'source') { const requested = Number(new URL(req.url, `http://${req.headers.host || 'localhost'}`).searchParams.get('revision')); const revision = Number.isInteger(requested) && requested > 0 ? run.revisions.find((item) => item.revision === requested) : [...run.revisions].reverse()[0]; return text(res, 200, revision?.html || '', { 'content-type': 'text/plain; charset=utf-8' }); }
-        return json(res, 200, run.runtimeRequests || []);
+        if (url.searchParams.get('format') === 'raw') return json(res, 200, run.runtimeRequests || []);
+        return text(res, 200, requestsPage(run), { ...securityHeaders("default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
       }
       const dataflowMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/dataflow$/);
-      if (dataflowMatch && req.method === 'GET') { const run = store.findByCreation(dataflowMatch[1]); if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' }); return json(res, 200, store.dataflow(run.id)); }
+      if (dataflowMatch && req.method === 'GET') { const run = store.findByCreation(dataflowMatch[1]); if (run.unpublished) return text(res, 200, removalPage(run), { ...securityHeaders("default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' }); const flow = store.dataflow(run.id); if (url.searchParams.get('format') === 'raw') return json(res, 200, flow); return text(res, 200, dataflowPage(run, flow), { ...securityHeaders("default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' }); }
       const moderationMatch = url.pathname.match(/^\/api\/creations\/([^/]+)\/(report|unpublish)$/);
       if (moderationMatch) {
         const run = store.findByCreation(moderationMatch[1]);
-        if (req.method === 'GET' && moderationMatch[2] === 'report') return text(res, 200, `Report ${run.creationId} with POST /api/creations/${run.creationId}/report`);
-        if (req.method === 'POST' && moderationMatch[2] === 'report') { const input = await body(req); store.reportCreation(run.creationId, input.reason || 'unspecified'); return json(res, 200, { ok: true, status: 'hidden' }); }
+        if (req.method === 'GET' && moderationMatch[2] === 'report') return text(res, 200, reportPage(run), { ...securityHeaders("default-src 'none'; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' });
+        if (req.method === 'POST' && moderationMatch[2] === 'report') { const isForm = String(req.headers['content-type'] || '').includes('application/x-www-form-urlencoded'); const input = isForm ? await formBody(req) : await body(req); store.reportCreation(run.creationId, input.reason || 'unspecified'); if (isForm) return text(res, 200, reportPage(run, true), { ...securityHeaders("default-src 'none'; style-src 'self'; base-uri 'none'; frame-ancestors 'none'"), 'content-type': 'text/html; charset=utf-8' }); return json(res, 200, { ok: true, status: 'hidden' }); }
         if (req.method === 'POST' && moderationMatch[2] === 'unpublish') {
           const expected = process.env.RANDOMWARE_OWNER_TOKEN || 'local-owner-token';
           if (req.headers.authorization !== `Bearer ${expected}`) return json(res, 403, { ok: false, code: 'owner_auth_required' });
           store.unpublishCreation(run.creationId); return json(res, 200, { ok: true, status: 'unpublished' });
         }
       }
-      if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '/app.js' || url.pathname === '/styles.css' || url.pathname === '/creation.css')) {
-        const file = url.pathname === '/' || url.pathname === '/index.html' ? 'index.html' : url.pathname.slice(1); const content = fs.readFileSync(path.join(PUBLIC, file)); const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html'; return text(res, 200, content, { 'content-type': `${type}; charset=utf-8` });
+      if (req.method === 'GET' && (url.pathname === '/app.js' || url.pathname === '/styles.css' || url.pathname === '/creation.css')) {
+        const file = url.pathname.slice(1); const content = fs.readFileSync(path.join(PUBLIC, file)); const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html'; return text(res, 200, content, { 'content-type': `${type}; charset=utf-8` });
       }
       return text(res, 404, 'Not found');
     } catch (error) { return json(res, error.message === 'run_not_found' || error.message === 'creation_not_found' ? 404 : 400, { ok: false, code: error.message }); }

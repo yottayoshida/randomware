@@ -141,6 +141,10 @@ def main():
             assert page.locator("script").count() == 0, "inline_script_present"
             assert border_width == "2px", f"unstyled_chrome:border={border_width}"
             assert frame_height >= 390, f"frame_too_short:{frame_height}"
+            assert page.locator(".rw-site-header a").inner_text().endswith("Randomware showcase"), "creation_header_navigation_missing"
+            assert page.locator(".rw-site-footer").inner_text().find("See other specimens") >= 0, "creation_footer_navigation_missing"
+            assert page.locator(".rw-api-symbol").count() == len(run["selectedApis"]), "creation_api_symbols_missing"
+            assert all(" — " in item.inner_text() for item in page.locator(".rw-api-list li").all()), "creation_capabilities_missing"
             artifact_frame = page.frame_locator("iframe.rw-frame")
             page.wait_for_timeout(500)
             frame_urls = [frame.url for frame in page.frames]
@@ -151,6 +155,24 @@ def main():
             semantic_text = artifact_frame.locator("#semantic-values").inner_text()
             assert "not loaded" not in semantic_text and "undefined" not in semantic_text and "NaN" not in semantic_text, f"semantic_values_defaulted:{semantic_text}"
             assert len([line for line in semantic_text.splitlines() if line.strip()]) == len(run["selectedApis"]), f"semantic_values_incomplete:{semantic_text}"
+
+            desktop_page = browser.new_page(viewport={"width": 1280, "height": 900})
+            desktop_page.goto(f"{BASE}/c/{artifact['creationId']}", wait_until="networkidle")
+            desktop_frame_height = desktop_page.locator("iframe.rw-frame").bounding_box()["height"]
+            assert desktop_frame_height >= 790, f"desktop_frame_budget_too_short:{desktop_frame_height}"
+            requests_page = browser.new_page(viewport={"width": 390, "height": 844})
+            requests_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/requests", wait_until="domcontentloaded")
+            assert requests_page.locator("table").is_visible(), "request_autopsy_table_missing"
+            assert requests_page.locator("a[href='?format=raw']").is_visible(), "request_autopsy_raw_missing"
+            dataflow_page = browser.new_page(viewport={"width": 390, "height": 844})
+            dataflow_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/dataflow", wait_until="domcontentloaded")
+            assert dataflow_page.locator(".rw-dataflow").is_visible(), "dataflow_autopsy_missing"
+            index_page = browser.new_page(viewport={"width": 390, "height": 844})
+            index_page.goto(f"{BASE}/", wait_until="domcontentloaded")
+            assert index_page.locator("#for-judges").is_visible(), "judge_bridge_missing"
+            assert index_page.locator("a[href*='chatgpt-prerequisites-and-connect']").count() >= 1, "connect_link_missing"
+            assert "Loading" not in index_page.locator("body").inner_text(), "index_not_server_rendered"
+            assert "Browser Chrome Check" not in index_page.locator("body").inner_text(), "test_specimen_listed"
 
             audio_playback = None
             if REQUIRE_AUDIO:
@@ -194,11 +216,22 @@ def main():
             widget_html = widget_body["result"]["contents"][0]["text"]
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
             widget_page.locator("#spin").click()
-            widget_page.wait_for_timeout(900)
+            widget_page.wait_for_timeout(150)
+            assert widget_page.locator("#apis .reel[data-state='shuffling']").count() == 1, "widget_reel_shuffle_missing"
+            widget_page.wait_for_timeout(650)
             assert widget_page.locator("#status").inner_text() != "The slot is ready.", "widget_reset_to_idle_after_callTool"
             assert widget_page.locator("#apis li").count() == 1, "widget_reels_not_rendered"
+            assert widget_page.locator("#apis .reel[data-state='stopped']").count() == 1, "widget_reel_stop_missing"
+            assert "💱" in widget_page.locator("#apis .reel-symbol").inner_text(), "widget_symbol_missing"
+            assert "Frankfurter — get exchange rates" in widget_page.locator("#apis .reel-copy").inner_text(), "widget_capability_missing"
+            assert widget_page.locator("#apis").evaluate("element => element.classList.contains('is-flashing')"), "widget_full_stop_flash_missing"
+            assert widget_page.locator("#steps [data-step='concept']").get_attribute("data-state") == "current", "widget_stepper_concept_missing"
             assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
             widget_page.locator("#build").click()
+            assert widget_page.locator("#reassurance").is_visible(), "widget_session_reassurance_missing"
+            assert "elapsed" in widget_page.locator("#elapsed").inner_text(), "widget_elapsed_missing"
+            assert "last activity" in widget_page.locator("#heartbeat").inner_text(), "widget_heartbeat_missing"
+            assert widget_page.locator("#composing").is_visible(), "widget_composing_animation_missing"
             assert widget_page.locator("#fallback").is_visible(), "widget_follow_up_fallback_missing"
             fallback_prompt = widget_page.locator("#build-prompt").input_value()
             assert "Use Randomware run widget-run:" in fallback_prompt, "widget_fallback_run_id_missing"
@@ -221,6 +254,7 @@ def main():
             assert "Use Randomware run widget-run:" in widget_page.evaluate("window.__followUpPrompt"), "widget_follow_up_run_id_missing"
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(concept_run))
             assert "Concept accepted" in widget_page.locator("#status").inner_text(), "widget_artifact_transition_missing"
+            assert widget_page.locator("#steps [data-step='build']").get_attribute("data-state") == "current", "widget_stepper_build_missing"
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
             assert widget_page.locator("#creation").is_visible(), "widget_creation_section_missing"
             assert not widget_page.locator("#creation-frame").get_attribute("hidden"), "widget_creation_frame_not_embedded"
@@ -229,7 +263,14 @@ def main():
             widget_page.locator("#creation-link").dispatch_event("click")
             opened_external = widget_page.evaluate("window.__openedExternal")
             assert opened_external == f"{BASE}/c/widget-creation", f"widget_open_external_wrong_origin:{opened_external}"
-            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True}))
+            assert all(item.get_attribute("data-state") == "done" for item in widget_page.locator("#steps li").all()), "widget_stepper_boot_missing"
+            report_page = browser.new_page(viewport={"width": 390, "height": 844})
+            report_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/report", wait_until="domcontentloaded")
+            assert report_page.locator("form").is_visible(), "report_confirm_missing"
+            with report_page.expect_navigation():
+                report_page.locator("button[type='submit']").click()
+            assert "Report received" in report_page.locator("body").inner_text(), "report_post_failed"
+            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "desktopFrameHeight": desktop_frame_height, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True, "showcaseServerRendered": True, "autopsyTables": True}))
             browser.close()
     finally:
         if server:

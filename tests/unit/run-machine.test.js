@@ -12,6 +12,16 @@ test('run store enforces concept before artifact and immutable selected APIs', (
   assert.throws(() => store.acceptConcept(run.id, { requestId: 'c2', appName: 'Other', premise: 'Other', apiIds: ['deck-of-cards'] }), /phase_or_idempotency/);
 });
 
+test('synthetic and browser gate creations are persisted as unlisted', () => {
+  for (const [requestId, appName] of [['synthetic-next-gate', 'A generated test'], ['owner-looking-id', 'Browser Chrome Check']]) {
+    const store = new RunStore();
+    const run = store.createRun({ requestId, selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+    store.acceptConcept(run.id, { requestId: `${requestId}-concept`, appName, apiIds: ['open-meteo'] });
+    const accepted = store.acceptArtifact(run.id, { requestId: `${requestId}-artifact`, html: 'fixture', bytes: 7 });
+    assert.equal(accepted.listed, false);
+  }
+});
+
 test('rejected-phase activity refreshes the inactivity deadline but not the absolute backstop', () => {
   const store = new RunStore();
   const run = store.createRun({ requestId: 'activity', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });

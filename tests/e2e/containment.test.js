@@ -38,9 +38,9 @@ test('generated runtime is contained and unknown calls are denied', async (t) =>
   const selectedOperation = spin.body.selectedApis[0].operations[0];
   const mediated = await request(base, '/api/runtime/call', { method: 'POST', headers: { origin: 'null' }, body: JSON.stringify({ creationId: artifact.body.creationId, revision: 1, apiId: spin.body.selectedApis[0].id, operationId: selectedOperation.id, capability }) });
   assert.equal(mediated.response.status, 200);
-  const requests = await request(base, `/api/creations/${artifact.body.creationId}/requests`);
+  const requests = await request(base, `/api/creations/${artifact.body.creationId}/requests?format=raw`);
   assert.equal(requests.body.length, 1);
-  const dataflow = await request(base, `/api/creations/${artifact.body.creationId}/dataflow`);
+  const dataflow = await request(base, `/api/creations/${artifact.body.creationId}/dataflow?format=raw`);
   assert.equal(dataflow.body.find((entry) => entry.apiId === spin.body.selectedApis[0].id).status, 'observed');
   const denied = await request(base, '/api/runtime/call', { method: 'POST', body: JSON.stringify({ creationId: artifact.body.creationId, revision: 1, apiId: 'not-selected', operationId: 'anything', capability: 'bad' }) });
   assert.equal(denied.response.status, 400);

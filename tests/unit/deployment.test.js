@@ -13,4 +13,8 @@ test('Worker deployment manifest points to static assets, D1, and an hourly heal
   assert.match(fs.readFileSync('migrations/0003_media_tokens.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS media_tokens/);
   assert.match(fs.readFileSync('migrations/0004_asset_tokens.sql', 'utf8'), /CREATE TABLE IF NOT EXISTS asset_tokens/);
   assert.match(fs.readFileSync('migrations/0005_media_stream_leases.sql', 'utf8'), /ADD COLUMN stream_lease TEXT/);
+  const curation = fs.readFileSync('migrations/0006_curate_showcase.sql', 'utf8');
+  assert.match(curation, /'\$\.listed', json\('false'\)/);
+  assert.match(curation, /created_at < 1784391035000/);
+  assert.match(curation, /synthetic-\*/);
 });

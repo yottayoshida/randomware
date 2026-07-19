@@ -11,6 +11,7 @@ test('launch registry has 18 fixed entries with bounded operations and attributi
     assert.ok(entry.attribution.text.length > 0);
     assert.ok(entry.upstreamHosts.length > 0);
     assert.ok(entry.operations.length > 0);
+    assert.match(entry.symbol, /\S/u);
     for (const operation of entry.operations) {
       assert.equal(operation.method, 'GET');
       assert.match(operation.pathTemplate, /^\//);
@@ -18,6 +19,12 @@ test('launch registry has 18 fixed entries with bounded operations and attributi
       else assert.ok(operation.timeoutMs <= 6000);
     }
   }
+});
+
+test('registry symbols are the owner-curated display-only strip', () => {
+  assert.deepEqual(Object.fromEntries(registry.map((entry) => [entry.id, entry.symbol])), {
+    'deck-of-cards': '🃏', poetrydb: '📜', datamuse: '🔤', artic: '🖼️', 'dog-ceo': '🐕', 'radio-browser': '📻', 'open-meteo': '🌤️', frankfurter: '💱', randomuser: '👤', 'wiki-onthisday': '📅', 'usgs-quakes': '🌋', 'met-museum': '🏛️', 'nager-date': '🗓️', tvmaze: '📺', rickandmorty: '🛸', 'open-food-facts': '🥫', librivox: '🎧', themealdb: '🍲'
+  });
 });
 
 test('registry lookup rejects arbitrary IDs and returns immutable operation metadata', () => {
