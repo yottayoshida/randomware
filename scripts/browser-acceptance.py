@@ -188,7 +188,7 @@ def main():
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
-            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "creationUrl": None, "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}]}
+            spin_run = {"runId": "widget-run", "phase": "spinned", "statusUrl": f"{BASE}/api/runs/widget-run", "creationUrl": None, "choreography": {"phase": "concept", "startedAt": now_ms, "lastActivityAt": now_ms, "idleDeadlineAt": now_ms + 181000, "absoluteDeadlineAt": now_ms + 601000, "reSteered": False}, "selectedApis": [{"id": "frankfurter", "name": "Frankfurter", "operations": []}, {"id": "dog-ceo", "name": "Dog CEO", "operations": []}, {"id": "open-meteo", "name": "Open-Meteo", "operations": []}]}
             concept_run = {**spin_run, "phase": "concept_accepted"}
             complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation", "creationUrl": f"{BASE}/c/widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
@@ -217,13 +217,20 @@ def main():
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
             widget_page.locator("#spin").click()
             widget_page.wait_for_timeout(150)
-            assert widget_page.locator("#apis .reel[data-state='shuffling']").count() == 1, "widget_reel_shuffle_missing"
+            assert widget_page.locator("#apis .reel[data-state='shuffling']").count() == 3, "widget_reel_shuffle_missing"
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(spin_run))
             widget_page.wait_for_timeout(650)
             assert widget_page.locator("#status").inner_text() != "The slot is ready.", "widget_reset_to_idle_after_callTool"
-            assert widget_page.locator("#apis li").count() == 1, "widget_reels_not_rendered"
+            assert widget_page.locator("#apis li").count() == 3, "widget_reels_not_rendered"
             assert widget_page.locator("#apis .reel[data-state='stopped']").count() == 1, "widget_reel_stop_missing"
-            assert "💱" in widget_page.locator("#apis .reel-symbol").inner_text(), "widget_symbol_missing"
-            assert "Frankfurter — get exchange rates" in widget_page.locator("#apis .reel-copy").inner_text(), "widget_capability_missing"
+            assert widget_page.locator("#apis .reel[data-state='shuffling']").count() == 2, "widget_reel_stagger_missing"
+            assert "💱" in widget_page.locator("#apis .reel-symbol").nth(0).inner_text(), "widget_symbol_missing"
+            assert "Frankfurter — get exchange rates" in widget_page.locator("#apis .reel-copy").nth(0).inner_text(), "widget_capability_missing"
+            first_stop = int(widget_page.locator("#apis .reel").nth(0).get_attribute("data-stopped-at"))
+            widget_page.wait_for_timeout(850)
+            assert widget_page.locator("#apis .reel[data-state='stopped']").count() == 3, "widget_three_reel_stop_missing"
+            stopped_at = [int(widget_page.locator("#apis .reel").nth(index).get_attribute("data-stopped-at")) for index in range(3)]
+            assert stopped_at[0] == first_stop and stopped_at[0] < stopped_at[1] < stopped_at[2], f"widget_stop_order_failed:{stopped_at}"
             assert widget_page.locator("#apis").evaluate("element => element.classList.contains('is-flashing')"), "widget_full_stop_flash_missing"
             assert widget_page.locator("#steps [data-step='concept']").get_attribute("data-state") == "current", "widget_stepper_concept_missing"
             assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
@@ -264,6 +271,16 @@ def main():
             opened_external = widget_page.evaluate("window.__openedExternal")
             assert opened_external == f"{BASE}/c/widget-creation", f"widget_open_external_wrong_origin:{opened_external}"
             assert all(item.get_attribute("data-state") == "done" for item in widget_page.locator("#steps li").all()), "widget_stepper_boot_missing"
+            terminal_failure = {**complete_run, "phase": "failed", "nextTool": "none", "creationId": "widget-failure", "creationUrl": f"{BASE}/c/widget-failure", "failure": {"code": "repair_failed"}, "revisions": [{"revision": 2, "status": "failed"}]}
+            terminal_envelope = {"content": [{"type": "text", "text": "repair failed"}], "structuredContent": terminal_failure, "isError": True}
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", terminal_envelope)
+            assert widget_page.locator("#failure").is_visible(), "widget_terminal_failure_missing"
+            assert "repair_failed" in widget_page.locator("#failure-code").inner_text(), "widget_terminal_failure_code_missing"
+            assert widget_page.locator("#autopsy").is_visible(), "widget_failure_autopsy_missing"
+            precreation_failure = {**terminal_failure, "creationId": None, "creationUrl": None, "failure": {"code": "choreography_timeout"}, "revisions": []}
+            widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", {"content": [{"type": "text", "text": "timeout"}], "structuredContent": precreation_failure, "isError": True})
+            assert not widget_page.locator("#autopsy").is_visible(), "widget_false_autopsy_link_visible"
+            assert widget_page.locator("#steps [data-step='concept']").get_attribute("data-state") == "failed", "widget_failure_step_missing"
             report_page = browser.new_page(viewport={"width": 390, "height": 844})
             report_page.goto(f"{BASE}/api/creations/{artifact['creationId']}/report", wait_until="domcontentloaded")
             assert report_page.locator("form").is_visible(), "report_confirm_missing"

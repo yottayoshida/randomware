@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { RUNTIME_CONTRACT_CUTOFF_MS, applyListingPolicy, showcasePage, creationPage, requestsPage, dataflowPage, reportPage } = require('../../src/core/presentation');
+const { RUNTIME_CONTRACT_CUTOFF_MS, applyListingPolicy, isEarlySpecimen, showcasePage, creationPage, requestsPage, dataflowPage, reportPage } = require('../../src/core/presentation');
+const { RunStore } = require('../../src/core/store');
 
 function specimen(overrides = {}) {
   return {
@@ -30,6 +31,8 @@ test('creation and autopsy pages render symbols, receipts, navigation, raw links
   const early = specimen({ createdAt: RUNTIME_CONTRACT_CUTOFF_MS - 1 });
   const creation = creationPage(early, early.revisions[0]);
   assert.match(creation, /built before the runtime contract/);
+  assert.match(creation, /This pre-contract specimen is not executed/);
+  assert.doesNotMatch(creation, /<iframe/);
   assert.match(creation, /🐕/);
   assert.match(creation, /Dog CEO<\/a> — get a dog image/);
   assert.match(creation, /Randomware showcase/);
@@ -39,10 +42,21 @@ test('creation and autopsy pages render symbols, receipts, navigation, raw links
   assert.match(requests, /Request receipts/);
   assert.match(requests, /35 ms/);
   assert.match(requests, /\?format=raw/);
-  const flow = dataflowPage(early, [{ apiId: 'dog-ceo', operationId: 'random', status: 'ok' }]);
+  const store = new RunStore();
+  const flowRun = store.createRun({ requestId: 'presentation-flow', selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }] });
+  store.logRuntime(flowRun.id, { apiId: 'dog-ceo', operationId: 'random', status: 'ok', bytes: 1 });
+  const flow = dataflowPage({ ...early, runtimeRequests: flowRun.runtimeRequests }, store.dataflow(flowRun.id));
   assert.match(flow, /Dataflow, in order/);
+  assert.match(flow, /<code>random<\/code>/);
   assert.match(flow, /UTC/);
   assert.match(flow, /\?format=raw/);
   assert.match(reportPage(early), /method="post"/);
   assert.match(reportPage(early), /A report hides this specimen/);
+});
+
+test('early-specimen classification uses accepted revision time across the deployment boundary', () => {
+  const spanning = specimen({ createdAt: RUNTIME_CONTRACT_CUTOFF_MS - 5000, revisions: [{ revision: 1, status: 'accepted', at: RUNTIME_CONTRACT_CUTOFF_MS + 1, bytes: 12000 }] });
+  assert.equal(isEarlySpecimen(spanning), false);
+  spanning.revisions[0].at = RUNTIME_CONTRACT_CUTOFF_MS - 1;
+  assert.equal(isEarlySpecimen(spanning), true);
 });

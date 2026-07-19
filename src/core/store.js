@@ -27,7 +27,7 @@ class RunStore {
       id: id('run'), requestId, phase: phases.SPINNED, selectedApis: structuredClone(selectedApis), history: structuredClone(history),
       concept: null, conceptHistory: [], revisions: [], repairCount: 0, failure: null, events: [{ type: 'spin_received', at: now }], createdAt: now,
       choreography: startChoreography(phases.SPINNED, now),
-      creationId: null, runtimeRequests: []
+      creationId: null, runtimeRequests: [], listed: false
     };
     this.runs.set(run.id, run); this.requestIndex.set(requestId, run.id); return run;
   }
@@ -80,7 +80,7 @@ class RunStore {
     const run = this.getRun(runId);
     if (run.phase !== phases.CONCEPT_ACCEPTED && run.phase !== phases.BUILDING) throw new Error('phase_or_idempotency');
     run.phase = phases.REPAIR_REQUESTED; run.creationId = run.creationId || id('creation'); run.failure = { code, requestId, html }; run.revisions.push({ revision: 1, requestId, html, bytes, sha256, status: 'failed', at: Date.now() });
-    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'repair_requested', at: Date.now() }); advanceChoreography(run); applyListingPolicy(run); return run;
+    run.events.push({ type: 'artifact_received', at: Date.now() }, { type: 'repair_requested', at: Date.now() }); advanceChoreography(run); run.listed = false; return run;
   }
 
   acceptRepair(runId, { requestId, html, sha256, bytes }) {
@@ -101,6 +101,10 @@ class RunStore {
 
   fail(runId, code, detail = '') {
     const run = this.getRun(runId); run.phase = phases.FAILED; run.failure = { code, detail }; run.events.push({ type: 'failed', code, at: Date.now() }); return run;
+  }
+
+  setCapabilityExpiry(runId, expiresAt) {
+    const run = this.getRun(runId); run.lastCapabilityExpiresAt = Number(expiresAt); return run;
   }
 
   logRuntime(runId, request) {

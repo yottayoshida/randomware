@@ -1,7 +1,7 @@
 const { registry } = require('./registry');
 const { deathCertificate } = require('./failure');
 
-const RUNTIME_CONTRACT_CUTOFF_MS = 1784391035000;
+const RUNTIME_CONTRACT_CUTOFF_MS = 1784392071657;
 const REPOSITORY_URL = 'https://github.com/yottayoshida/randomware';
 const CONNECT_URL = `${REPOSITORY_URL}#chatgpt-prerequisites-and-connect`;
 const registryById = new Map(registry.map((entry) => [entry.id, entry]));
@@ -18,7 +18,8 @@ function selectedDisplay(run) {
 }
 
 function isEarlySpecimen(run) {
-  return Number(run.createdAt) < RUNTIME_CONTRACT_CUTOFF_MS;
+  const acceptedAt = (run.revisions || []).find((revision) => revision.status === 'accepted')?.at;
+  return Number(acceptedAt || run.createdAt) < RUNTIME_CONTRACT_CUTOFF_MS;
 }
 
 function isMachineSpecimen(run) {
@@ -29,7 +30,7 @@ function isMachineSpecimen(run) {
 }
 
 function applyListingPolicy(run) {
-  if (isMachineSpecimen(run) || isEarlySpecimen(run)) run.listed = false;
+  run.listed = !isMachineSpecimen(run) && !isEarlySpecimen(run);
   return run;
 }
 
@@ -38,7 +39,7 @@ function selectedBadges(run) {
 }
 
 function showcasePage(runs) {
-  const creations = (runs || []).filter((run) => run.listed !== false && !run.unpublished);
+  const creations = (runs || []).filter((run) => run.listed !== false && !run.unpublished && ['completed', 'failed'].includes(run.phase));
   const cards = creations.length ? creations.slice(0, 24).map((run) => `<article class="specimen-card"><div class="specimen-symbols">${selectedBadges(run)}</div><h2><a href="/c/${encodeURIComponent(run.creationId)}">${escapeHtml(run.concept?.appName || 'Untitled collision')}</a></h2><p>${escapeHtml(run.concept?.premise || 'A generated collision whose paperwork survived.')}</p></article>`).join('') : '<p class="empty">No curated specimens yet. The cabinet is clean, not broken.</p>';
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Randomware — Real APIs go in</title><link rel="stylesheet" href="/styles.css"></head><body><header class="judge-strip" id="for-judges"><strong>For judges</strong><nav aria-label="Judge links"><a href="#demo-video-pending">Demo video <span class="muted">(link pending)</span></a><a href="${CONNECT_URL}">Connect in ChatGPT</a><a href="${REPOSITORY_URL}">GitHub repository</a></nav></header><main class="shell"><header class="masthead"><p class="eyebrow">A slot machine for software</p><h1>Randomware</h1><p class="tagline">Real APIs go in. Random apps come out.</p><p class="lede">Randomware collides bounded public APIs, asks a model for one causal absurdity, then publishes the sandboxed specimen with its receipts and failures intact.</p><a class="primary" href="${CONNECT_URL}">Spin it yourself →</a><span id="demo-video-pending" class="anchor-target" aria-label="Demo video placeholder"></span></header><section aria-labelledby="specimens-title"><p class="eyebrow">Curated showcase</p><h2 id="specimens-title">Specimens that earned shelf space</h2><div class="specimen-grid">${cards}</div></section><footer class="site-footer"><p>${registry.length} bounded public sources. No machine-check specimens in the cabinet.</p><a href="/api/registry">Inspect registry metadata</a></footer></main></body></html>`;
 }
@@ -53,9 +54,11 @@ function earlyBanner(run) {
 
 function creationPage(run, revision) {
   const name = run.concept?.appName || 'Untitled collision';
+  const early = isEarlySpecimen(run);
   const apis = selectedDisplay(run).map((api) => `<li class="category-${escapeHtml(api.category)}"><span class="rw-api-symbol" aria-hidden="true">${escapeHtml(api.symbol)}</span><a href="${escapeHtml(api.docsUrl)}">${escapeHtml(api.name)}</a> — ${escapeHtml(api.capability)}</li>`).join('');
   const revisions = (run.revisions || []).map((item) => `<li><a href="/api/creations/${encodeURIComponent(run.creationId)}/source?revision=${item.revision}">Revision ${item.revision}</a> · ${escapeHtml(item.status)} · ${Number(item.bytes || 0).toLocaleString('en-US')} bytes</li>`).join('');
-  const content = `${earlyBanner(run)}<section class="rw-chrome"><p class="rw-kicker">AI-generated experimental app</p><h1>${escapeHtml(name)}</h1><p class="rw-premise">${escapeHtml(run.concept?.premise || 'A generated collision.')}</p><p><strong>Do not enter real personal, payment, authentication, or secret data.</strong></p><h2>Selected APIs</h2><ul class="rw-api-list">${apis}</ul><nav class="rw-actions" aria-label="Specimen actions"><a href="/api/creations/${encodeURIComponent(run.creationId)}/download">Download HTML</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/spec">Keeper spec</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/spec/download">Download spec</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/requests">Inspect requests</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/dataflow">Inspect dataflow</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/report">Report/remove</a></nav><h2 class="rw-kicker">Source revisions</h2><ul class="rw-revisions">${revisions}</ul></section><section class="rw-frame-wrap"><iframe class="rw-frame" title="Generated app" sandbox="allow-scripts" credentialless referrerpolicy="no-referrer" src="/run/${encodeURIComponent(run.creationId)}"></iframe><p class="rw-overflow-cue">The specimen may continue inside its frame; scroll within it if the lower machinery is still humming.</p></section><p class="rw-receipt">Specimen ${escapeHtml(run.creationId)} · accepted revision ${revision.revision}</p>`;
+  const specimen = early ? '<section class="rw-preserved"><h2>Runtime retired</h2><p>The frozen source and receipts remain inspectable. This pre-contract specimen is not executed.</p></section>' : `<section class="rw-frame-wrap"><iframe class="rw-frame" title="Generated app" sandbox="allow-scripts" credentialless referrerpolicy="no-referrer" src="/run/${encodeURIComponent(run.creationId)}"></iframe><p class="rw-overflow-cue">The specimen may continue inside its frame; scroll within it if the lower machinery is still humming.</p></section>`;
+  const content = `${earlyBanner(run)}<section class="rw-chrome"><p class="rw-kicker">AI-generated experimental app</p><h1>${escapeHtml(name)}</h1><p class="rw-premise">${escapeHtml(run.concept?.premise || 'A generated collision.')}</p><p><strong>Do not enter real personal, payment, authentication, or secret data.</strong></p><h2>Selected APIs</h2><ul class="rw-api-list">${apis}</ul><nav class="rw-actions" aria-label="Specimen actions"><a href="/api/creations/${encodeURIComponent(run.creationId)}/download">Download HTML</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/spec">Keeper spec</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/spec/download">Download spec</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/requests">Inspect requests</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/dataflow">Inspect dataflow</a><a href="/api/creations/${encodeURIComponent(run.creationId)}/report">Report/remove</a></nav><h2 class="rw-kicker">Source revisions</h2><ul class="rw-revisions">${revisions}</ul></section>${specimen}<p class="rw-receipt">Specimen ${escapeHtml(run.creationId)} · accepted revision ${revision.revision}</p>`;
   return pageShell(name, content);
 }
 
@@ -85,7 +88,8 @@ function humanTime(value) {
 
 function dataflowPage(run, flow) {
   const requests = run.runtimeRequests || [];
-  const steps = (flow || []).map((item, index) => {
+  const operations = (flow || []).flatMap((item) => (item.operationIds || [item.operationId]).filter(Boolean).map((operationId) => ({ ...item, operationId })));
+  const steps = operations.map((item) => {
     const request = requests.find((candidate) => candidate.apiId === item.apiId && candidate.operationId === item.operationId);
     const entry = registryById.get(item.apiId);
     return `<li><time datetime="${escapeHtml(new Date(Number(request?.startedAt || run.createdAt)).toISOString())}">${escapeHtml(humanTime(request?.startedAt || run.createdAt))}</time><strong>${escapeHtml(entry?.name || item.apiId)}</strong> / <code>${escapeHtml(item.operationId)}</code> — ${escapeHtml(item.status || 'selected')}</li>`;

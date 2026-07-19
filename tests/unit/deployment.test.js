@@ -15,6 +15,7 @@ test('Worker deployment manifest points to static assets, D1, and an hourly heal
   assert.match(fs.readFileSync('migrations/0005_media_stream_leases.sql', 'utf8'), /ADD COLUMN stream_lease TEXT/);
   const curation = fs.readFileSync('migrations/0006_curate_showcase.sql', 'utf8');
   assert.match(curation, /'\$\.listed', json\('false'\)/);
-  assert.match(curation, /created_at < 1784391035000/);
+  assert.match(curation, /artifact_revisions\.created_at/);
+  assert.match(curation, /1784392071657/);
   assert.match(curation, /synthetic-\*/);
 });

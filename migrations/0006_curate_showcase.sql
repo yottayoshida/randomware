@@ -1,6 +1,6 @@
 UPDATE runs
 SET metadata_json = json_set(COALESCE(metadata_json, '{}'), '$.listed', json('false'))
-WHERE created_at < 1784391035000
+WHERE COALESCE((SELECT MIN(artifact_revisions.created_at) FROM artifact_revisions WHERE artifact_revisions.run_id = runs.id AND artifact_revisions.status = 'accepted'), created_at) < 1784392071657
    OR lower(COALESCE(json_extract(concept_json, '$.appName'), '')) GLOB 'mcp primary*'
    OR lower(COALESCE(json_extract(concept_json, '$.appName'), '')) GLOB 'mcp audio*'
    OR lower(COALESCE(json_extract(concept_json, '$.appName'), '')) GLOB 'mcp asset*'

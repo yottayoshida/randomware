@@ -92,6 +92,20 @@ test('public run status permits foreign-origin widget reads and preflight', asyn
   assert.match(preflight.headers.get('access-control-allow-methods') || '', /GET/);
 });
 
+test('Worker inspection and report views stay closed after owner unpublish', async () => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'worker-unpublish', selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }] });
+  store.acceptConcept(run.id, { requestId: 'worker-unpublish-concept', appName: 'Retired Clerk', apiIds: ['open-meteo'] });
+  const accepted = store.acceptArtifact(run.id, { requestId: 'worker-unpublish-artifact', html: 'frozen source', bytes: 13 });
+  store.unpublishCreation(accepted.creationId);
+  const fetchHandler = createWebHandler({ store, broker: new Broker({ fixtureMode: true }) });
+  for (const suffix of ['source', 'requests', 'requests?format=raw', 'dataflow', 'dataflow?format=raw', 'report']) {
+    const result = await fetchHandler(new Request(`https://randomware.example/api/creations/${accepted.creationId}/${suffix}`));
+    assert.equal(result.status, 200);
+    assert.match(await result.text(), /Creation removed/);
+  }
+});
+
 test('Worker broker route handles opaque-origin preflight and records a mediated request', async () => {
   const store = new RunStore();
   const signer = new CapabilitySigner('worker-route-test-secret');
