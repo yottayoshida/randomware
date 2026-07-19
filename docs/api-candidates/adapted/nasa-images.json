@@ -1,0 +1,33 @@
+{
+  "apiId": "nasa-images",
+  "operationId": "search",
+  "data": {
+    "items": [
+      {
+        "nasaId": "PIA12348",
+        "title": "Great Observatories Unique Views of the Milky Way",
+        "description": "In celebration of the International Year of Astronomy 2009, NASA's Great Observatories -- the Hubble Space Telescope, the Spitzer Space Telescope, and the Chandra X-ray Observatory -- have produced a matched trio of images of the central region of our Milky Way galaxy. Each image shows the telescope's different wavelength view of the galactic center region, illustrating the unique science each observatory conducts.  In this spectacular image, observations using infrared light and X-ray light see through the obscuring dust and reveal the intense activity near the galactic core. Note that the center of the galaxy is located within the bright white region to the right of and just below the middle of the image. The entire image width covers about one-half a degree, about the same angular width as the full moon.  Spitzer's infrared-light observations provide a detailed and spectacular view of the galactic center region [Figure 1 (top frame of poster)]. The swirling core of our galaxy harbors hundreds of thousands of stars that cannot be seen in visible light. These stars heat the nearby gas and dust. These dusty clouds glow in infrared light and reveal their often dramatic shapes. Some of these clouds harbor stellar nurseries that are forming new generations of stars. Like the downtown of a large city, the center of our galaxy is a crowded, active, and vibrant place.  Although best known for its visible-light images, Hubble also observes over a limited range of infrared light [Figure 2 (middle frame of poster)]. The galactic center is marked by the bright patch in the lower right. Along the left side are large arcs of warm gas that have been heated by clusters of bright massive stars. In addition, Hubble uncovered many more massive stars across the region. Winds and radiation from these stars create the complex structures seen in the gas throughout the image.This sweeping panorama is one of the sharpest infrared pictures ever made of the galactic center region.  X-rays detected by Chandra expose a wealth of exotic objects and high-energy features [Figure 3 (bottom frame of poster)]. In this image, pink represents lower energy X-rays and blue indicates higher energy. Hundreds of small dots show emission from material around black holes and other dense stellar objects. A supermassive black hole -- some four million times more massive than the Sun -- resides within the bright region in the lower right. The diffuse X-ray light comes from gas heated to millions of degrees by outflows from the supermassive black hole, winds from giant stars, and stellar explosions. This central region is the most energetic place in our galaxy.   http://photojournal.jpl.nasa.gov/catalog/PIA12348",
+        "dateCreated": "2009-11-10T17:55:16Z",
+        "center": "JPL",
+        "keywords": [
+          "Chandra X-ray Observatory,Hubble Space Telescope,Spitzer Space T",
+          "milky way"
+        ],
+        "imageUrl": "https://randomware.example/api/runtime/asset/golden-asset-nasa-images-search"
+      }
+    ]
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "items",
+          0,
+          "imageUrl"
+        ],
+        "resolvedUrl": "https://images-assets.nasa.gov/image/PIA12348/PIA12348~medium.jpg"
+      }
+    ],
+    "media": null
+  }
+}

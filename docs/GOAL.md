@@ -60,7 +60,7 @@ Complete PLAN Milestone 3: all Must surfaces and US-01 through US-06, widget rec
 
 ### Gate 4 — Registry
 
-Complete PLAN Milestone 4: implementation-time terms/attribution/health check, 18-entry target, fixed typed operations/adapters, fixtures, health tooling, weighting/distribution tests, and labeled replay fallback. Record every enabled/disabled/promoted API reason. Continue with 12–18 healthy entries; stop below 10. Keep ISS excluded and iTunes spike-only.
+Complete PLAN Milestone 4: implementation-time terms/attribution/health check, 20-entry launch set, fixed typed operations/adapters, fixtures, health tooling, weighting/distribution tests, and labeled replay fallback. Record every enabled/disabled/promoted API reason. Continue with 12–20 healthy entries; stop below 10. Keep ISS excluded and iTunes spike-only.
 
 ### Gate 5 — Deploy and submit
 

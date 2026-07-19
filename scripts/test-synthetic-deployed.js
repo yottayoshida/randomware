@@ -208,7 +208,7 @@ async function runSynthetic(base) {
   };
 
   let run;
-  for (const seed of ['contract-audio-2433', 'contract-audio-1306', 'contract-audio-3291', 'contract-audio-disabled-1217', 'contract-audio-current-583', 'contract-audio-live-1826']) {
+  for (const seed of ['contract-audio-20-8187', 'contract-audio-20-8822', 'contract-audio-20-9376', 'contract-audio-20-13915', 'contract-audio-2433', 'contract-audio-live-1826']) {
     const spun = await call('spin_apis', { seed, requestId: `${tag}-${seed}` }); const candidate = spun.result.structuredContent;
     if (candidate.selectedApis.map((api) => api.id).sort().join('|') === 'librivox|nager-date|radio-browser') { run = candidate; break; }
   }
@@ -225,33 +225,27 @@ async function runSynthetic(base) {
   const status = await fetch(completed.statusUrl); assert.equal(status.status, 200); const statusBody = await status.json(); assert.equal(statusBody.creationId, completed.creationId); assert.equal(new URL(statusBody.statusUrl).origin, base); assert.equal(new URL(statusBody.creationUrl).origin, base);
 
   const runtime = await fetch(`${base}/run/${completed.creationId}`); const runtimeHtml = await runtime.text(); const tokenLiteral = runtimeHtml.match(/capability:("(?:\\.|[^"])*")/); assert.ok(tokenLiteral, 'audio_capability_missing'); const capability = JSON.parse(tokenLiteral[1]);
-  const semanticEvidence = [];
+  const semanticEvidence = []; const semanticEnvelopes = new Map();
   for (const api of acceptedRun.selectedApis) {
     for (const operation of api.operations) {
       const semanticCall = await fetch(`${base}/api/runtime/call`, { method: 'POST', headers: { Origin: 'null', 'Content-Type': 'application/json' }, body: JSON.stringify({ creationId: completed.creationId, revision: 1, apiId: api.id, operationId: operation.id, params: {}, capability }) });
       if (semanticCall.status !== 200) throw new Error(`semantic_broker_status:${api.id}/${operation.id}:${semanticCall.status}:${await semanticCall.text()}`);
       const envelope = await semanticCall.json(); assert.equal(envelope.ok, true, `semantic_envelope:${api.id}/${operation.id}`); assert.ok(Object.prototype.hasOwnProperty.call(envelope, 'data'), `semantic_data_missing:${api.id}/${operation.id}`);
+      semanticEnvelopes.set(api.id, envelope);
       const path = operation.semanticFieldPaths[0]; const value = parts(path).reduce((current, key) => current == null ? undefined : current[key], envelope.data);
       assert.ok(value !== undefined && value !== null && value !== '' && !Number.isNaN(value), `semantic_default:${api.id}/${operation.id}:${path}`);
       semanticEvidence.push({ apiId: api.id, operationId: operation.id, path, value: String(value).slice(0, 80) });
     }
   }
-  let audioEvidence = null; const audioFailures = [];
-  for (const apiId of ['radio-browser', 'librivox']) {
-    const audioApi = acceptedRun.selectedApis.find((api) => api.id === apiId); const audioOperation = audioApi.operations[0];
-    const audioCall = await fetch(`${base}/api/runtime/call`, { method: 'POST', headers: { Origin: 'null', 'Content-Type': 'application/json' }, body: JSON.stringify({ creationId: completed.creationId, revision: 1, apiId: audioApi.id, operationId: audioOperation.id, params: {}, capability }) });
-    if (audioCall.status !== 200) { audioFailures.push(`${apiId}:broker:${audioCall.status}:${await audioCall.text()}`); continue; }
-    const audioBody = await audioCall.json(); const mediaUrl = audioBody.data?.mediaUrl;
-    if (!mediaUrl || new URL(mediaUrl).origin !== base || !new URL(mediaUrl).pathname.startsWith('/media/')) { audioFailures.push(`${apiId}:signed_url`); continue; }
-    const mediaResponse = await fetch(mediaUrl, { headers: { Range: 'bytes=0-4095' } }); const mediaType = mediaResponse.headers.get('content-type') || '';
-    if (![200, 206].includes(mediaResponse.status) || !(mediaType.startsWith('audio/') || mediaType === 'application/ogg')) { audioFailures.push(`${apiId}:stream:${mediaResponse.status}:${mediaType}:${await mediaResponse.text()}`); continue; }
-    const reader = mediaResponse.body?.getReader();
-    if (!reader) { audioFailures.push(`${apiId}:body_missing`); continue; }
-    const firstChunk = await reader.read();
-    if (firstChunk.done || !firstChunk.value?.byteLength) { audioFailures.push(`${apiId}:empty`); continue; }
-    await reader.cancel(); audioEvidence = { apiId, status: mediaResponse.status, contentType: mediaType, firstChunkBytes: firstChunk.value.byteLength }; break;
-  }
-  assert.ok(audioEvidence, `audio_streams_failed:${audioFailures.join('|')}`);
+  const librivoxEnvelope = semanticEnvelopes.get('librivox'); const mediaUrl = librivoxEnvelope?.data?.mediaUrl;
+  assert.ok(mediaUrl && new URL(mediaUrl).origin === base && new URL(mediaUrl).pathname.startsWith('/media/'), 'librivox_signed_url_missing');
+  const mediaResponse = await fetch(mediaUrl, { headers: { Origin: 'https://web-sandbox.oaiusercontent.com', Range: 'bytes=0-4095' } }); const mediaType = mediaResponse.headers.get('content-type') || '';
+  assert.ok([200, 206].includes(mediaResponse.status), `librivox_stream_status:${mediaResponse.status}:${await mediaResponse.text()}`);
+  assert.ok(mediaType.startsWith('audio/') || mediaType === 'application/ogg', `librivox_stream_type:${mediaType}`);
+  assert.equal(mediaResponse.headers.get('cross-origin-resource-policy'), 'cross-origin', 'librivox_stream_corp');
+  const reader = mediaResponse.body?.getReader(); assert.ok(reader, 'librivox_stream_body_missing'); const firstChunk = await reader.read(); assert.ok(!firstChunk.done && firstChunk.value?.byteLength, 'librivox_stream_empty'); await reader.cancel();
+  const audioEvidence = { apiId: 'librivox', status: mediaResponse.status, contentType: mediaType, firstChunkBytes: firstChunk.value.byteLength };
+  assert.equal(audioEvidence.apiId, 'librivox');
 
   const repairSpinBody = await call('spin_apis', { seed: `${tag}-repair`, requestId: `${tag}-repair-spin` }); const repairRun = repairSpinBody.result.structuredContent;
   const repairConceptArgs = modelValue(byName.submit_concept.inputSchema, { run: repairRun, tag, requestLabel: 'repair-concept' });

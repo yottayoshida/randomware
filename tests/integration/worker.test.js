@@ -10,7 +10,7 @@ test('Cloudflare-shaped fetch handler serves health, MCP, and spin without a lis
   const fetchHandler = createWebHandler({ broker: new Broker({ fixtureMode: true }) });
   const health = await fetchHandler(new Request('https://randomware.example/healthz'));
   assert.equal(health.status, 200);
-  assert.equal((await health.json()).registry, 18);
+  assert.equal((await health.json()).registry, 20);
   const tools = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) }));
   assert.equal((await tools.json()).result.tools.length, 8);
   const open = await fetchHandler(new Request('https://randomware.example/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 1.1, method: 'tools/call', params: { name: 'open_randomware', arguments: {} } }) }));
@@ -205,6 +205,7 @@ test('Worker media route streams a signed radio response through a validated red
   assert.equal(streamed.status, 200);
   assert.equal(streamed.headers.get('content-type'), 'audio/mpeg');
   assert.equal(streamed.headers.get('access-control-allow-origin'), '*');
+  assert.equal(streamed.headers.get('cross-origin-resource-policy'), 'cross-origin');
   assert.equal(Buffer.from(await streamed.arrayBuffer()).toString(), 'ID3bounded-audio');
   assert.equal(upstreamCalls, 2);
 });
@@ -248,6 +249,7 @@ test('Worker media route heals a dropped abort cleanup and accepts a Range recon
   assert.ok(waitUntilTasks.length > 0);
   const reconnect = await fetchHandler(new Request(mediaUrl, { headers: { Range: 'bytes=0-4095' } }), {}, executionContext);
   assert.equal(reconnect.status, 206);
+  assert.equal(reconnect.headers.get('cross-origin-resource-policy'), 'cross-origin');
   const reconnectReader = reconnect.body.getReader();
   assert.ok((await reconnectReader.read()).value.byteLength > 0);
   await reconnectReader.cancel('test_complete');

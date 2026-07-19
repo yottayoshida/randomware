@@ -95,3 +95,16 @@ After the design pass excluded several primaries on terms/safety grounds, six ca
 | `librivox` | LibriVox | books + audio | 0.44s | none | Healthy; public-domain audiobooks with audio files on `archive.org` (bounded). Proxy-only (no CORS) |
 | `deezer` | Deezer search/previews | audio | 0.39s | none | Healthy; 30s preview URLs. Music-preview terms risk is the same class that excluded iTunes — expect rejection |
 | `gutendex` | Gutendex (Project Gutenberg) | books | 6.3–13.8s uncached, 0.1s cached | `*` | Reject for the core path: uncached queries are slower than the Open Library latency that caused its exclusion |
+
+## Round 4 — bounded visual/data candidates (2026-07-19)
+
+Each candidate received at most one bounded implementation probe (10 seconds, 200,000 raw bytes, no retry). Only evidence-backed entries were added.
+
+| id | API | Result | Raw evidence | Decision / constraints |
+|----|-----|--------|--------------|------------------------|
+| `gbif` | [GBIF occurrence search](https://techdocs.gbif.org/en/openapi/) | timeout | No response within 10 seconds; no fixture written | Reject. Do not retry or fabricate an entry; publisher-controlled occurrence media would also be stripped rather than proxied if reconsidered. |
+| `nasa-images` | [NASA Image and Video Library](https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf) | HTTP 200 in 619 ms | 4,289-byte JSON fixture | Promote. Fixed `PIA12348` image search; ignore the insecure collection link and expose only the HTTPS rendered image at `items.*.imageUrl`, bound to `images-assets.nasa.gov`. |
+| `loc-photos` | [Library of Congress Photos](https://www.loc.gov/apis/json-and-yaml/) | HTTP 200 in 1,725 ms | 72,251-byte JSON fixture | Promote. Fixed `q=moon&fo=json&c=2`; the captured image path resolves only to `tile.loc.gov`. Five-minute cache and 240/day budget remain far below the published 20 requests/minute guidance. |
+| — | iNaturalist | owner-excluded | 51.6 MB in 8.1 seconds for the measured raw observations response | Reject before implementation: unbounded for the registry contract. |
+
+The resulting launch registry has 20 entries, not 21: GBIF failed the explicit bounded probe and was not retried. NASA and LOC have raw fixtures, production-adapted goldens, model-visible response examples, exact asset paths/hosts, policy metadata, symbols, selector participation, and health checks.

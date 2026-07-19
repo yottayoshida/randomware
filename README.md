@@ -60,7 +60,7 @@ npm run deploy
 
 ## Registry and examples
 
-The launch registry contains 18 bounded entries with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links.
+The launch registry contains 20 bounded entries with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links.
 
 ## Limits and security
 

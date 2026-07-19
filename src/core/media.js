@@ -13,7 +13,7 @@ function isLocalHostname(hostname) {
 
 function archiveHost(hostname) {
   const host = String(hostname || '').toLowerCase().replace(/\.$/, '');
-  return host === 'archive.org' || host === 'www.archive.org' || host.endsWith('.us.archive.org');
+  return host === 'archive.org' || host.endsWith('.archive.org');
 }
 
 function validateMediaUrl(value, { kind = 'radio-browser' } = {}) {

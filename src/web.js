@@ -138,7 +138,7 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         const passHeaders = {};
         for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
-        return new Response(stream, { status: upstream.response.status, headers: headers(upstream.contentType, { ...passHeaders, ...mediaReadCors, 'cache-control': 'no-store', 'content-disposition': 'inline', 'cross-origin-resource-policy': 'same-origin' }) });
+        return new Response(stream, { status: upstream.response.status, headers: headers(upstream.contentType, { ...passHeaders, ...mediaReadCors, 'cache-control': 'no-store', 'content-disposition': 'inline', 'cross-origin-resource-policy': 'cross-origin' }) });
       }
       if (url.pathname === '/api/runtime/call') {
         const origin = request.headers.get('origin');

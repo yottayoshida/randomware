@@ -211,11 +211,11 @@ Expected: commands exit 0; the frame-or-link test asserts exactly the milestone-
 
 ### Scope
 
-Expand from three APIs to the 18-entry launch target, complete the implementation-time terms/attribution check, add health automation, finish incongruity weighting, and create the clearly labeled five-combination recorded replay fallback.
+Expand from three APIs to the 20-entry launch set, complete the implementation-time terms/attribution check, add health automation, finish incongruity weighting, and create the clearly labeled five-combination recorded replay fallback.
 
 ### Work order
 
-1. Copy the preparation raw fixtures without modifying them; create bounded adapted-output goldens for all 18 target APIs.
+1. Copy the preparation raw fixtures without modifying them; create bounded adapted-output goldens for all 20 launch APIs.
 2. For each target entry, record official docs/terms/attribution URL, fixed hosts, media paths, operations, typed params, adapter schema, time/byte/cache/budget values, semantic tags, category, and sensory tags.
 3. Run one bounded live check per target. Disable an entry on terms ambiguity, schema mismatch, unhealthy status, or unbounded asset risk. Do not replace entries without recording the reason; stop if fewer than 10 are enabled.
 4. Implement the exact Wild weighting formula and 100,000-seed distribution tests. Add Stable/Chaos only if it was enabled in Milestone 3.
@@ -235,7 +235,7 @@ npm run test:e2e -- api-matrix.spec.ts demo-replay.spec.ts
 npm run acceptance:machine
 ```
 
-Expected: at least 10 and no more than 18 entries report enabled/healthy; every enabled API has a raw and adapted fixture and official policy metadata; 100,000 seeded spins meet arity/fairness constraints; five live combinations and five clearly labeled replays pass.
+Expected: at least 10 and no more than 20 entries report enabled/healthy; every enabled API has a raw and adapted fixture and official policy metadata; 100,000 seeded spins meet arity/fairness constraints; five live combinations and five clearly labeled replays pass.
 
 ### Done-criteria
 

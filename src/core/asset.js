@@ -65,6 +65,30 @@ function prepareAssetData(apiId, value) {
   if (apiId === 'rickandmorty') {
     return { id: data?.id, name: data?.name, status: data?.status, species: data?.species, type: data?.type, gender: data?.gender, origin: { name: data?.origin?.name }, location: { name: data?.location?.name }, image: data?.image };
   }
+  if (apiId === 'nasa-images') {
+    return {
+      items: (Array.isArray(data?.collection?.items) ? data.collection.items : []).slice(0, 2).map((item) => {
+        const details = Array.isArray(item?.data) ? item.data[0] : null;
+        const image = (Array.isArray(item?.links) ? item.links : []).find((link) => link?.render === 'image' && typeof link?.href === 'string' && link.href.startsWith('https://'));
+        return { nasaId: details?.nasa_id ?? null, title: details?.title ?? null, description: details?.description ?? null, dateCreated: details?.date_created ?? null, center: details?.center ?? null, keywords: Array.isArray(details?.keywords) ? details.keywords.slice(0, 8) : [], imageUrl: image?.href ?? null };
+      })
+    };
+  }
+  if (apiId === 'loc-photos') {
+    return {
+      results: (Array.isArray(data?.results) ? data.results : []).slice(0, 2).map((item) => ({
+        id: item?.id ?? null,
+        title: item?.title ?? null,
+        date: item?.date ?? null,
+        contributors: Array.isArray(item?.contributor) ? item.contributor.slice(0, 8) : [],
+        description: Array.isArray(item?.description) ? item.description[0] ?? null : item?.description ?? null,
+        subjects: Array.isArray(item?.subject) ? item.subject.slice(0, 8) : [],
+        locations: Array.isArray(item?.location) ? item.location.slice(0, 8) : [],
+        recordUrl: typeof item?.url === 'string' && item.url.startsWith('https://') ? item.url : null,
+        imageUrl: (Array.isArray(item?.image_url) ? item.image_url : []).find((value) => typeof value === 'string' && value.startsWith('https://')) ?? null
+      }))
+    };
+  }
   if (apiId === 'tvmaze' && Array.isArray(data)) return data.slice(0, 5);
   return data;
 }

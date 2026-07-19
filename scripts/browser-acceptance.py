@@ -114,7 +114,7 @@ def main():
         audio_artifact = None
         if REQUIRE_AUDIO:
             audio_run = None
-            for index, audio_seed in enumerate(["media-1", "media-radio-current-4", "media-radio-librivox-3"]):
+            for index, audio_seed in enumerate(["media-audio-2", "contract-audio-20-8822", "contract-audio-20-9376"]):
                 _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
                 if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
                     audio_run = candidate
@@ -181,9 +181,9 @@ def main():
                 audio_frame = next((frame for frame in audio_page.frames if f"/run/{audio_artifact['creationId']}" in frame.url), None)
                 assert audio_frame is not None, "signed_audio_frame_missing"
                 audio_frame.locator("#play-audio").click()
-                audio_frame.wait_for_function("() => { const audio = document.querySelector('#audio'); return audio && (audio.currentTime > 0 || audio.readyState >= 3); }", timeout=15000)
+                audio_frame.wait_for_function("() => { const audio = document.querySelector('#audio'); return audio && audio.currentTime > 0; }", timeout=15000)
                 audio_playback = audio_frame.locator("#audio").evaluate("audio => { const rect=audio.getBoundingClientRect(); const top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2); return {currentTime:audio.currentTime,readyState:audio.readyState,networkState:audio.networkState,visible:rect.width>0&&rect.height>=40,unobstructed:top===audio||audio.contains(top)}; }")
-                assert audio_playback["currentTime"] > 0 or audio_playback["readyState"] >= 3, f"signed_audio_no_progress:{audio_playback}"
+                assert audio_playback["currentTime"] > 0, f"signed_audio_no_progress:{audio_playback}"
                 assert audio_playback["visible"] and audio_playback["unobstructed"], f"signed_audio_controls_obstructed:{audio_playback}"
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
@@ -192,7 +192,7 @@ def main():
             concept_run = {**spin_run, "phase": "concept_accepted"}
             complete_run = {**concept_run, "phase": "completed", "creationId": "widget-creation", "creationUrl": f"{BASE}/c/widget-creation"}
             envelope = lambda value: {"content": [{"type": "text", "text": "fixture result"}], "structuredContent": value}
-            mount_output = json.dumps({"ok": True, "registry": 18})
+            mount_output = json.dumps({"ok": True, "registry": 20})
             init_script = (
                 "window.openai = {toolOutput: " + mount_output + ", widgetState: null, "
                 "setWidgetState: state => window.__widgetState = state, "

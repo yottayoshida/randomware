@@ -1,0 +1,21 @@
+accept-ranges: bytes
+access-control-allow-origin: *
+cache-control: no-transform, max-age=86400
+cf-cache-status: MISS
+cf-ray: a1d953b24e48db4f-NRT
+connection: keep-alive
+content-length: 72251
+content-security-policy: block-all-mixed-content;         default-src https://loc.gov/ https://*.loc.gov/ ;         media-src https://loc.gov/ https://*.loc.gov/              https://*.readspeaker.com/             https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             blob:;         worker-src https://loc.gov/ https://*.loc.gov/              blob:;         font-src https://loc.gov/ https://*.loc.gov/              https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             https://ssl.p.jwpcdn.com/             data:;         img-src https://loc.gov/ https://*.loc.gov/              https://congress.gov/ https://*.congress.gov/             https://*.readspeaker.com/             https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             https://*.ssa.gov/             https://dpm.demdex.net/             https://cm.everesttech.net/             https://*.amazonaws.com             data:             blob:;         connect-src https://loc.gov/ https://*.loc.gov/              https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             https://chat-us.libanswers.com/             https://thelibraryofcongress.tt.omtrdc.net/             https://dpm.demdex.net/ 	        https://d3c605m4lmznjl.cloudfront.net/             https://*.s3.us-east-1.amazonaws.com/;         style-src https://loc.gov/ https://*.loc.gov/              https://*.readspeaker.com/             https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             https://ssl.p.jwpcdn.com/             https://assets.adobedtm.com/             https://*.ssa.gov/             'unsafe-inline'             blob:;         script-src https://loc.gov/ https://*.loc.gov/              https://*.readspeaker.com/             https://*.arcgis.com/ https://*.arcgisonline.com/  https://webapps-cdn.esri.com/             https://cdn.jsdelivr.net             https://ssl.p.jwpcdn.com/             https://assets.adobedtm.com/             https://*.blackbaudcdn.net/ https://*.blackbaud.com/             https://ajax.googleapis.com/ajax/libs/jquery/             https://*.ssa.gov/             https://s.ytimg.com/             'unsafe-inline'             'unsafe-eval';         frame-src https://loc.gov/ https://*.loc.gov/              https://*.readspeaker.com/             https://*.blackbaudcdn.net/ https://*.blackbaud.com/             https://www.nlstalkingbooks.org/             https://unitedstateslibraryofcongress.demdex.net             https://www.youtube-nocookie.com/;         frame-ancestors https://loc.gov/ https://*.loc.gov/              https://*.blackbaudcdn.net/ https://*.blackbaud.com/             https://loc.libwizard.com/;         report-uri https://errorlogging.loc.gov/api/51/security/?sentry_key=2176ae0b9acd4cd59297edc0e064cc95&sentry_environment=production ;
+content-type: application/json
+date: Sun, 19 Jul 2026 11:18:43 GMT
+etag: "f18a29c927c00c26558f8d12bfc8f854"
+expires: Mon, 20 Jul 2026 11:18:43 GMT
+referrer-policy: no-referrer-when-downgrade
+server: cloudflare
+strict-transport-security: max-age=3600; preload
+x-content-type-options: nosniff
+x-frame-options: sameorigin
+x-grace: none
+x-nearside-cache: MISS
+x-nearside-cache-hits: 0
+x-robots-tag: noindex, nofollow

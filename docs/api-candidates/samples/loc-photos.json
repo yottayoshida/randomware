@@ -1,0 +1,2084 @@
+{
+  "breadcrumbs": [
+    {
+      "Library of Congress": "https://www.loc.gov"
+    },
+    {
+      "Photos, Prints, Drawings": "https://www.loc.gov/photos/"
+    },
+    {
+      "Search": "https://www.loc.gov/photos/?c=2&fo=json&q=moon"
+    }
+  ],
+  "content": {
+    "active": true,
+    "link": "https://www.loc.gov/photos/",
+    "pagination": "1 of 2",
+    "partof": [],
+    "results": [
+      {
+        "access_restricted": false,
+        "aka": [
+          "https://hdl.loc.gov/loc.wdl/wdl.15163",
+          "http://www.loc.gov/resource/gdcwdl.wdl_15163/",
+          "http://lccn.loc.gov/2021668966",
+          "http://www.loc.gov/resource/wdl.15163/",
+          "http://www.loc.gov/item/2021668966/"
+        ],
+        "campaigns": [],
+        "contributor": [
+          "chokuzan",
+          "tsukioka, yoshitoshi"
+        ],
+        "date": "1891-01-01",
+        "dates": [
+          "1891"
+        ],
+        "description": [
+          "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+        ],
+        "digitized": true,
+        "extract_timestamp": "2021-07-24T06:08:40.571Z",
+        "group": [
+          "wdlpartner",
+          "catalog-split-14",
+          "catalog",
+          "world-digital-library-partners",
+          "main-catalog-split-14",
+          "main-catalog"
+        ],
+        "hassegments": false,
+        "id": "http://www.loc.gov/item/2021668966/",
+        "image_url": [
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg#h=270&w=186",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:12.5/0/default.jpg#h=540&w=372",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:25/0/default.jpg#h=1081&w=744",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:50/0/default.jpg#h=2163&w=1488",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:100/0/default.jpg#h=4326&w=2976"
+        ],
+        "index": 1,
+        "item": {
+          "contributors": [
+            "Chokuzan Engraver.",
+            "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+          ],
+          "created_published": [
+            "Tokyo, Japan : Akiyama Buemon, 1891."
+          ],
+          "date": "1891",
+          "digital_id": [
+            "https://hdl.loc.gov/loc.wdl/wdl.15163"
+          ],
+          "format": [
+            "still image"
+          ],
+          "language": [
+            "jpn"
+          ],
+          "medium": [
+            "1 online resource."
+          ],
+          "notes": [
+            "Title devised, in English, by Library staff.",
+            "\"Name of engraver from Stevenson's Yoshitoshi's One Hundred Aspects of the Moon.\"--Note extracted from World Digital Library.",
+            "Original resource extent: Polychrome wood block print.",
+            "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+            "Original resource at: National Diet Library.",
+            "Content in Japanese.",
+            "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+          ],
+          "source_collection": [
+            "One Hundred Aspects of the Moon"
+          ],
+          "subjects": [
+            "Japan",
+            "1891",
+            "Art, Japanese",
+            "Flute",
+            "Folklore",
+            "Horses",
+            "Moon",
+            "Ukiyo-e",
+            "Woodcuts",
+            "Zither"
+          ],
+          "summary": [
+            "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+          ],
+          "title": "One Hundred Aspects of the Moon: Saga Moor Moon."
+        },
+        "language": [
+          "japanese"
+        ],
+        "location": [
+          "japan"
+        ],
+        "location_country": [
+          "japan"
+        ],
+        "mime_type": [
+          "application/zip",
+          "image/jpeg",
+          "image/jp2"
+        ],
+        "number": [
+          "2021668966",
+          "2021-07-15t08:23:07"
+        ],
+        "number_lccn": [
+          "2021668966"
+        ],
+        "number_source_modified": [
+          "2021-07-15t08:23:07"
+        ],
+        "online_format": [
+          "compressed data",
+          "image"
+        ],
+        "original_format": [
+          "photo, print, drawing"
+        ],
+        "partof": [
+          "world digital library - partner items",
+          "world digital library",
+          "national diet library",
+          "catalog"
+        ],
+        "resources": [
+          {
+            "files": 1,
+            "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+            "url": "https://www.loc.gov/resource/gdcwdl.wdl_15163/",
+            "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/16/3/wdl_15163/wdl_15163.zip"
+          }
+        ],
+        "shelf_id": "http://lccn.loc.gov/2021668966",
+        "site": [
+          "catalog"
+        ],
+        "subject": [
+          "horses",
+          "flute",
+          "japan",
+          "zither",
+          "folklore",
+          "ukiyo-e",
+          "moon",
+          "art, japanese",
+          "woodcuts"
+        ],
+        "timestamp": "2022-09-11T21:45:10.234Z",
+        "title": "One Hundred Aspects of the Moon: Saga Moor Moon.",
+        "type": [
+          "still image"
+        ],
+        "url": "https://www.loc.gov/item/2021668966/"
+      },
+      {
+        "access_restricted": false,
+        "aka": [
+          "http://lccn.loc.gov/2021669012",
+          "http://www.loc.gov/resource/wdl.15209/",
+          "https://hdl.loc.gov/loc.wdl/wdl.15209",
+          "http://www.loc.gov/resource/gdcwdl.wdl_15209/",
+          "http://www.loc.gov/item/2021669012/"
+        ],
+        "campaigns": [],
+        "contributor": [
+          "noguchi, enkatsu",
+          "tsukioka, yoshitoshi"
+        ],
+        "date": "1889-01-01",
+        "dates": [
+          "1889"
+        ],
+        "description": [
+          "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+        ],
+        "digitized": true,
+        "extract_timestamp": "2021-07-24T06:08:54.237Z",
+        "group": [
+          "wdlpartner",
+          "catalog-split-13",
+          "catalog",
+          "world-digital-library-partners",
+          "main-catalog-split-13",
+          "main-catalog"
+        ],
+        "hassegments": false,
+        "id": "http://www.loc.gov/item/2021669012/",
+        "image_url": [
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg#h=276&w=187",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:12.5/0/default.jpg#h=552&w=375",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:25/0/default.jpg#h=1104&w=750",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:50/0/default.jpg#h=2208&w=1500",
+          "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:100/0/default.jpg#h=4416&w=3000"
+        ],
+        "index": 2,
+        "item": {
+          "contributors": [
+            "Noguchi, Enkatsu Engraver.",
+            "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+          ],
+          "created_published": [
+            "Tokyo, Japan : Akiyama Buemon, 1889."
+          ],
+          "date": "1889",
+          "digital_id": [
+            "https://hdl.loc.gov/loc.wdl/wdl.15209"
+          ],
+          "format": [
+            "still image"
+          ],
+          "language": [
+            "jpn"
+          ],
+          "medium": [
+            "1 online resource."
+          ],
+          "notes": [
+            "Title devised, in English, by Library staff.",
+            "Original resource extent: Polychrome wood block print.",
+            "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+            "Original resource at: National Diet Library.",
+            "Content in Japanese.",
+            "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+          ],
+          "source_collection": [
+            "One Hundred Aspects of the Moon"
+          ],
+          "subjects": [
+            "Japan--Tokyo",
+            "1889",
+            "Art, Japanese",
+            "Cherry trees",
+            "Moon",
+            "Samurai",
+            "Ukiyo-e",
+            "Woodcuts"
+          ],
+          "summary": [
+            "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+          ],
+          "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai."
+        },
+        "language": [
+          "japanese"
+        ],
+        "location": [
+          "tokyo",
+          "japan"
+        ],
+        "location_country": [
+          "japan"
+        ],
+        "location_state": [
+          "tokyo"
+        ],
+        "mime_type": [
+          "application/zip",
+          "image/jpeg",
+          "image/jp2"
+        ],
+        "number": [
+          "2021-07-15t08:23:22",
+          "2021669012"
+        ],
+        "number_lccn": [
+          "2021669012"
+        ],
+        "number_source_modified": [
+          "2021-07-15t08:23:22"
+        ],
+        "online_format": [
+          "compressed data",
+          "image"
+        ],
+        "original_format": [
+          "photo, print, drawing"
+        ],
+        "partof": [
+          "world digital library - partner items",
+          "world digital library",
+          "national diet library",
+          "catalog"
+        ],
+        "resources": [
+          {
+            "files": 1,
+            "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+            "url": "https://www.loc.gov/resource/gdcwdl.wdl_15209/",
+            "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/20/9/wdl_15209/wdl_15209.zip"
+          }
+        ],
+        "shelf_id": "http://lccn.loc.gov/2021669012",
+        "site": [
+          "catalog"
+        ],
+        "subject": [
+          "samurai",
+          "japan",
+          "cherry trees",
+          "ukiyo-e",
+          "tokyo",
+          "moon",
+          "art, japanese",
+          "woodcuts"
+        ],
+        "timestamp": "2022-09-11T21:45:38.072Z",
+        "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai.",
+        "type": [
+          "still image"
+        ],
+        "url": "https://www.loc.gov/item/2021669012/"
+      }
+    ],
+    "slug": "",
+    "title": "Search Photos, Prints, Drawings",
+    "url": "https://www.loc.gov/photos/"
+  },
+  "context": "original-format:photo, print, drawing",
+  "description": "Pictorial materials are found in many units of the Library of Congress. The Prints & Photographs Division, alone, holds more than 15 million items, including photographs, prints, drawings and architectural and engineering designs; more than 1 million of the items are  available in digital form.",
+  "expert_resources": [
+    {
+      "title": "Collections with Photos",
+      "url": "/photos/collections/"
+    }
+  ],
+  "facet_trail": [
+    {
+      "facet": "Original Format",
+      "field": "original-format",
+      "superset": "https://www.loc.gov/search/?c=2&fo=json&q=moon",
+      "value": "photo, print, drawing"
+    },
+    {
+      "facet": "searchTerms",
+      "field": "searchTerms",
+      "superset": "https://www.loc.gov/photos/?c=2&fo=json",
+      "value": "moon"
+    },
+    {
+      "facet": "Available Online",
+      "field": "digitized",
+      "superset": "https://www.loc.gov/photos/?all=true&c=2&fo=json&q=moon",
+      "value": "digitized"
+    }
+  ],
+  "facet_views": {
+    "calendar": "https://www.loc.gov/photos/?c=2&fo=json&fs=calendar&q=moon",
+    "chart": "https://www.loc.gov/photos/?c=2&fo=json&fs=chart&q=moon",
+    "current": "list",
+    "list": "https://www.loc.gov/photos/?c=2&fo=json&q=moon"
+  },
+  "facets": [
+    {
+      "filters": [
+        {
+          "count": 1608,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fo=json&q=moon",
+          "title": "Available at the Library of Congress Campus",
+          "value": "true"
+        },
+        {
+          "count": 258,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?all=true&c=2&fo=json&q=moon",
+          "title": "Available Online",
+          "value": "false"
+        }
+      ],
+      "title": "Available Online",
+      "type": "digitized"
+    },
+    {
+      "filters": [
+        {
+          "count": 1608,
+          "not": null,
+          "off": "https://www.loc.gov/search/?c=2&fo=json&q=moon",
+          "on": "https://www.loc.gov/photos/?c=2&fo=json&q=moon",
+          "title": "Photo, Print, Drawing",
+          "value": "photo, print, drawing"
+        },
+        {
+          "count": 82,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:book&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:book&fo=json&q=moon",
+          "title": "Book/Printed Material",
+          "value": "book"
+        },
+        {
+          "count": 46,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:manuscript/mixed+material&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:manuscript/mixed+material&fo=json&q=moon",
+          "title": "Manuscript/Mixed Material",
+          "value": "manuscript/mixed material"
+        },
+        {
+          "count": 45,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:personal+narrative&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:personal+narrative&fo=json&q=moon",
+          "title": "Personal Narrative",
+          "value": "personal narrative"
+        },
+        {
+          "count": 35,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:film,+video&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:film,+video&fo=json&q=moon",
+          "title": "Film, Video",
+          "value": "film, video"
+        },
+        {
+          "count": 14,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:sound+recording&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:sound+recording&fo=json&q=moon",
+          "title": "Audio Recording",
+          "value": "sound recording"
+        },
+        {
+          "count": 14,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:software,+e-resource&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:software,+e-resource&fo=json&q=moon",
+          "title": "Software, E-Resource",
+          "value": "software, e-resource"
+        },
+        {
+          "count": 9,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:newspaper&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dl=item&fa=original-format:newspaper&fo=json&q=moon",
+          "title": "Newspaper",
+          "value": "newspaper"
+        },
+        {
+          "count": 9,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:periodical&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:periodical&fo=json&q=moon",
+          "title": "Periodical",
+          "value": "periodical"
+        },
+        {
+          "count": 1,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:3d+object&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:3d+object&fo=json&q=moon",
+          "title": "3D Object",
+          "value": "3d object"
+        },
+        {
+          "count": 1,
+          "not": "https://www.loc.gov/photos/?c=2&fa=original-format!:map&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=original-format:map&fo=json&q=moon",
+          "title": "Map",
+          "value": "map"
+        }
+      ],
+      "title": "Original Format",
+      "type": "original-format"
+    },
+    {
+      "filters": [
+        {
+          "count": 1571,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:image&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:image&fo=json&q=moon",
+          "title": "Image",
+          "value": "image"
+        },
+        {
+          "count": 161,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:pdf&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:pdf&fo=json&q=moon",
+          "title": "PDF",
+          "value": "pdf"
+        },
+        {
+          "count": 127,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:online+text&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:online+text&fo=json&q=moon",
+          "title": "Online Text",
+          "value": "online text"
+        },
+        {
+          "count": 107,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:compressed+data&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:compressed+data&fo=json&q=moon",
+          "title": "Compressed Data",
+          "value": "compressed data"
+        },
+        {
+          "count": 35,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:video&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:video&fo=json&q=moon",
+          "title": "Video",
+          "value": "video"
+        },
+        {
+          "count": 11,
+          "not": "https://www.loc.gov/photos/?c=2&fa=online-format!:audio&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=online-format:audio&fo=json&q=moon",
+          "title": "Audio",
+          "value": "audio"
+        }
+      ],
+      "title": "Online Format",
+      "type": "online-format"
+    },
+    {
+      "filters": [
+        {
+          "count": 285,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=2000/2027&fo=json&q=moon",
+          "term": "2000-01-01T00:00:00Z",
+          "title": "2000 to 2027",
+          "value": "2000-01-01T00:00:00Z"
+        },
+        {
+          "count": 611,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1900/1999&fo=json&q=moon",
+          "term": "1900-01-01T00:00:00Z",
+          "title": "1900 to 1999",
+          "value": "1900-01-01T00:00:00Z"
+        },
+        {
+          "count": 628,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1800/1899&fo=json&q=moon",
+          "term": "1800-01-01T00:00:00Z",
+          "title": "1800 to 1899",
+          "value": "1800-01-01T00:00:00Z"
+        },
+        {
+          "count": 16,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1700/1799&fo=json&q=moon",
+          "term": "1700-01-01T00:00:00Z",
+          "title": "1700 to 1799",
+          "value": "1700-01-01T00:00:00Z"
+        },
+        {
+          "count": 7,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1600/1699&fo=json&q=moon",
+          "term": "1600-01-01T00:00:00Z",
+          "title": "1600 to 1699",
+          "value": "1600-01-01T00:00:00Z"
+        },
+        {
+          "count": 11,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1500/1599&fo=json&q=moon",
+          "term": "1500-01-01T00:00:00Z",
+          "title": "1500 to 1599",
+          "value": "1500-01-01T00:00:00Z"
+        },
+        {
+          "count": 4,
+          "not": null,
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&dates=1400/1499&fo=json&q=moon",
+          "term": "1400-01-01T00:00:00Z",
+          "title": "1400 to 1499",
+          "value": "1400-01-01T00:00:00Z"
+        }
+      ],
+      "title": "Date",
+      "type": "dates"
+    },
+    {
+      "filters": [
+        {
+          "count": 451,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:united+states&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:united+states&fo=json&q=moon",
+          "title": "United States",
+          "value": "united states"
+        },
+        {
+          "count": 216,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:alabama&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:alabama&fo=json&q=moon",
+          "title": "Alabama",
+          "value": "alabama"
+        },
+        {
+          "count": 213,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:mobile&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:mobile&fo=json&q=moon",
+          "title": "Mobile",
+          "value": "mobile"
+        },
+        {
+          "count": 184,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:japan&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:japan&fo=json&q=moon",
+          "title": "Japan",
+          "value": "japan"
+        },
+        {
+          "count": 66,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:california&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:california&fo=json&q=moon",
+          "title": "California",
+          "value": "california"
+        },
+        {
+          "count": 66,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:new+york&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:new+york&fo=json&q=moon",
+          "title": "New York",
+          "value": "new york"
+        },
+        {
+          "count": 38,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:half+moon+bay&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:half+moon+bay&fo=json&q=moon",
+          "title": "Half Moon Bay",
+          "value": "half moon bay"
+        },
+        {
+          "count": 33,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:new+york+%28state%29&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:new+york+%28state%29&fo=json&q=moon",
+          "title": "New York (State)",
+          "value": "new york (state)"
+        },
+        {
+          "count": 32,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:washington+d.c.&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:washington+d.c.&fo=json&q=moon",
+          "title": "Washington D.C.",
+          "value": "washington d.c."
+        },
+        {
+          "count": 24,
+          "not": "https://www.loc.gov/photos/?c=2&fa=location!:moon&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=location:moon&fo=json&q=moon",
+          "title": "Moon",
+          "value": "moon"
+        }
+      ],
+      "index": "https://www.loc.gov/photos/index/location/?c=2&fo=json&q=moon&sp=1",
+      "title": "Location",
+      "type": "location"
+    },
+    {
+      "filters": [
+        {
+          "count": 1450,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:catalog&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:catalog&fo=json&q=moon",
+          "title": "Library of Congress Online Catalog",
+          "value": "catalog"
+        },
+        {
+          "count": 1384,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:prints+and+photographs+division&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:prints+and+photographs+division&fo=json&q=moon",
+          "title": "Prints and Photographs Division",
+          "value": "prints and photographs division"
+        },
+        {
+          "count": 819,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:prints+%26+photographs+online+catalog+%28library+of+congress%29&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:prints+%26+photographs+online+catalog+%28library+of+congress%29&fo=json&q=moon",
+          "title": "Prints & Photographs Online Catalog (Library of Congress)",
+          "value": "prints & photographs online catalog (library of congress)"
+        },
+        {
+          "count": 388,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:miscellaneous+items+in+high+demand&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:miscellaneous+items+in+high+demand&fo=json&q=moon",
+          "title": "Miscellaneous Items in High Demand",
+          "value": "miscellaneous items in high demand"
+        },
+        {
+          "count": 261,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:highsmith+%28carol+m.%29+archive&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:highsmith+%28carol+m.%29+archive&fo=json&q=moon",
+          "title": "Highsmith (Carol M.) Archive",
+          "value": "highsmith (carol m.) archive"
+        },
+        {
+          "count": 107,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:world+digital+library&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:world+digital+library&fo=json&q=moon",
+          "title": "World Digital Library",
+          "value": "world digital library"
+        },
+        {
+          "count": 107,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:world+digital+library+-+partner+items&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:world+digital+library+-+partner+items&fo=json&q=moon",
+          "title": "World Digital Library - Partner Items",
+          "value": "world digital library - partner items"
+        },
+        {
+          "count": 103,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:national+diet+library&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:national+diet+library&fo=json&q=moon",
+          "title": "National Diet Library",
+          "value": "national diet library"
+        },
+        {
+          "count": 99,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:american+folklife+center&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:american+folklife+center&fo=json&q=moon",
+          "title": "American Folklife Center",
+          "value": "american folklife center"
+        },
+        {
+          "count": 88,
+          "not": "https://www.loc.gov/photos/?c=2&fa=partof!:american+memory&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=partof:american+memory&fo=json&q=moon",
+          "title": "American Memory",
+          "value": "american memory"
+        }
+      ],
+      "index": "https://www.loc.gov/photos/index/partof/?c=2&fo=json&q=moon&sp=1",
+      "title": "Part of",
+      "type": "partof"
+    },
+    {
+      "filters": [
+        {
+          "count": 261,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:highsmith,+carol+m.&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:highsmith,+carol+m.&fo=json&q=moon",
+          "title": "Highsmith, Carol M.",
+          "value": "highsmith, carol m."
+        },
+        {
+          "count": 241,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:haghe,+louis&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:haghe,+louis&fo=json&q=moon",
+          "title": "Haghe, Louis",
+          "value": "haghe, louis"
+        },
+        {
+          "count": 241,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:roberts,+david&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:roberts,+david&fo=json&q=moon",
+          "title": "Roberts, David",
+          "value": "roberts, david"
+        },
+        {
+          "count": 102,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:tsukioka,+yoshitoshi&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:tsukioka,+yoshitoshi&fo=json&q=moon",
+          "title": "Tsukioka, Yoshitoshi",
+          "value": "tsukioka, yoshitoshi"
+        },
+        {
+          "count": 44,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:noguchi,+enkatsu&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:noguchi,+enkatsu&fo=json&q=moon",
+          "title": "Noguchi, Enkatsu",
+          "value": "noguchi, enkatsu"
+        },
+        {
+          "count": 43,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:yamamoto&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:yamamoto&fo=json&q=moon",
+          "title": "Yamamoto",
+          "value": "yamamoto"
+        },
+        {
+          "count": 40,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:block,+herbert&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:block,+herbert&fo=json&q=moon",
+          "title": "Block, Herbert",
+          "value": "block, herbert"
+        },
+        {
+          "count": 28,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:and%C5%8D,+hiroshige&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:and%C5%8D,+hiroshige&fo=json&q=moon",
+          "title": "Andō, Hiroshige",
+          "value": "andō, hiroshige"
+        },
+        {
+          "count": 28,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:historic+american+buildings+survey&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:historic+american+buildings+survey&fo=json&q=moon",
+          "title": "Historic American Buildings Survey",
+          "value": "historic american buildings survey"
+        },
+        {
+          "count": 21,
+          "not": "https://www.loc.gov/photos/?c=2&fa=contributor!:taiso,+yoshitoshi&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=contributor:taiso,+yoshitoshi&fo=json&q=moon",
+          "title": "Taiso, Yoshitoshi",
+          "value": "taiso, yoshitoshi"
+        }
+      ],
+      "index": "https://www.loc.gov/photos/index/contributor/?c=2&fo=json&q=moon&sp=1",
+      "title": "Contributor",
+      "type": "contributor"
+    },
+    {
+      "filters": [
+        {
+          "count": 686,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:color&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:color&fo=json&q=moon",
+          "title": "Color",
+          "value": "color"
+        },
+        {
+          "count": 425,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:united+states&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:united+states&fo=json&q=moon",
+          "title": "United States",
+          "value": "united states"
+        },
+        {
+          "count": 277,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:lithographs&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:lithographs&fo=json&q=moon",
+          "title": "Lithographs",
+          "value": "lithographs"
+        },
+        {
+          "count": 274,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:moon&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:moon&fo=json&q=moon",
+          "title": "Moon",
+          "value": "moon"
+        },
+        {
+          "count": 266,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:book+illustrations&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:book+illustrations&fo=json&q=moon",
+          "title": "Book Illustrations",
+          "value": "book illustrations"
+        },
+        {
+          "count": 265,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:digital+photographs&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:digital+photographs&fo=json&q=moon",
+          "title": "Digital Photographs",
+          "value": "digital photographs"
+        },
+        {
+          "count": 261,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:america&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:america&fo=json&q=moon",
+          "title": "America",
+          "value": "america"
+        },
+        {
+          "count": 215,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:alabama&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:alabama&fo=json&q=moon",
+          "title": "Alabama",
+          "value": "alabama"
+        },
+        {
+          "count": 213,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:mardi+gras&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:mardi+gras&fo=json&q=moon",
+          "title": "Mardi Gras",
+          "value": "mardi gras"
+        },
+        {
+          "count": 213,
+          "not": "https://www.loc.gov/photos/?c=2&fa=subject!:mobile&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=subject:mobile&fo=json&q=moon",
+          "title": "Mobile",
+          "value": "mobile"
+        }
+      ],
+      "index": "https://www.loc.gov/photos/index/subject/?c=2&fo=json&q=moon&sp=1",
+      "title": "Subject",
+      "type": "subject"
+    },
+    {
+      "filters": [
+        {
+          "count": 1486,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:english&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:english&fo=json&q=moon",
+          "title": "English",
+          "value": "english"
+        },
+        {
+          "count": 179,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:japanese&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:japanese&fo=json&q=moon",
+          "title": "Japanese",
+          "value": "japanese"
+        },
+        {
+          "count": 12,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:no+linguistic+content&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:no+linguistic+content&fo=json&q=moon",
+          "title": "No Linguistic Content",
+          "value": "no linguistic content"
+        },
+        {
+          "count": 12,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:not+applicable&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:not+applicable&fo=json&q=moon",
+          "title": "Not Applicable",
+          "value": "not applicable"
+        },
+        {
+          "count": 10,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:italian&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:italian&fo=json&q=moon",
+          "title": "Italian",
+          "value": "italian"
+        },
+        {
+          "count": 8,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:german&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:german&fo=json&q=moon",
+          "title": "German",
+          "value": "german"
+        },
+        {
+          "count": 5,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:french&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:french&fo=json&q=moon",
+          "title": "French",
+          "value": "french"
+        },
+        {
+          "count": 3,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:chinese&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:chinese&fo=json&q=moon",
+          "title": "Chinese",
+          "value": "chinese"
+        },
+        {
+          "count": 3,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:russian&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:russian&fo=json&q=moon",
+          "title": "Russian",
+          "value": "russian"
+        },
+        {
+          "count": 2,
+          "not": "https://www.loc.gov/photos/?c=2&fa=language!:spanish&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=language:spanish&fo=json&q=moon",
+          "title": "Spanish",
+          "value": "spanish"
+        }
+      ],
+      "index": "https://www.loc.gov/photos/index/language/?c=2&fo=json&q=moon&sp=1",
+      "title": "Language",
+      "type": "language"
+    },
+    {
+      "filters": [
+        {
+          "count": 1426,
+          "not": "https://www.loc.gov/photos/?c=2&fa=access-restricted!:false&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=access-restricted:false&fo=json&q=moon",
+          "title": "Available Online",
+          "value": "false"
+        },
+        {
+          "count": 182,
+          "not": "https://www.loc.gov/photos/?c=2&fa=access-restricted!:true&fo=json&q=moon",
+          "off": null,
+          "on": "https://www.loc.gov/photos/?c=2&fa=access-restricted:true&fo=json&q=moon",
+          "title": "Available at the Library of Congress Campus",
+          "value": "true"
+        }
+      ],
+      "title": "Access Condition",
+      "type": "access-restricted"
+    }
+  ],
+  "featured_items": [
+    {
+      "image": "/static/collections/cartoon-drawings/images/featured-nobel.jpg",
+      "title": "\"I won the Nobel Prize for literature. What was your crime?\" Bill Mauldin, 1958.",
+      "url": "/item/acd1999001613/PP/"
+    },
+    {
+      "image": "/static/collections/groups-of-images/images/featured-naacp.jpg",
+      "title": "NAACP photographs of civil rights marches, demonstrations, and lobbying activities to promote civil rights legislation at the national and local levels",
+      "url": "/item/95516562/"
+    },
+    {
+      "image": "/static/collections/historic-american-buildings-landscapes-and-engineering-records/images/featured-shrewsbury.jpg",
+      "title": "Captain Charles L. Shrewsbury House, Madison, Indiana. Jack Boucher, 1971.",
+      "url": "/item/in0131/"
+    },
+    {
+      "image": "/static/collections/tissandier/images/featured-paris.jpg",
+      "title": "Panorama de Paris, 1878",
+      "url": "/item/2002716354/"
+    },
+    {
+      "image": "/static/collections/genthe/images/featured-quake.jpg",
+      "title": "San Francisco earthquake and fire. Arnold Genthe, 1906.",
+      "url": "/item/agc1996000202/PP/"
+    },
+    {
+      "image": "/static/collections/world-war-i-posters/images/featured-emprunt.jpg",
+      "title": "2me Emprunt de la Defense Nationale . Alcide Robaudi, 1916.",
+      "url": "/item/99613513/"
+    },
+    {
+      "image": "/static/collections/women-of-protest/images/mnwp000272.jpg",
+      "title": "Frances Pepper and Elizabeth Smith working in the offices of The Suffragist, July 1916.",
+      "url": "/item/mnwp000272"
+    },
+    {
+      "image": "/static/collections/fine-prints/images/featured-steelworks.jpg",
+      "title": "Edgar Thomson’s Steel Works. Joseph Pennell, 1909",
+      "url": "/item/97517370/"
+    },
+    {
+      "image": "/static/collections/dolly-parton-and-the-roots-of-country-music/images/featured-dolly4.jpg",
+      "title": "Dolly Parton as Uncle Sam",
+      "url": "/item/ihas.200003676/"
+    },
+    {
+      "image": "/static/collections/fsa-owi-color-photographs/images/featured-statefair.jpg",
+      "title": "At the Vermont state fair, Rutland. Jack Delano, 1941",
+      "url": "/item/fsa1992000064/PP/"
+    },
+    {
+      "image": "/static/collections/henry-reed-fiddle-tunes/images/featured-jabbour-neal.jpg",
+      "title": "Alan Jabbour interviewing Henry Reed's son Neal at his home in Glen Lyn, Virginia, November 29, 1975.",
+      "url": "/item/afcreedp.03/"
+    },
+    {
+      "image": "/static/collections/quilts-and-quilt-making-in-america-from-1978-to-1996/images/br119r.jpg",
+      "title": "Quilt #1 (strip)",
+      "url": "/item/qlt000300"
+    },
+    {
+      "image": "/static/collections/ansel-adams-manzanar/images/featured-baseball-game.jpg",
+      "title": "Baseball game",
+      "url": "/item/2002695992"
+    },
+    {
+      "image": "/static/collections/quilts-and-quilt-making-in-america-from-1978-to-1996/images/br095r.jpg",
+      "title": "Star quilt",
+      "url": "/item/qlt000133"
+    },
+    {
+      "image": "/static/collections/detroit-publishing-company/images/featured-electric-tower.jpg",
+      "title": "Electric Tower at night, 1903",
+      "url": "/item/det1994009345/PP/"
+    },
+    {
+      "image": "/static/collections/van-vechten/images/featured-dali.jpg",
+      "title": "Salvador Dali, 1934",
+      "url": "/resource/cph.3c33965"
+    },
+    {
+      "image": "/static/collections/documentary-drawings/images/featured-family.jpg",
+      "title": "Family group. John Rubens Smith, 19809-1849",
+      "url": "/item/2011645486/"
+    },
+    {
+      "image": "/static/collections/jazz-photography-of-william-p-gottlieb/images/ledbelly.jpg",
+      "title": "[Portrait of Leadbelly, National Press Club, Washington, D.C., between 1938 and 1948]",
+      "url": "/item/gottlieb.13551/"
+    },
+    {
+      "image": "/static/collections/historic-american-buildings-landscapes-and-engineering-records/images/featured-windmill.jpg",
+      "title": "Beebe Windmill, Bridgehampton, New York. Jet Lowe, 1978.",
+      "url": "/item/ny1231/"
+    },
+    {
+      "image": "/static/collections/artists-posters/images/featured-donovan.jpg",
+      "title": "Donovan. Bonnie MacLean, 1967.",
+      "url": "/item/97504942/"
+    },
+    {
+      "image": "/static/collections/working-in-paterson/images/mcc01812r.jpg",
+      "title": "Altar boy with cross and men with banners at the head of the procession",
+      "url": "/item/afcwip001605"
+    },
+    {
+      "image": "/static/collections/g-eric-and-edith-matson-photographs/images/featured-sheikh.jpg",
+      "title": "Sheikh Sultan el-Atrash, leader of Druse revolt. American Colony Photo Dept., ca. 1926.",
+      "url": "/item/mpc2004002109/PP/"
+    },
+    {
+      "image": "/static/collections/architecture-design-and-engineering-drawings/images/featured-theatre.jpg",
+      "title": "Garrick Theatre (Schiller Theatre) and Wood's Theatre, Chicago, Illinois",
+      "url": "/item/2005676663/"
+    },
+    {
+      "image": "/static/collections/detroit-publishing-company/images/featured-architecture.jpg",
+      "title": "Trinity Church, Boston, 1901",
+      "url": "/item/det1994000154/PP/"
+    }
+  ],
+  "form_facets": {},
+  "image_url": [
+    "/static/images/original-format/photo-print-drawing.png"
+  ],
+  "manifest": "portals/photos/manifest.yaml",
+  "next": {
+    "active": false,
+    "api": "/photos/?fa=partof:digital+collections&c=40",
+    "disable_max_line_length": true,
+    "disable_navigation": true,
+    "link": "https://www.loc.gov/photos/collections/",
+    "pagination": "2 of 2",
+    "show_featured": true,
+    "slug": "collections",
+    "style": "gallery",
+    "title": "Collections with Photos, Prints, Drawings",
+    "url": "https://www.loc.gov/photos/collections/?st=gallery"
+  },
+  "next_sibling": {
+    "active": false,
+    "api": "/photos/?fa=partof:digital+collections&c=40",
+    "disable_max_line_length": true,
+    "disable_navigation": true,
+    "link": "https://www.loc.gov/photos/collections/",
+    "pagination": "2 of 2",
+    "show_featured": true,
+    "slug": "collections",
+    "style": "gallery",
+    "title": "Collections with Photos, Prints, Drawings",
+    "url": "https://www.loc.gov/photos/collections/?st=gallery"
+  },
+  "options": {
+    "access_group": [
+      ""
+    ],
+    "access_group_raw": "",
+    "all": null,
+    "api_version": "1",
+    "app_context": null,
+    "application_version": "$Revision$",
+    "attribute": null,
+    "attribute!": null,
+    "attribute_map": null,
+    "cache_tags": [
+      "wdlpartner",
+      "catalog-split-14",
+      "catalog",
+      "world-digital-library-partners",
+      "main-catalog-split-14",
+      "main-catalog",
+      "catalog-split-13",
+      "main-catalog-split-13"
+    ],
+    "callback": null,
+    "clip": null,
+    "clip_image_width": null,
+    "clip_rotation": null,
+    "content_filter": null,
+    "content_replacement": "",
+    "count": 2,
+    "dates": null,
+    "default_count": 25,
+    "delimiter": null,
+    "digital_id": null,
+    "display_level": null,
+    "distance": null,
+    "downloadOption": null,
+    "duration": 0.24085521697998047,
+    "embed": [],
+    "embed!": [],
+    "error_response_status": null,
+    "excludeTerms": null,
+    "facetLimits": "",
+    "facetPrefix": null,
+    "facet_count": null,
+    "facet_style": null,
+    "field": null,
+    "format": "json",
+    "hits": 1608,
+    "host": "www.loc.gov",
+    "ical": false,
+    "id": null,
+    "iiif": false,
+    "in": "original-format:photo, print, drawing",
+    "index": null,
+    "inputEncoding": "UTF-8",
+    "item": null,
+    "items": null,
+    "keys": null,
+    "language": null,
+    "latlong": null,
+    "method": "GET",
+    "newSearch": null,
+    "new_clip_url": false,
+    "onsite": false,
+    "operator": null,
+    "outputEncoding": "UTF-8",
+    "page_campaigns": [],
+    "path_info": "/photos/",
+    "port": "443",
+    "proxypath": null,
+    "query": "moon",
+    "query_string": "c=2&fo=json&q=moon",
+    "redirect_proxy": false,
+    "redirect_to_item": null,
+    "referer": "",
+    "region": "",
+    "release_id": 123456789,
+    "request_host": "www.loc.gov",
+    "request_params": {
+      "c": [
+        "2"
+      ],
+      "fo": [
+        "json"
+      ],
+      "q": "moon"
+    },
+    "request_url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon",
+    "resource": "",
+    "resource_sequence": null,
+    "scheme": "https",
+    "searchIn": "original-format:photo, print, drawing",
+    "searchTerms": "moon",
+    "segments": null,
+    "site_id": null,
+    "site_type": "photos",
+    "solrQuery": "",
+    "sortBy": null,
+    "sortOrder": null,
+    "startPage": null,
+    "style": null,
+    "suggested": null,
+    "target": null,
+    "template": "search/base",
+    "timestamp": 1784459923.1181319,
+    "type": "search",
+    "tz_aware": null,
+    "unionFacets": "",
+    "url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon",
+    "webcast_permalink": null
+  },
+  "pages": [
+    {
+      "active": true,
+      "children": [
+        {
+          "active": true,
+          "link": "https://www.loc.gov/photos/",
+          "pagination": "1 of 2",
+          "partof": [],
+          "results": [
+            {
+              "access_restricted": false,
+              "aka": [
+                "https://hdl.loc.gov/loc.wdl/wdl.15163",
+                "http://www.loc.gov/resource/gdcwdl.wdl_15163/",
+                "http://lccn.loc.gov/2021668966",
+                "http://www.loc.gov/resource/wdl.15163/",
+                "http://www.loc.gov/item/2021668966/"
+              ],
+              "campaigns": [],
+              "contributor": [
+                "chokuzan",
+                "tsukioka, yoshitoshi"
+              ],
+              "date": "1891-01-01",
+              "dates": [
+                "1891"
+              ],
+              "description": [
+                "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+              ],
+              "digitized": true,
+              "extract_timestamp": "2021-07-24T06:08:40.571Z",
+              "group": [
+                "wdlpartner",
+                "catalog-split-14",
+                "catalog",
+                "world-digital-library-partners",
+                "main-catalog-split-14",
+                "main-catalog"
+              ],
+              "hassegments": false,
+              "id": "http://www.loc.gov/item/2021668966/",
+              "image_url": [
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg#h=270&w=186",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:12.5/0/default.jpg#h=540&w=372",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:25/0/default.jpg#h=1081&w=744",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:50/0/default.jpg#h=2163&w=1488",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:100/0/default.jpg#h=4326&w=2976"
+              ],
+              "index": 1,
+              "item": {
+                "contributors": [
+                  "Chokuzan Engraver.",
+                  "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+                ],
+                "created_published": [
+                  "Tokyo, Japan : Akiyama Buemon, 1891."
+                ],
+                "date": "1891",
+                "digital_id": [
+                  "https://hdl.loc.gov/loc.wdl/wdl.15163"
+                ],
+                "format": [
+                  "still image"
+                ],
+                "language": [
+                  "jpn"
+                ],
+                "medium": [
+                  "1 online resource."
+                ],
+                "notes": [
+                  "Title devised, in English, by Library staff.",
+                  "\"Name of engraver from Stevenson's Yoshitoshi's One Hundred Aspects of the Moon.\"--Note extracted from World Digital Library.",
+                  "Original resource extent: Polychrome wood block print.",
+                  "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+                  "Original resource at: National Diet Library.",
+                  "Content in Japanese.",
+                  "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+                ],
+                "source_collection": [
+                  "One Hundred Aspects of the Moon"
+                ],
+                "subjects": [
+                  "Japan",
+                  "1891",
+                  "Art, Japanese",
+                  "Flute",
+                  "Folklore",
+                  "Horses",
+                  "Moon",
+                  "Ukiyo-e",
+                  "Woodcuts",
+                  "Zither"
+                ],
+                "summary": [
+                  "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+                ],
+                "title": "One Hundred Aspects of the Moon: Saga Moor Moon."
+              },
+              "language": [
+                "japanese"
+              ],
+              "location": [
+                "japan"
+              ],
+              "location_country": [
+                "japan"
+              ],
+              "mime_type": [
+                "application/zip",
+                "image/jpeg",
+                "image/jp2"
+              ],
+              "number": [
+                "2021668966",
+                "2021-07-15t08:23:07"
+              ],
+              "number_lccn": [
+                "2021668966"
+              ],
+              "number_source_modified": [
+                "2021-07-15t08:23:07"
+              ],
+              "online_format": [
+                "compressed data",
+                "image"
+              ],
+              "original_format": [
+                "photo, print, drawing"
+              ],
+              "partof": [
+                "world digital library - partner items",
+                "world digital library",
+                "national diet library",
+                "catalog"
+              ],
+              "resources": [
+                {
+                  "files": 1,
+                  "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+                  "url": "https://www.loc.gov/resource/gdcwdl.wdl_15163/",
+                  "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/16/3/wdl_15163/wdl_15163.zip"
+                }
+              ],
+              "shelf_id": "http://lccn.loc.gov/2021668966",
+              "site": [
+                "catalog"
+              ],
+              "subject": [
+                "horses",
+                "flute",
+                "japan",
+                "zither",
+                "folklore",
+                "ukiyo-e",
+                "moon",
+                "art, japanese",
+                "woodcuts"
+              ],
+              "timestamp": "2022-09-11T21:45:10.234Z",
+              "title": "One Hundred Aspects of the Moon: Saga Moor Moon.",
+              "type": [
+                "still image"
+              ],
+              "url": "https://www.loc.gov/item/2021668966/"
+            },
+            {
+              "access_restricted": false,
+              "aka": [
+                "http://lccn.loc.gov/2021669012",
+                "http://www.loc.gov/resource/wdl.15209/",
+                "https://hdl.loc.gov/loc.wdl/wdl.15209",
+                "http://www.loc.gov/resource/gdcwdl.wdl_15209/",
+                "http://www.loc.gov/item/2021669012/"
+              ],
+              "campaigns": [],
+              "contributor": [
+                "noguchi, enkatsu",
+                "tsukioka, yoshitoshi"
+              ],
+              "date": "1889-01-01",
+              "dates": [
+                "1889"
+              ],
+              "description": [
+                "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+              ],
+              "digitized": true,
+              "extract_timestamp": "2021-07-24T06:08:54.237Z",
+              "group": [
+                "wdlpartner",
+                "catalog-split-13",
+                "catalog",
+                "world-digital-library-partners",
+                "main-catalog-split-13",
+                "main-catalog"
+              ],
+              "hassegments": false,
+              "id": "http://www.loc.gov/item/2021669012/",
+              "image_url": [
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg#h=276&w=187",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:12.5/0/default.jpg#h=552&w=375",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:25/0/default.jpg#h=1104&w=750",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:50/0/default.jpg#h=2208&w=1500",
+                "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:100/0/default.jpg#h=4416&w=3000"
+              ],
+              "index": 2,
+              "item": {
+                "contributors": [
+                  "Noguchi, Enkatsu Engraver.",
+                  "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+                ],
+                "created_published": [
+                  "Tokyo, Japan : Akiyama Buemon, 1889."
+                ],
+                "date": "1889",
+                "digital_id": [
+                  "https://hdl.loc.gov/loc.wdl/wdl.15209"
+                ],
+                "format": [
+                  "still image"
+                ],
+                "language": [
+                  "jpn"
+                ],
+                "medium": [
+                  "1 online resource."
+                ],
+                "notes": [
+                  "Title devised, in English, by Library staff.",
+                  "Original resource extent: Polychrome wood block print.",
+                  "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+                  "Original resource at: National Diet Library.",
+                  "Content in Japanese.",
+                  "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+                ],
+                "source_collection": [
+                  "One Hundred Aspects of the Moon"
+                ],
+                "subjects": [
+                  "Japan--Tokyo",
+                  "1889",
+                  "Art, Japanese",
+                  "Cherry trees",
+                  "Moon",
+                  "Samurai",
+                  "Ukiyo-e",
+                  "Woodcuts"
+                ],
+                "summary": [
+                  "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+                ],
+                "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai."
+              },
+              "language": [
+                "japanese"
+              ],
+              "location": [
+                "tokyo",
+                "japan"
+              ],
+              "location_country": [
+                "japan"
+              ],
+              "location_state": [
+                "tokyo"
+              ],
+              "mime_type": [
+                "application/zip",
+                "image/jpeg",
+                "image/jp2"
+              ],
+              "number": [
+                "2021-07-15t08:23:22",
+                "2021669012"
+              ],
+              "number_lccn": [
+                "2021669012"
+              ],
+              "number_source_modified": [
+                "2021-07-15t08:23:22"
+              ],
+              "online_format": [
+                "compressed data",
+                "image"
+              ],
+              "original_format": [
+                "photo, print, drawing"
+              ],
+              "partof": [
+                "world digital library - partner items",
+                "world digital library",
+                "national diet library",
+                "catalog"
+              ],
+              "resources": [
+                {
+                  "files": 1,
+                  "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+                  "url": "https://www.loc.gov/resource/gdcwdl.wdl_15209/",
+                  "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/20/9/wdl_15209/wdl_15209.zip"
+                }
+              ],
+              "shelf_id": "http://lccn.loc.gov/2021669012",
+              "site": [
+                "catalog"
+              ],
+              "subject": [
+                "samurai",
+                "japan",
+                "cherry trees",
+                "ukiyo-e",
+                "tokyo",
+                "moon",
+                "art, japanese",
+                "woodcuts"
+              ],
+              "timestamp": "2022-09-11T21:45:38.072Z",
+              "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai.",
+              "type": [
+                "still image"
+              ],
+              "url": "https://www.loc.gov/item/2021669012/"
+            }
+          ],
+          "slug": "",
+          "title": "Search Photos, Prints, Drawings",
+          "url": "https://www.loc.gov/photos/"
+        }
+      ],
+      "link": "https://www.loc.gov/photos/",
+      "pagination": "1 of 2",
+      "slug": "",
+      "title": "Search Photos, Prints, Drawings",
+      "url": "https://www.loc.gov/photos/"
+    },
+    {
+      "active": false,
+      "api": "/photos/?fa=partof:digital+collections&c=40",
+      "disable_max_line_length": true,
+      "disable_navigation": true,
+      "link": "https://www.loc.gov/photos/collections/",
+      "pagination": "2 of 2",
+      "show_featured": true,
+      "slug": "collections",
+      "style": "gallery",
+      "title": "Collections with Photos, Prints, Drawings",
+      "url": "https://www.loc.gov/photos/collections/?st=gallery"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "first": null,
+    "from": 1,
+    "last": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&sp=4",
+    "next": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&sp=2",
+    "of": 1608,
+    "page_list": [
+      {
+        "number": 1,
+        "url": null
+      },
+      {
+        "number": 2,
+        "url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&sp=2"
+      },
+      {
+        "number": 3,
+        "url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&sp=3"
+      },
+      {
+        "number": "...",
+        "url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&sp=4"
+      }
+    ],
+    "perpage": 2,
+    "perpage_options": [
+      25,
+      50,
+      100,
+      150
+    ],
+    "previous": null,
+    "results": "1 - 2",
+    "to": 2,
+    "total": 804
+  },
+  "portal": true,
+  "portal_label": "Format",
+  "previous": null,
+  "previous_sibling": null,
+  "results": [
+    {
+      "access_restricted": false,
+      "aka": [
+        "https://hdl.loc.gov/loc.wdl/wdl.15163",
+        "http://www.loc.gov/resource/gdcwdl.wdl_15163/",
+        "http://lccn.loc.gov/2021668966",
+        "http://www.loc.gov/resource/wdl.15163/",
+        "http://www.loc.gov/item/2021668966/"
+      ],
+      "campaigns": [],
+      "contributor": [
+        "chokuzan",
+        "tsukioka, yoshitoshi"
+      ],
+      "date": "1891-01-01",
+      "dates": [
+        "1891"
+      ],
+      "description": [
+        "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+      ],
+      "digitized": true,
+      "extract_timestamp": "2021-07-24T06:08:40.571Z",
+      "group": [
+        "wdlpartner",
+        "catalog-split-14",
+        "catalog",
+        "world-digital-library-partners",
+        "main-catalog-split-14",
+        "main-catalog"
+      ],
+      "hassegments": false,
+      "id": "http://www.loc.gov/item/2021668966/",
+      "image_url": [
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg#h=270&w=186",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:12.5/0/default.jpg#h=540&w=372",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:25/0/default.jpg#h=1081&w=744",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:50/0/default.jpg#h=2163&w=1488",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:100/0/default.jpg#h=4326&w=2976"
+      ],
+      "index": 1,
+      "item": {
+        "contributors": [
+          "Chokuzan Engraver.",
+          "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+        ],
+        "created_published": [
+          "Tokyo, Japan : Akiyama Buemon, 1891."
+        ],
+        "date": "1891",
+        "digital_id": [
+          "https://hdl.loc.gov/loc.wdl/wdl.15163"
+        ],
+        "format": [
+          "still image"
+        ],
+        "language": [
+          "jpn"
+        ],
+        "medium": [
+          "1 online resource."
+        ],
+        "notes": [
+          "Title devised, in English, by Library staff.",
+          "\"Name of engraver from Stevenson's Yoshitoshi's One Hundred Aspects of the Moon.\"--Note extracted from World Digital Library.",
+          "Original resource extent: Polychrome wood block print.",
+          "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+          "Original resource at: National Diet Library.",
+          "Content in Japanese.",
+          "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+        ],
+        "source_collection": [
+          "One Hundred Aspects of the Moon"
+        ],
+        "subjects": [
+          "Japan",
+          "1891",
+          "Art, Japanese",
+          "Flute",
+          "Folklore",
+          "Horses",
+          "Moon",
+          "Ukiyo-e",
+          "Woodcuts",
+          "Zither"
+        ],
+        "summary": [
+          "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+        ],
+        "title": "One Hundred Aspects of the Moon: Saga Moor Moon."
+      },
+      "language": [
+        "japanese"
+      ],
+      "location": [
+        "japan"
+      ],
+      "location_country": [
+        "japan"
+      ],
+      "mime_type": [
+        "application/zip",
+        "image/jpeg",
+        "image/jp2"
+      ],
+      "number": [
+        "2021668966",
+        "2021-07-15t08:23:07"
+      ],
+      "number_lccn": [
+        "2021668966"
+      ],
+      "number_source_modified": [
+        "2021-07-15t08:23:07"
+      ],
+      "online_format": [
+        "compressed data",
+        "image"
+      ],
+      "original_format": [
+        "photo, print, drawing"
+      ],
+      "partof": [
+        "world digital library - partner items",
+        "world digital library",
+        "national diet library",
+        "catalog"
+      ],
+      "resources": [
+        {
+          "files": 1,
+          "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg",
+          "url": "https://www.loc.gov/resource/gdcwdl.wdl_15163/",
+          "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/16/3/wdl_15163/wdl_15163.zip"
+        }
+      ],
+      "shelf_id": "http://lccn.loc.gov/2021668966",
+      "site": [
+        "catalog"
+      ],
+      "subject": [
+        "horses",
+        "flute",
+        "japan",
+        "zither",
+        "folklore",
+        "ukiyo-e",
+        "moon",
+        "art, japanese",
+        "woodcuts"
+      ],
+      "timestamp": "2022-09-11T21:45:10.234Z",
+      "title": "One Hundred Aspects of the Moon: Saga Moor Moon.",
+      "type": [
+        "still image"
+      ],
+      "url": "https://www.loc.gov/item/2021668966/"
+    },
+    {
+      "access_restricted": false,
+      "aka": [
+        "http://lccn.loc.gov/2021669012",
+        "http://www.loc.gov/resource/wdl.15209/",
+        "https://hdl.loc.gov/loc.wdl/wdl.15209",
+        "http://www.loc.gov/resource/gdcwdl.wdl_15209/",
+        "http://www.loc.gov/item/2021669012/"
+      ],
+      "campaigns": [],
+      "contributor": [
+        "noguchi, enkatsu",
+        "tsukioka, yoshitoshi"
+      ],
+      "date": "1889-01-01",
+      "dates": [
+        "1889"
+      ],
+      "description": [
+        "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+      ],
+      "digitized": true,
+      "extract_timestamp": "2021-07-24T06:08:54.237Z",
+      "group": [
+        "wdlpartner",
+        "catalog-split-13",
+        "catalog",
+        "world-digital-library-partners",
+        "main-catalog-split-13",
+        "main-catalog"
+      ],
+      "hassegments": false,
+      "id": "http://www.loc.gov/item/2021669012/",
+      "image_url": [
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg#h=276&w=187",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:12.5/0/default.jpg#h=552&w=375",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:25/0/default.jpg#h=1104&w=750",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:50/0/default.jpg#h=2208&w=1500",
+        "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:100/0/default.jpg#h=4416&w=3000"
+      ],
+      "index": 2,
+      "item": {
+        "contributors": [
+          "Noguchi, Enkatsu Engraver.",
+          "Tsukioka, Yoshitoshi, 1839-1892 Artist."
+        ],
+        "created_published": [
+          "Tokyo, Japan : Akiyama Buemon, 1889."
+        ],
+        "date": "1889",
+        "digital_id": [
+          "https://hdl.loc.gov/loc.wdl/wdl.15209"
+        ],
+        "format": [
+          "still image"
+        ],
+        "language": [
+          "jpn"
+        ],
+        "medium": [
+          "1 online resource."
+        ],
+        "notes": [
+          "Title devised, in English, by Library staff.",
+          "Original resource extent: Polychrome wood block print.",
+          "Reference extracted from World Digital Library: John Stevenson, Yoshitoshi's One Hundred Aspects of the Moon (Leiden: Hotei Publishing, 2001).|Iwakiri Yuriko, Yoshitoshi Tuki Hyakushi (Tokyo: Tokyodo Shuppan, 2010).",
+          "Original resource at: National Diet Library.",
+          "Content in Japanese.",
+          "Description based on data extracted from World Digital Library, which may be extracted from partner institutions."
+        ],
+        "source_collection": [
+          "One Hundred Aspects of the Moon"
+        ],
+        "subjects": [
+          "Japan--Tokyo",
+          "1889",
+          "Art, Japanese",
+          "Cherry trees",
+          "Moon",
+          "Samurai",
+          "Ukiyo-e",
+          "Woodcuts"
+        ],
+        "summary": [
+          "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years."
+        ],
+        "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai."
+      },
+      "language": [
+        "japanese"
+      ],
+      "location": [
+        "tokyo",
+        "japan"
+      ],
+      "location_country": [
+        "japan"
+      ],
+      "location_state": [
+        "tokyo"
+      ],
+      "mime_type": [
+        "application/zip",
+        "image/jpeg",
+        "image/jp2"
+      ],
+      "number": [
+        "2021-07-15t08:23:22",
+        "2021669012"
+      ],
+      "number_lccn": [
+        "2021669012"
+      ],
+      "number_source_modified": [
+        "2021-07-15t08:23:22"
+      ],
+      "online_format": [
+        "compressed data",
+        "image"
+      ],
+      "original_format": [
+        "photo, print, drawing"
+      ],
+      "partof": [
+        "world digital library - partner items",
+        "world digital library",
+        "national diet library",
+        "catalog"
+      ],
+      "resources": [
+        {
+          "files": 1,
+          "image": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg",
+          "url": "https://www.loc.gov/resource/gdcwdl.wdl_15209/",
+          "zip": "https://tile.loc.gov/storage-services/service/gdc/gdcwdl/wd/l_/15/20/9/wdl_15209/wdl_15209.zip"
+        }
+      ],
+      "shelf_id": "http://lccn.loc.gov/2021669012",
+      "site": [
+        "catalog"
+      ],
+      "subject": [
+        "samurai",
+        "japan",
+        "cherry trees",
+        "ukiyo-e",
+        "tokyo",
+        "moon",
+        "art, japanese",
+        "woodcuts"
+      ],
+      "timestamp": "2022-09-11T21:45:38.072Z",
+      "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai.",
+      "type": [
+        "still image"
+      ],
+      "url": "https://www.loc.gov/item/2021669012/"
+    }
+  ],
+  "search": {
+    "dates": null,
+    "facet_limits": "",
+    "field": null,
+    "hits": 1608,
+    "in": "original-format:photo, print, drawing",
+    "query": "moon",
+    "recommended": 0,
+    "site": {},
+    "sort_by": null,
+    "type": "search",
+    "union_facets": "",
+    "url": "https://www.loc.gov/photos/?c=2&fo=json&q=moon"
+  },
+  "shards": [
+    "00",
+    "01",
+    "08"
+  ],
+  "site_type": "photos",
+  "timestamp": 1784459923359,
+  "title": "Photos, Prints, Drawings",
+  "type": "context-portal",
+  "views": {
+    "brief": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&st=brief",
+    "current": "list",
+    "gallery": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&st=gallery",
+    "grid": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&st=grid",
+    "list": "https://www.loc.gov/photos/?c=2&fo=json&q=moon",
+    "slideshow": "https://www.loc.gov/photos/?c=2&fo=json&q=moon&st=slideshow"
+  }
+}

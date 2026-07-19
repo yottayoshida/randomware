@@ -41,7 +41,9 @@ async function capture(broker, entry, operation) {
 
 async function main() {
   const broker = new Broker({ fixtureMode: 'raw', fixtureRoot: root });
+  const requested = new Set(process.argv.slice(2));
   for (const entry of registry) {
+    if (requested.size && !requested.has(entry.id)) continue;
     for (const operation of entry.operations) {
       const target = path.join(root, operation.adaptedFixturePath);
       const fixture = await capture(broker, entry, operation);
@@ -49,7 +51,7 @@ async function main() {
       fs.writeFileSync(target, `${JSON.stringify(fixture, null, 2)}\n`);
     }
   }
-  console.log(`adapted fixtures written through production adapters (${registry.length} entries)`);
+  console.log(`adapted fixtures written through production adapters (${requested.size || registry.length} entries)`);
 }
 
 if (require.main === module) main().catch((error) => { console.error(error); process.exitCode = 1; });

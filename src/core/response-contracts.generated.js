@@ -526,6 +526,129 @@ module.exports = Object.freeze({
       "$.mediaUrl": "scalar"
     }
   },
+  "loc-photos.json": {
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "contributors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "maxItems": 20
+              },
+              "date": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "id": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "imageUrl": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "maxItems": 20
+              },
+              "recordUrl": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "subjects": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "maxItems": 20
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "contributors",
+              "date",
+              "description",
+              "id",
+              "imageUrl",
+              "locations",
+              "recordUrl",
+              "subjects",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "results"
+      ],
+      "additionalProperties": false
+    },
+    "responseExample": {
+      "results": [
+        {
+          "id": "http://www.loc.gov/item/2021668966/",
+          "title": "One Hundred Aspects of the Moon: Saga Moor Moon.",
+          "date": "1891-01-01",
+          "contributors": [
+            "chokuzan"
+          ],
+          "description": "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukiok",
+          "subjects": [
+            "horses"
+          ],
+          "locations": [
+            "japan"
+          ],
+          "recordUrl": "https://www.loc.gov/item/2021668966/",
+          "imageUrl": "https://randomware.example/api/runtime/asset/golden-asset-loc-photos-search"
+        }
+      ]
+    },
+    "semanticFieldPaths": [
+      "results[0].title",
+      "results[0].contributors[0]",
+      "results[0].description"
+    ],
+    "shapeSignature": {
+      "$": "object",
+      "$.results": "array",
+      "$.results[]": "object",
+      "$.results[].contributors": "array",
+      "$.results[].contributors[]": "scalar",
+      "$.results[].date": "scalar",
+      "$.results[].description": "scalar",
+      "$.results[].id": "scalar",
+      "$.results[].imageUrl": "scalar",
+      "$.results[].locations": "array",
+      "$.results[].locations[]": "scalar",
+      "$.results[].recordUrl": "scalar",
+      "$.results[].subjects": "array",
+      "$.results[].subjects[]": "scalar",
+      "$.results[].title": "scalar"
+    }
+  },
   "met-museum.json": {
     "outputSchema": {
       "type": "object",
@@ -768,6 +891,101 @@ module.exports = Object.freeze({
       "$[].name": "scalar",
       "$[].types": "array",
       "$[].types[]": "scalar"
+    }
+  },
+  "nasa-images.json": {
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "center": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "dateCreated": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "imageUrl": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 4000
+                },
+                "maxItems": 20
+              },
+              "nasaId": {
+                "type": "string",
+                "maxLength": 4000
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "required": [
+              "center",
+              "dateCreated",
+              "description",
+              "imageUrl",
+              "keywords",
+              "nasaId",
+              "title"
+            ],
+            "additionalProperties": false
+          },
+          "maxItems": 20
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "additionalProperties": false
+    },
+    "responseExample": {
+      "items": [
+        {
+          "nasaId": "PIA12348",
+          "title": "Great Observatories Unique Views of the Milky Way",
+          "description": "In celebration of the International Year of Astronomy 2009, NASA's Great Observatories -- the Hubble Space Telescope, the Spitzer Space Telescope, and the Chand",
+          "dateCreated": "2009-11-10T17:55:16Z",
+          "center": "JPL",
+          "keywords": [
+            "Chandra X-ray Observatory,Hubble Space Telescope,Spitzer Space T"
+          ],
+          "imageUrl": "https://randomware.example/api/runtime/asset/golden-asset-nasa-images-search"
+        }
+      ]
+    },
+    "semanticFieldPaths": [
+      "items[0].title",
+      "items[0].nasaId",
+      "items[0].description"
+    ],
+    "shapeSignature": {
+      "$": "object",
+      "$.items": "array",
+      "$.items[]": "object",
+      "$.items[].center": "scalar",
+      "$.items[].dateCreated": "scalar",
+      "$.items[].description": "scalar",
+      "$.items[].imageUrl": "scalar",
+      "$.items[].keywords": "array",
+      "$.items[].keywords[]": "scalar",
+      "$.items[].nasaId": "scalar",
+      "$.items[].title": "scalar"
     }
   },
   "open-food-facts.json": {

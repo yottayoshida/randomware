@@ -35,7 +35,7 @@ test('server supports spin, concept, artifact, creation, and opaque run routes',
   assert.match(ownerHtml, /Randomware showcase/);
   assert.match(ownerHtml, /See other specimens/);
   assert.match(ownerHtml, /Spin your own/);
-  assert.match(ownerHtml, /— get /);
+  assert.match(ownerHtml, /<li class="category-[^"]+">[\s\S]*?<a href="https:\/\/[^"]+">[^<]+<\/a> — [^<]+<\/li>/);
   assert.match(ownerHtml, /docs|github|api/i);
   assert.match(ownerHtml, /<link rel="stylesheet" href="\/creation\.css">/);
   assert.doesNotMatch(ownerHtml, /<style[\s>]/);

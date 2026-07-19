@@ -116,7 +116,7 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         const stream = limitedStream(upstream.response.body, remaining, cleanup);
         const passHeaders = {}; for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
-        res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'same-origin', ...passHeaders, ...mediaReadCors });
+        res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'cross-origin', ...passHeaders, ...mediaReadCors });
         const reader = stream.getReader();
         const abortPump = () => { void reader.cancel('media_client_aborted'); };
         req.once('aborted', abortPump); res.once('close', abortPump);

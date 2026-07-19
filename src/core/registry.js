@@ -6,11 +6,11 @@ const deepFreeze = (value) => {
 
 const responseContracts = require('./response-contracts.generated');
 
-const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000, maxRawBytes = 200_000) => ({
+const operation = (id, description, pathTemplate, fixturePath, timeoutMs = 4000, maxRawBytes = 200_000, cacheTtlSeconds = 30) => ({
   id, description, method: 'GET', pathTemplate, fixturePath, adaptedFixturePath: `docs/api-candidates/adapted/${fixturePath}`, timeoutMs,
   paramsSchema: { type: 'object', additionalProperties: false },
   ...responseContracts[fixturePath],
-  maxRawBytes, cacheTtlSeconds: 30, adapt: 'bounded-json'
+  maxRawBytes, cacheTtlSeconds, adapt: 'bounded-json'
 });
 
 const assetPolicies = {
@@ -23,7 +23,9 @@ const assetPolicies = {
   tvmaze: { allowedHosts: ['static.tvmaze.com'], resolvedPaths: ['*.show.image.medium', '*.show.image.original'] },
   rickandmorty: { allowedHosts: ['rickandmortyapi.com'], resolvedPaths: ['image'] },
   'open-food-facts': { allowedHosts: ['images.openfoodfacts.org'], resolvedPaths: ['product.image_url'] },
-  themealdb: { allowedHosts: ['www.themealdb.com'], resolvedPaths: ['meals.*.strMealThumb'] }
+  themealdb: { allowedHosts: ['www.themealdb.com'], resolvedPaths: ['meals.*.strMealThumb'] },
+  'nasa-images': { allowedHosts: ['images-assets.nasa.gov'], resolvedPaths: ['items.*.imageUrl'] },
+  'loc-photos': { allowedHosts: ['tile.loc.gov'], resolvedPaths: ['results.*.imageUrl'] }
 };
 
 const rows = [
@@ -44,21 +46,23 @@ const rows = [
   ['rickandmorty', 'Rick and Morty API', 'characters', 'https://rickandmortyapi.com/documentation', 'https://rickandmortyapi.com/about', ['rickandmortyapi.com'], operation('character', 'get a character', '/api/character/1', 'rickandmorty.json')],
   ['open-food-facts', 'Open Food Facts', 'food', 'https://openfoodfacts.github.io/openfoodfacts-server/api/', 'https://world.openfoodfacts.org/terms-of-use', ['world.openfoodfacts.org', 'images.openfoodfacts.org'], operation('product', 'get a product by barcode', '/api/v3/product/3017624010701.json?fields=code,product_name,brands,nutriscore_grade,image_url', 'open-food-facts.json')],
   ['librivox', 'LibriVox', 'books', 'https://librivox.org/api/info', 'https://librivox.org/pages/public-domain/', ['librivox.org', 'archive.org'], operation('book', 'get a public-domain audiobook', '/api/feed/audiobooks/?id=47&format=json&fields=id,title,authors,url_librivox,url_rss,url_zip_file', 'librivox.json', 10000)],
-  ['themealdb', 'TheMealDB', 'food', 'https://www.themealdb.com/docs_api_guide.php', 'https://www.themealdb.com/terms_of_use.php', ['www.themealdb.com'], operation('meal', 'get a meal', '/api/json/v1/1/random.php', 'themealdb.json')]
+  ['themealdb', 'TheMealDB', 'food', 'https://www.themealdb.com/docs_api_guide.php', 'https://www.themealdb.com/terms_of_use.php', ['www.themealdb.com'], operation('meal', 'get a meal', '/api/json/v1/1/random.php', 'themealdb.json')],
+  ['nasa-images', 'NASA Image and Video Library', 'visual', 'https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf', 'https://www.nasa.gov/nasa-brand-center/images-and-media/', ['images-api.nasa.gov', 'images-assets.nasa.gov'], operation('search', 'find a NASA image', '/search?q=PIA12348&media_type=image', 'nasa-images.json', 4000, 200_000, 300)],
+  ['loc-photos', 'Library of Congress Photos', 'visual', 'https://www.loc.gov/apis/json-and-yaml/', 'https://www.loc.gov/legal/', ['www.loc.gov', 'tile.loc.gov'], operation('search', 'find a Library of Congress photograph', '/photos/?q=moon&fo=json&c=2', 'loc-photos.json', 6000, 200_000, 300)]
 ];
 
 const symbols = Object.freeze({
   'dog-ceo': '🐕', 'open-meteo': '🌤️', frankfurter: '💱', 'usgs-quakes': '🌋', rickandmorty: '🛸',
   'deck-of-cards': '🃏', datamuse: '🔤', randomuser: '👤', 'open-food-facts': '🥫', 'radio-browser': '📻',
   librivox: '🎧', artic: '🖼️', 'met-museum': '🏛️', tvmaze: '📺', poetrydb: '📜',
-  'wiki-onthisday': '📅', 'nager-date': '🗓️', themealdb: '🍲'
+  'wiki-onthisday': '📅', 'nager-date': '🗓️', themealdb: '🍲', 'nasa-images': '🪐', 'loc-photos': '📚'
 });
 
 const registry = deepFreeze(rows.map(([id, name, category, docsUrl, termsUrl, upstreamHosts, op]) => ({
   id, name, symbol: symbols[id], category, capability: op.description, semanticTags: [category, 'public', 'bounded'], sensory: ['visual', 'audio', 'geo'].includes(category) ? [category] : [],
   docsUrl, termsUrl, attribution: { text: `${name} attribution`, url: docsUrl, license: 'provider terms' },
   upstreamHosts, assetPolicy: { ...(assetPolicies[id] || { allowedHosts: [], resolvedPaths: [] }), variableMediaHost: category === 'audio' },
-  fixturePath: `docs/api-candidates/samples/${op.fixturePath}`, defaultWeight: 1, dailyBudget: 250,
+  fixturePath: `docs/api-candidates/samples/${op.fixturePath}`, defaultWeight: 1, dailyBudget: id === 'loc-photos' ? 240 : 250,
   operations: [op]
 })));
 

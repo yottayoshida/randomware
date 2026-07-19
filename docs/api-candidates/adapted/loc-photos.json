@@ -1,0 +1,80 @@
+{
+  "apiId": "loc-photos",
+  "operationId": "search",
+  "data": {
+    "results": [
+      {
+        "id": "http://www.loc.gov/item/2021668966/",
+        "title": "One Hundred Aspects of the Moon: Saga Moor Moon.",
+        "date": "1891-01-01",
+        "contributors": [
+          "chokuzan",
+          "tsukioka, yoshitoshi"
+        ],
+        "description": "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years.",
+        "subjects": [
+          "horses",
+          "flute",
+          "japan",
+          "zither",
+          "folklore",
+          "ukiyo-e",
+          "moon",
+          "art, japanese"
+        ],
+        "locations": [
+          "japan"
+        ],
+        "recordUrl": "https://www.loc.gov/item/2021668966/",
+        "imageUrl": "https://randomware.example/api/runtime/asset/golden-asset-loc-photos-search"
+      },
+      {
+        "id": "http://www.loc.gov/item/2021669012/",
+        "title": "One Hundred Aspects of the Moon: Shinobugaoka Moon - Gyokuensai.",
+        "date": "1889-01-01",
+        "contributors": [
+          "noguchi, enkatsu",
+          "tsukioka, yoshitoshi"
+        ],
+        "description": "This print is from Tsuki hyakushi (One hundred aspects of the moon), a collection of 100 large, moon-themed nishiki-e (multicolored woodblock prints) by Tsukioka Yoshitoshi (1839-92). The prints were published in batches by Akiyama Buemon between 1885 and 1892. They depict various aspects of the moon, drawing upon Japanese and Chinese anecdotes, historical events, and mythology, and relate to a wide range of subjects, including famous warriors, notable women, birds and animals, and goblins and ghosts. The print is contained in a folding book consisting of all 100 prints from Tsuki hyakushi and two indexes that were created after the series was completed. It is believed to have been bound by its former owner. A preface that was written at the same time as the indexes were compiled is not included in the book. Scholars believe that the order of the pictures in the album does not follow the order in which they were published, but instead their order in the indexes, although there are some variations. Tsukioka Yoshitoshi was an ukiyo-e artist from the school of Utagawa Kuniyoshi (1797--1861), active from the Bakumatsu (final years of the Shogunate) into the Meiji Period. He created a wide range of works, including bijin-ga (pictures of beautiful women), fuzoku-ga (pictures of manners and customs), and pictures of historical and literary characters. Completed in the year that he died, this series is highly regarded as the masterpiece of his later years.",
+        "subjects": [
+          "samurai",
+          "japan",
+          "cherry trees",
+          "ukiyo-e",
+          "tokyo",
+          "moon",
+          "art, japanese",
+          "woodcuts"
+        ],
+        "locations": [
+          "tokyo",
+          "japan"
+        ],
+        "recordUrl": "https://www.loc.gov/item/2021669012/",
+        "imageUrl": "https://randomware.example/api/runtime/asset/golden-asset-loc-photos-search"
+      }
+    ]
+  },
+  "fixtureSources": {
+    "assets": [
+      {
+        "path": [
+          "results",
+          0,
+          "imageUrl"
+        ],
+        "resolvedUrl": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:16:3:wdl_15163:00000085/full/pct:6.25/0/default.jpg"
+      },
+      {
+        "path": [
+          "results",
+          1,
+          "imageUrl"
+        ],
+        "resolvedUrl": "https://tile.loc.gov/image-services/iiif/service:gdc:gdcwdl:wd:l_:15:20:9:wdl_15209:00000011/full/pct:6.25/0/default.jpg"
+      }
+    ],
+    "media": null
+  }
+}

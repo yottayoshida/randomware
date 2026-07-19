@@ -14,7 +14,9 @@ const cases = {
   tvmaze: [{ show: { image: { medium: 'https://static.tvmaze.com/uploads/images/medium_portrait/1/example.jpg' } } }],
   rickandmorty: { image: 'https://rickandmortyapi.com/api/character/avatar/1.jpeg', url: 'https://rickandmortyapi.com/api/character/1' },
   'open-food-facts': { product: { image_url: 'https://images.openfoodfacts.org/images/products/301/front.jpg' } },
-  themealdb: { meals: [{ strMealThumb: 'https://www.themealdb.com/images/media/meals/example.jpg', strSource: 'https://example.com/recipe' }] }
+  themealdb: { meals: [{ strMealThumb: 'https://www.themealdb.com/images/media/meals/example.jpg', strSource: 'https://example.com/recipe' }] },
+  'nasa-images': { collection: { href: 'http://images-api.nasa.gov/search?q=PIA12348', items: [{ href: 'https://images-assets.nasa.gov/image/PIA12348/collection.json', data: [{ nasa_id: 'PIA12348', title: 'Galaxy', description: 'A bounded description.', date_created: '2010-01-01T00:00:00Z', center: 'JPL', keywords: ['space'] }], links: [{ href: 'https://images-assets.nasa.gov/image/PIA12348/PIA12348~orig.jpg', rel: 'preview', render: 'image' }] }] } },
+  'loc-photos': { results: [{ id: 'http://www.loc.gov/item/example/', title: 'The moon', date: '1900', contributor: ['Example'], description: ['A moon photograph.'], subject: ['moon'], location: ['space'], image_url: ['https://tile.loc.gov/image-services/iiif/example/full/pct:100/0/default.jpg'], url: 'https://www.loc.gov/item/example/' }], facets: [{ huge: true }] }
 };
 
 test('every image-bearing operation rewrites all allowlisted fields without leaking an upstream asset host', async () => {
@@ -44,6 +46,15 @@ test('Met adapter emits a stable fixed-field summary instead of provider-owned n
   assert.equal(result.measurements, undefined);
   assert.equal(result.primaryImage, null);
   assert.equal(result.classification, null);
+});
+
+test('NASA and Library of Congress adapters expose only bounded summaries and fixture-bound image fields', () => {
+  const nasa = prepareAssetData('nasa-images', cases['nasa-images']);
+  assert.deepEqual(nasa, { items: [{ nasaId: 'PIA12348', title: 'Galaxy', description: 'A bounded description.', dateCreated: '2010-01-01T00:00:00Z', center: 'JPL', keywords: ['space'], imageUrl: 'https://images-assets.nasa.gov/image/PIA12348/PIA12348~orig.jpg' }] });
+  assert.doesNotMatch(JSON.stringify(nasa), /http:\/\/images-api\.nasa\.gov|collection\.json/);
+  const loc = prepareAssetData('loc-photos', cases['loc-photos']);
+  assert.deepEqual(loc, { results: [{ id: 'http://www.loc.gov/item/example/', title: 'The moon', date: '1900', contributors: ['Example'], description: 'A moon photograph.', subjects: ['moon'], locations: ['space'], recordUrl: 'https://www.loc.gov/item/example/', imageUrl: 'https://tile.loc.gov/image-services/iiif/example/full/pct:100/0/default.jpg' }] });
+  assert.equal(loc.facets, undefined);
 });
 
 test('asset validation rejects credentials, private hosts, non-HTTPS, and hosts outside the registry policy', () => {

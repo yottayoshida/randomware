@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { registry } = require('../src/core/registry');
 
-if (registry.length < 10 || registry.length > 18) throw new Error(`registry_count_out_of_bounds:${registry.length}`);
+if (registry.length < 10 || registry.length > 21) throw new Error(`registry_count_out_of_bounds:${registry.length}`);
 const root = path.resolve(__dirname, '..');
 for (const entry of registry) {
   if (!entry.docsUrl || !entry.termsUrl || !entry.attribution?.url) throw new Error(`missing_policy_metadata:${entry.id}`);
