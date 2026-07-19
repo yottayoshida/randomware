@@ -177,6 +177,50 @@ test('Worker media route streams a signed radio response through a validated red
   assert.equal(upstreamCalls, 2);
 });
 
+test('Worker media route heals a dropped abort cleanup and accepts a Range reconnect', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-media-reconnect-secret');
+  const originalFinish = store.finishMediaStream.bind(store);
+  let dropFirstCleanup = true;
+  store.finishMediaStream = (tokenId, bytes, streamLease) => {
+    if (dropFirstCleanup) { dropFirstCleanup = false; return store.getMediaToken(tokenId); }
+    return originalFinish(tokenId, bytes, streamLease);
+  };
+  const fetcher = async (_target, options = {}) => {
+    const range = options.headers?.range;
+    let emitted = 0;
+    const body = new ReadableStream({
+      pull(controller) {
+        if (emitted >= 4) { controller.close(); return; }
+        emitted += 1;
+        controller.enqueue(new Uint8Array(4096).fill(emitted));
+      }
+    });
+    return new Response(body, { status: range ? 206 : 200, headers: { 'content-type': 'audio/mpeg', 'accept-ranges': 'bytes', ...(range ? { 'content-range': 'bytes 0-16383/16384' } : {}) } });
+  };
+  const fetchHandler = createWebHandler({ store, signer, broker: new Broker({ fixtureMode: true, fetcher }) });
+  const run = store.createRun({ requestId: 'media-reconnect-run', selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }] });
+  store.acceptConcept(run.id, { requestId: 'media-reconnect-concept', apiIds: ['radio-browser'] });
+  store.acceptArtifact(run.id, { requestId: 'media-reconnect-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'radio-browser', operationId: 'station' }] });
+  const mediated = await fetchHandler(new Request('https://randomware.example/api/runtime/call', { method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' }, body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'radio-browser', operationId: 'station', params: {}, capability }) }));
+  const mediaUrl = (await mediated.json()).data.mediaUrl;
+  const waitUntilTasks = [];
+  const executionContext = { waitUntil: (task) => waitUntilTasks.push(Promise.resolve(task)) };
+  const first = await fetchHandler(new Request(mediaUrl), {}, executionContext);
+  const firstReader = first.body.getReader();
+  const firstChunk = await firstReader.read();
+  assert.ok(firstChunk.value.byteLength > 0);
+  await firstReader.cancel('browser_reconnect');
+  await Promise.all(waitUntilTasks);
+  assert.ok(waitUntilTasks.length > 0);
+  const reconnect = await fetchHandler(new Request(mediaUrl, { headers: { Range: 'bytes=0-4095' } }), {}, executionContext);
+  assert.equal(reconnect.status, 206);
+  const reconnectReader = reconnect.body.getReader();
+  assert.ok((await reconnectReader.read()).value.byteLength > 0);
+  await reconnectReader.cancel('test_complete');
+});
+
 test('Worker media route applies the archive.org policy to LibriVox audio', async () => {
   const store = new RunStore();
   const signer = new CapabilitySigner('worker-librivox-media-test-secret');

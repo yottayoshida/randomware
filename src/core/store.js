@@ -123,7 +123,7 @@ class RunStore {
 
   createMediaToken(runId, record) {
     this.getRun(runId);
-    this.mediaTokens.set(record.tokenId, { ...record, runId, active: false, bytesServed: 0 });
+    this.mediaTokens.set(record.tokenId, { ...record, runId, active: false, streamLease: null, bytesServed: 0 });
     return record;
   }
 
@@ -136,17 +136,17 @@ class RunStore {
   startMediaStream(tokenId) {
     const record = this.getMediaToken(tokenId);
     if (Date.now() >= record.expiresAt) throw new Error('media_capability_invalid');
-    if (record.active) throw new Error('media_concurrent_limit');
     if (record.bytesServed >= record.maxBytes) throw new Error('media_bytes_cap');
     record.active = true;
-    return record;
+    record.streamLease = crypto.randomUUID();
+    return { ...record };
   }
 
-  finishMediaStream(tokenId, bytes) {
+  finishMediaStream(tokenId, bytes, streamLease) {
     const record = this.getMediaToken(tokenId);
-    record.active = false;
     record.bytesServed = Math.min(record.maxBytes, record.bytesServed + Math.max(0, Number(bytes) || 0));
-    return record;
+    if (record.streamLease === streamLease) { record.active = false; record.streamLease = null; }
+    return { ...record };
   }
 
   createAssetToken(runId, record) {

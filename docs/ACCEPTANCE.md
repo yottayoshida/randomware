@@ -132,7 +132,7 @@ Timing targets are owner-demo targets, not automated release gates. Record misse
 | B-SEC-5 | View malicious text fixture | Script-like API text is inert text and does not alter owner/widget DOM. |
 | B-SEC-6 | Inspect public creation chrome | AI-generated notice, personal/payment-data warning, attribution, and report/remove link remain outside and above the sandbox. |
 | B-SEC-7 | Submit a report then owner-unpublish | Creation leaves the recent index immediately; all public/source/run routes show the owner removal view. |
-| B-SEC-8 | Test Radio Browser if audio enabled | Only a broker-resolved signed media URL plays; arbitrary media URL input is rejected; stream stops at time/byte cap. |
+| B-SEC-8 | Test Radio Browser if audio enabled | Only a broker-resolved signed media URL plays; arbitrary media URL input is rejected; stream stops at time/byte cap. Open and abort a signed stream, then reconnect to the same token with a Range request and receive audio successfully. In Chromium, native controls are visible and unobstructed, and playback reaches `currentTime > 0` or `readyState >= 3`. |
 
 ### 3.5 PRD §16.10 and submission checks
 

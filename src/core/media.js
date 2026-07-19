@@ -82,26 +82,29 @@ async function fetchMedia({ target, request, fetcher = globalThis.fetch, kind = 
   throw new Error('media_redirect_limit');
 }
 
-function limitedStream(body, limit, onComplete) {
+function limitedStream(body, limit, onComplete, { signal } = {}) {
   const reader = body.getReader();
   let total = 0;
   let completed = false;
-  const finish = async () => { if (!completed) { completed = true; await onComplete(total); } };
+  let outputController;
+  const finish = async () => { if (!completed) { completed = true; if (signal) signal.removeEventListener('abort', abort); await onComplete(total); } };
+  const abort = () => { void (async () => { try { await reader.cancel('media_client_aborted'); } finally { await finish(); try { outputController?.error(new Error('media_client_aborted')); } catch {} } })(); };
   return new ReadableStream({
+    start(controller) { outputController = controller; if (signal?.aborted) abort(); else if (signal) signal.addEventListener('abort', abort, { once: true }); },
     async pull(controller) {
       try {
         const { done, value } = await reader.read();
         if (done) { await finish(); controller.close(); return; }
         const bytes = value?.byteLength || value?.length || 0;
         if (total + bytes > limit) {
-          await reader.cancel('media_bytes_cap'); await finish(); controller.error(new Error('media_bytes_cap')); return;
+          try { await reader.cancel('media_bytes_cap'); } finally { await finish(); } controller.error(new Error('media_bytes_cap')); return;
         }
         total += bytes; controller.enqueue(value);
       } catch (error) {
         await finish(); controller.error(error);
       }
     },
-    async cancel(reason) { await reader.cancel(reason); await finish(); }
+    async cancel(reason) { try { await reader.cancel(reason); } finally { await finish(); } }
   });
 }
 

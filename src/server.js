@@ -19,6 +19,7 @@ const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
 const { fetchAsset, limitedAssetStream, ASSET_LIMITS } = require('./core/asset');
 const { toolSchemas, validateToolArguments } = require('./core/tool-contract');
 const { companionUrl, runUrls } = require('./core/urls');
+const { fixtureMediaFetcher } = require('./core/fixture-media');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC = path.join(ROOT, 'public');
@@ -95,15 +96,26 @@ function createServer({ fixtureMode = false, store = new RunStore(), broker = ne
         const stored = store.getMediaToken(mediaToken.tokenId);
         if (stored.resolvedUrl !== mediaToken.resolvedUrl || stored.creationId !== mediaToken.creationId || stored.revision !== mediaToken.revision) throw new Error('media_capability_invalid');
         const started = store.startMediaStream(mediaToken.tokenId);
+        let cleanupTask;
+        const cleanup = (bytes = 0) => {
+          if (!cleanupTask) cleanupTask = Promise.resolve(store.finishMediaStream(mediaToken.tokenId, bytes, started.streamLease));
+          return cleanupTask;
+        };
         let upstream;
         try { upstream = await fetchMedia({ target: stored.resolvedUrl, request: new Request(`http://${req.headers.host || 'localhost'}${req.url}`, { method: 'GET', headers: req.headers }), fetcher: broker.fetcher || globalThis.fetch, kind: mediaToken.apiId === 'librivox' ? 'librivox' : 'radio-browser' }); }
-        catch (error) { store.finishMediaStream(mediaToken.tokenId, 0); throw error; }
+        catch (error) { await cleanup(); throw error; }
         const remaining = Math.min(mediaToken.maxBytes, MEDIA_LIMITS.bytesPerPage) - (started.bytesServed || 0);
-        const stream = limitedStream(upstream.response.body, remaining, (bytes) => store.finishMediaStream(mediaToken.tokenId, bytes));
+        const stream = limitedStream(upstream.response.body, remaining, cleanup);
         const passHeaders = {}; for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
         res.writeHead(upstream.response.status, { 'content-type': upstream.contentType, 'cache-control': 'no-store', 'content-disposition': 'inline', 'x-content-type-options': 'nosniff', 'cross-origin-resource-policy': 'same-origin', ...passHeaders, ...mediaReadCors });
-        const reader = stream.getReader(); const pump = async () => { try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); } catch { res.destroy(); } }; await pump(); return;
+        const reader = stream.getReader();
+        const abortPump = () => { void reader.cancel('media_client_aborted'); };
+        req.once('aborted', abortPump); res.once('close', abortPump);
+        try { for (;;) { const next = await reader.read(); if (next.done) break; res.write(Buffer.from(next.value)); } res.end(); }
+        catch { res.destroy(); }
+        finally { req.off('aborted', abortPump); res.off('close', abortPump); await cleanup(); }
+        return;
       }
       if (url.pathname === '/api/runtime/call') {
         if (req.headers.origin && req.headers.origin !== 'null') throw new Error('origin_not_allowed');
@@ -246,6 +258,10 @@ async function handleMcp(req, res, app) {
   return json(res, 400, { jsonrpc: '2.0', id: input.id, error: { code: -32601, message: 'method_not_supported' } });
 }
 
-if (require.main === module) createServer({ fixtureMode: process.env.RANDOMWARE_FIXTURES !== '0' }).listen(Number(process.env.PORT || 8787), () => console.log(`Randomware listening on http://127.0.0.1:${process.env.PORT || 8787}`));
+if (require.main === module) {
+  const fixtureMode = process.env.RANDOMWARE_FIXTURES !== '0';
+  const broker = fixtureMode ? new Broker({ fixtureMode: true, fetcher: fixtureMediaFetcher }) : new Broker({ fixtureMode: false });
+  createServer({ fixtureMode, broker }).listen(Number(process.env.PORT || 8787), () => console.log(`Randomware listening on http://127.0.0.1:${process.env.PORT || 8787}`));
+}
 
 module.exports = { createServer, runSummary, ownerPage };

@@ -29,3 +29,15 @@ test('limited media streams stop at the page byte cap', async () => {
   await assert.rejects(() => new Response(stream).arrayBuffer(), /media_bytes_cap/);
   assert.equal(MEDIA_LIMITS.bytesPerPage, 8 * 1024 * 1024);
 });
+
+test('limited media stream cleanup runs even when upstream cancellation throws', async () => {
+  let cleanedBytes = null;
+  const upstream = new ReadableStream({
+    pull(controller) { controller.enqueue(new Uint8Array([1, 2, 3])); },
+    cancel() { throw new Error('upstream_cancel_failed'); }
+  });
+  const reader = limitedStream(upstream, 1024, async (bytes) => { cleanedBytes = bytes; }).getReader();
+  await reader.read();
+  await assert.rejects(() => reader.cancel('browser_abort'), /upstream_cancel_failed/);
+  assert.equal(cleanedBytes, 3);
+});

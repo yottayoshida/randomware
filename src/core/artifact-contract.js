@@ -74,7 +74,8 @@ const RUNTIME_DATA_CONTRACT = deepFreeze({
     'result.data has the operation adapted shape shown in responseExample, never the public API raw shape; deep values may be bounded or truncated',
     'image-bearing fields are rewritten to same-origin signed URLs and must be assigned verbatim to img.src',
     'audio is available only through a signed /media URL in result.data.mediaUrl',
-    'fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent; render partial results and an honest per-source failure line instead of blanking the entire app; every selected API remains essential to the concept'
+    'fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent; render partial results and an honest per-source failure line instead of blanking the entire app; every selected API remains essential to the concept',
+    'native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers'
   ]
 });
 
@@ -247,7 +248,8 @@ const CONTRACT_PROMPT_LITERALS = deepFreeze([
   '"adaptedBytes":1048576',
   '"payloadExpression":"result.data"',
   'Error(\\"broker_failure\\")',
-  'Promise.allSettled'
+  'Promise.allSettled',
+  'native audio controls'
 ]);
 
 function artifactContractPrompt() {
@@ -260,7 +262,8 @@ function artifactContractPrompt() {
     `include a viewport tag beginning ${ARTIFACT_CONTRACT.viewport}`,
     'Runtime data contract: window.randomware.call resolves {ok:true, apiId, operationId, data, bytes, sourceUrl, cached}; on any HTTP failure it rejects with Error("broker_failure"). The app payload is exactly result.data.',
     'result.data uses the operation ADAPTED shape from responseExample, never the public API raw shape; deep values may be bounded/truncated. Image-bearing fields are same-origin signed URLs: use them verbatim in img.src. Audio is exposed only by a signed /media URL in result.data.mediaUrl.',
-    'Fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent. Render partial results and an honest per-source failure line instead of blanking the entire app. Every selected API remains essential to the concept; runtime degradation must stay honest.'
+    'Fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent. Render partial results and an honest per-source failure line instead of blanking the entire app. Every selected API remains essential to the concept; runtime degradation must stay honest.',
+    'When audio is present, native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers.'
   ].join(' ');
 }
 

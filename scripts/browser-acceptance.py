@@ -72,6 +72,17 @@ def make_artifact(run):
     return html
 
 
+def make_audio_artifact(run):
+    calls = []
+    sources = []
+    for entry in run["selectedApis"]:
+        operation = entry["operations"][0]
+        calls.append(f'window.randomware.call("{entry["id"]}","{operation["id"]}",{{}})')
+        sources.append(entry["id"])
+    script = f'''const sources={json.dumps(sources)};const status=document.querySelector('#audio-status');const audio=document.querySelector('#audio');document.querySelector('#play-audio').addEventListener('click',async()=>{{const settled=await Promise.allSettled([{','.join(calls)}]);const index=sources.indexOf('radio-browser');const item=settled[index];if(!item||item.status!=='fulfilled'||!item.value.data?.mediaUrl){{status.textContent='Source unavailable: radio-browser';return}}audio.src=item.value.data.mediaUrl;try{{await audio.play();status.textContent='Signed audio playing'}}catch(error){{status.textContent='Source unavailable: '+String(error.message||'playback_failed')}}}});window.randomware.ready();'''
+    return f'''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signed audio check</title><style>body{{margin:0;padding:24px;background:#15122b;color:#fff;font:16px system-ui}}main{{max-width:680px;margin:auto}}audio{{display:block;position:relative;z-index:1;width:100%;min-height:54px;margin:24px 0}}button{{padding:14px 18px}}</style></head><body><main><section data-randomware="loading" hidden>loading</section><h1>Signed audio check</h1><button id="play-audio" type="button">Play signed audio</button><section data-randomware="interactive"><audio id="audio" controls crossorigin="anonymous"></audio><p id="audio-status">Ready</p></section><section data-randomware="error" hidden>error</section><footer data-randomware="attribution">Randomware signed fixture audio.</footer></main><script>{script}</script><!-- {'audio-browser-check ' * 900} --></body></html>'''
+
+
 def main():
     env = os.environ.copy()
     env.update({"PORT": str(PORT), "RANDOMWARE_FIXTURES": "1"})
@@ -99,6 +110,20 @@ def main():
         status, artifact = call(f"/api/runs/{run['runId']}/artifact", {"requestId": f"{run_tag}-artifact", "html": make_artifact(run)})
         assert status == 200, f"artifact_status:{status}"
 
+        audio_run = None
+        for index, audio_seed in enumerate(["media-1", "media-radio-current-4", "media-radio-librivox-3"]):
+            _, candidate = call("/api/spin", {"seed": audio_seed, "requestId": f"{run_tag}-audio-spin-{index}"})
+            if any(entry["id"] == "radio-browser" for entry in candidate["selectedApis"]):
+                audio_run = candidate
+                break
+        assert audio_run is not None, "browser_audio_selection_missing"
+        audio_concept = make_concept(audio_run, f"{run_tag}-audio-concept")
+        audio_concept["runId"] = audio_run["runId"]
+        status, _ = call(f"/api/runs/{audio_run['runId']}/concept", audio_concept)
+        assert status == 200, f"audio_concept_status:{status}"
+        status, audio_artifact = call(f"/api/runs/{audio_run['runId']}/artifact", {"requestId": f"{run_tag}-audio-artifact", "html": make_audio_artifact(audio_run)})
+        assert status == 200, f"audio_artifact_status:{status}"
+
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, executable_path=CHROME if Path(CHROME).exists() else None)
             page = browser.new_page(viewport={"width": 390, "height": 844})
@@ -123,6 +148,16 @@ def main():
             semantic_text = artifact_frame.locator("#semantic-values").inner_text()
             assert "not loaded" not in semantic_text and "undefined" not in semantic_text and "NaN" not in semantic_text, f"semantic_values_defaulted:{semantic_text}"
             assert len([line for line in semantic_text.splitlines() if line.strip()]) == len(run["selectedApis"]), f"semantic_values_incomplete:{semantic_text}"
+
+            audio_page = browser.new_page(viewport={"width": 390, "height": 844})
+            audio_page.goto(f"{BASE}/c/{audio_artifact['creationId']}", wait_until="networkidle")
+            audio_frame = next((frame for frame in audio_page.frames if f"/run/{audio_artifact['creationId']}" in frame.url), None)
+            assert audio_frame is not None, "signed_audio_frame_missing"
+            audio_frame.locator("#play-audio").click()
+            audio_frame.wait_for_function("() => { const audio = document.querySelector('#audio'); return audio && (audio.currentTime > 0 || audio.readyState >= 3); }", timeout=15000)
+            audio_playback = audio_frame.locator("#audio").evaluate("audio => { const rect=audio.getBoundingClientRect(); const top=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2); return {currentTime:audio.currentTime,readyState:audio.readyState,networkState:audio.networkState,visible:rect.width>0&&rect.height>=40,unobstructed:top===audio||audio.contains(top)}; }")
+            assert audio_playback["currentTime"] > 0 or audio_playback["readyState"] >= 3, f"signed_audio_no_progress:{audio_playback}"
+            assert audio_playback["visible"] and audio_playback["unobstructed"], f"signed_audio_controls_obstructed:{audio_playback}"
 
             widget_page = browser.new_page(viewport={"width": 390, "height": 844})
             now_ms = int(time.time() * 1000)
@@ -189,7 +224,7 @@ def main():
             widget_page.locator("#creation-link").dispatch_event("click")
             opened_external = widget_page.evaluate("window.__openedExternal")
             assert opened_external == f"{BASE}/c/widget-creation", f"widget_open_external_wrong_origin:{opened_external}"
-            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "semanticValues": semantic_text.splitlines(), "widgetEnvelope": True, "widgetTransitions": True}))
+            print(json.dumps({"ok": True, "borderTopWidth": border_width, "frameHeight": frame_height, "semanticValues": semantic_text.splitlines(), "audioPlayback": audio_playback, "widgetEnvelope": True, "widgetTransitions": True}))
             browser.close()
     finally:
         if server:

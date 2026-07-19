@@ -80,3 +80,18 @@ test('failed artifact revisions retain bounded source bytes and hashes', () => {
   assert.equal(failed.revisions[1].bytes, Buffer.byteLength(secondSource));
   assert.equal(failed.revisions[1].sha256, crypto.createHash('sha256').update(secondSource).digest('hex'));
 });
+
+test('media stream leases are last-connection-wins and old cleanup cannot clear the replacement', () => {
+  const store = new RunStore();
+  const run = store.createRun({ requestId: 'media-lease-run', selectedApis: [{ apiId: 'radio-browser', operationIds: ['station'] }] });
+  store.createMediaToken(run.id, { tokenId: 'media-lease-token', creationId: 'creation', revision: 1, apiId: 'radio-browser', operationId: 'station', resolvedUrl: 'https://radio.example/live.mp3', expiresAt: Date.now() + 60000, maxBytes: 1024 });
+  const first = store.startMediaStream('media-lease-token');
+  const second = store.startMediaStream('media-lease-token');
+  assert.notEqual(first.streamLease, second.streamLease);
+  store.finishMediaStream('media-lease-token', 100, first.streamLease);
+  assert.equal(store.getMediaToken('media-lease-token').active, true);
+  assert.equal(store.getMediaToken('media-lease-token').streamLease, second.streamLease);
+  store.finishMediaStream('media-lease-token', 200, second.streamLease);
+  assert.equal(store.getMediaToken('media-lease-token').active, false);
+  assert.equal(store.getMediaToken('media-lease-token').bytesServed, 300);
+});

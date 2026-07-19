@@ -128,6 +128,12 @@ test('deployed e2e invokes the real browser semantic renderer', () => {
   assert.match(source, /browser-acceptance\.py/);
   assert.match(source, /RANDOMWARE_BROWSER_BASE/);
   assert.match(source, /semanticValues/);
+  assert.match(source, /reconnectResponse/);
+  assert.match(source, /Range: 'bytes=0-4095'/);
+  const browserSource = require('node:fs').readFileSync(require('node:path').join(__dirname, '../../scripts/browser-acceptance.py'), 'utf8');
+  assert.match(browserSource, /audioPlayback/);
+  assert.match(browserSource, /currentTime/);
+  assert.match(browserSource, /readyState/);
 });
 
 test('repair prompt includes exact diagnostics and the full artifact contract', () => {
@@ -166,6 +172,8 @@ test('artifact-facing prompts teach the broker envelope, adapted payload, and se
     assert.match(surface, /partial results/i);
     assert.match(surface, /per-source failure line/i);
     assert.match(surface, /every selected API remains essential/i);
+    assert.match(surface, /native audio controls/i);
+    assert.match(surface, /fully visible and unobstructed/i);
   }
   for (const surface of surfaces.slice(1)) {
     assert.match(surface, /"apiId":"frankfurter"/);

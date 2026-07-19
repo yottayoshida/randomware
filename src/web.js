@@ -110,15 +110,23 @@ function createWebHandler({ store = new RunStore(), broker = new Broker({ fixtur
         const stored = await callStore('getMediaToken', mediaToken.tokenId);
         if (stored.resolvedUrl !== mediaToken.resolvedUrl || stored.creationId !== mediaToken.creationId || stored.revision !== mediaToken.revision) throw new Error('media_capability_invalid');
         const started = await callStore('startMediaStream', mediaToken.tokenId);
+        let cleanupTask;
+        const cleanup = (bytes = 0) => {
+          if (!cleanupTask) {
+            cleanupTask = Promise.resolve(callStore('finishMediaStream', mediaToken.tokenId, bytes, started.streamLease));
+            if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(cleanupTask);
+          }
+          return cleanupTask;
+        };
         let upstream;
         try {
           upstream = await fetchMedia({ target: stored.resolvedUrl, request, fetcher: broker.fetcher || globalThis.fetch, kind: mediaToken.apiId === 'librivox' ? 'librivox' : 'radio-browser' });
         } catch (error) {
-          await callStore('finishMediaStream', mediaToken.tokenId, 0);
+          await cleanup();
           throw error;
         }
         const remaining = Math.min(mediaToken.maxBytes, MEDIA_LIMITS.bytesPerPage) - (started.bytesServed || 0);
-        const stream = limitedStream(upstream.response.body, remaining, (bytes) => callStore('finishMediaStream', mediaToken.tokenId, bytes));
+        const stream = limitedStream(upstream.response.body, remaining, cleanup, { signal: request.signal });
         const passHeaders = {};
         for (const name of ['content-range', 'accept-ranges', 'etag', 'last-modified']) { const value = upstream.response.headers.get(name); if (value) passHeaders[name] = value; }
         const length = Number(upstream.response.headers.get('content-length')); if (Number.isFinite(length) && length <= remaining) passHeaders['content-length'] = String(length);
