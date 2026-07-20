@@ -2,19 +2,23 @@
 
 > Real APIs go in. Random apps come out.
 
-**A slot machine for software.** Spin 2–3 real public APIs, and GPT-5.6 invents, builds, and launches a brand-new web app from the collision — or fails honestly, with a death certificate. The unpredictability is the product.
+**A slot machine for software.** Spin 2–3 real public APIs, and GPT-5.6 invents a brand-new web app from the collision — or fails honestly, with a death certificate.
 
-**[▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg)** · **[🎰 Live showcase — zero setup](https://randomware.randomware.workers.dev/)** · **[📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)**
+The unpredictability is the product.
+
+Built for **OpenAI Build Week** · Category: **Apps for Your Life**
+
+### **[🎰 Try the live showcase — no setup needed](https://randomware.randomware.workers.dev/)**
+
+[▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg) · [📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)
 
 ![Spinning the slot: two bounded APIs collide and a style cartridge is drawn](docs/media/spin.gif)
 
-*The spin: the reels collide two bounded public APIs — here Deck of Cards × Dog CEO — and draw one of eight style cartridges. The model then invents the concept and composes the app while the referee widget tracks honest elapsed time.*
+*Spin: two random APIs collide — here Deck of Cards × Dog CEO — plus a style cartridge. The model invents and builds.*
 
 ![A generated specimen drawing a fresh card and a fresh dog live through the broker](docs/media/demo.gif)
 
-*The result: "Pawns & Paws", the generated specimen. Every press of DRAW CARD or SUMMON DOG calls the server-side broker for real data — a fresh card, a fresh dog — while the sandboxed app can reach nothing else.*
-
-Built for OpenAI Build Week. Category: **Apps for Your Life**.
+*Result: "Pawns & Paws" — a working app. Every button press fetches real data through the broker; the app can reach nothing else.*
 
 ## Try it
 
@@ -30,12 +34,17 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
 The showcase shows what came out of the machine; the real product is pulling the lever.
 
-1. **Prerequisites**: a paid ChatGPT plan with developer mode enabled (Free plans cannot connect unlisted apps; Business/Enterprise/Edu additionally need a workspace-admin toggle).
+1. **Prerequisites**: a paid ChatGPT plan with developer mode enabled.
 2. **Connect**: add a new app in developer mode with the MCP endpoint `https://randomware.randomware.workers.dev/mcp`, then mention **@Randomware** in a chat to mount the slot machine.
 3. **Spin**: press **Spin the slot** in the widget, watch the reels collide two real APIs, then press **Ask the model to build**. Your own GPT-5.6 session invents and builds the specimen — no owner API key is involved.
 4. **Wait honestly**: a build takes a few real minutes. The referee widget tracks elapsed time and deadlines, and the finished specimen lands on the public showcase even if you close the chat.
 
-Model recommendation: run spins on GPT-5.6 Sol at high reasoning effort or above — the owner's acceptance runs observed lower-effort settings composing artifacts noticeably less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT still serves a stale template or shows an immediate “Runtime error,” remove and recreate the connector. Fixture replay is labeled and never counts as live evidence.
+<details>
+<summary>Spin tips and known quirks</summary>
+
+Run spins on GPT-5.6 Sol at high reasoning effort — lower-effort settings produce artifacts less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT shows a stale template or immediate "Runtime error," remove and recreate the connector. Fixture replay is labeled and never counts as live evidence.
+
+</details>
 
 ## How it works
 
@@ -43,6 +52,17 @@ Model recommendation: run spins on GPT-5.6 Sol at high reasoning effort or above
 2. 🧠 **Invent** — the player's own GPT-5.6 session proposes an eccentric but structured concept: causal chain, API roles, one observable dependency. Plain dashboards and plausible startup pitches are contractually banned shapes.
 3. 🔬 **Validate** — a static validator enforces byte range, required markers, and literal broker calls, and rejects every direct network primitive. One bounded repair is allowed per run.
 4. 🪦 **Publish — or autopsy** — accepted specimens go live at their own URL with source, mediated request logs, and dataflow records. Failures get an honest death certificate. Both are part of the showcase.
+
+## Built with Codex and GPT-5.6
+
+Randomware was built under a self-imposed constraint that mirrors the product itself:
+
+1. The PRD came first — human product direction, written before any implementation.
+2. One GPT-5.6 Sol session (high reasoning effort) turned the PRD into the full technical design and implementation plan. Documents only, no code.
+3. GPT-5.6 Luna (max reasoning effort) executed the single primary `/goal` implementation; after repeated real-client defects, the owner escalated that same session to GPT-5.6 Sol (high reasoning) for the final contract-coherence and verification pass.
+4. The whole build — design pass, implementation, and every GPT-5.6 call used during development — fit inside a **$100 credit grant** on top of a ChatGPT Plus weekly allowance.
+
+Codex supplied the repository workflow, tests, and implementation scaffolding; the human owned product decisions, external verification against the real client, and every go/no-go call. Runtime GPT-5.6 is the player's connected model, not an owner API key. A product where GPT-5.6 invents and generates apps, itself generated by Codex from a single goal — meters and evidence live in [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
 
 ## Architecture and security
 
@@ -52,14 +72,21 @@ Artifacts are 10,000–40,000 UTF-8 bytes and must include loading, error, inter
 
 ## Registry and examples
 
-The launch registry contains 21 bounded compatibility entries, 20 of which are selectable for new spins (one audio provider remains resolvable for frozen creations but is excluded from selection), with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links. Sample combinations from the recorded acceptance run include Deck of Cards × Dog CEO ("Pawns & Paws"), wiki-onthisday × USGS earthquakes ("Seismic Time Mixer"), and Open Food Facts × Wikimedia Commons audio ("Snack Signal Quest").
+21 bounded APIs, 20 selectable for new spins, with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links. Sample combinations from the recorded acceptance run include Deck of Cards × Dog CEO ("Pawns & Paws"), wiki-onthisday × USGS earthquakes ("Seismic Time Mixer"), and Open Food Facts × Wikimedia Commons audio ("Snack Signal Quest").
 
 ## Local development
 
-Node.js 22+ and npm are required. Run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/` for the companion in fixture mode: it visibly labels generated output and keeps every generated request behind the fixed broker. `RANDOMWARE_FIXTURES=1` (the default) keeps local runs offline; set `RANDOMWARE_FIXTURES=0` only for a bounded live check in an explicitly controlled environment. `RANDOMWARE_SIGNING_SECRET` is optional for local development and must be supplied as a deployment secret in production; no owner model key is used.
-
 ```bash
 npm ci
+npm run dev          # fixture mode — http://127.0.0.1:8787/
+```
+
+`RANDOMWARE_FIXTURES=1` (the default) keeps local runs offline; set `RANDOMWARE_FIXTURES=0` only for a bounded live check. `RANDOMWARE_SIGNING_SECRET` is optional locally and must be supplied as a deployment secret in production; no owner model key is used. Node.js 22+ and npm required.
+
+<details>
+<summary>Full command reference</summary>
+
+```bash
 npm run format:check
 npm run lint
 npm run typecheck
@@ -76,16 +103,7 @@ npm run dev:worker
 npm run deploy
 ```
 
-## Built with Codex and GPT-5.6
-
-Randomware was built under a self-imposed constraint that mirrors the product itself:
-
-1. The PRD came first — human product direction, written before any implementation.
-2. One GPT-5.6 Sol session (high reasoning effort) turned the PRD into the full technical design and implementation plan. Documents only, no code.
-3. GPT-5.6 Luna (max reasoning effort) executed the single primary `/goal` implementation; after repeated real-client defects, the owner escalated that same session to GPT-5.6 Sol (high reasoning) for the final contract-coherence and verification pass.
-4. The whole build — design pass, implementation, and every GPT-5.6 call used during development — fit inside a **$100 credit grant** on top of a ChatGPT Plus weekly allowance.
-
-Codex supplied the repository workflow, tests, and implementation scaffolding; the human owned product decisions, external verification against the real client, and every go/no-go call. Runtime GPT-5.6 is the player's connected model, not an owner API key. A product where GPT-5.6 invents and generates apps, itself generated by Codex from a single goal — meters and evidence live in [docs/BUILD_LOG.md](docs/BUILD_LOG.md).
+</details>
 
 ## Source documents
 
