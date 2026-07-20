@@ -151,6 +151,32 @@ test('Worker broker route handles opaque-origin preflight and records a mediated
   assert.equal(store.findByCreation(run.creationId).runtimeRequests.length, 1);
 });
 
+test('Worker makes consecutive uncached random calls while retaining runtime and daily budget accounting', async () => {
+  const store = new RunStore();
+  const signer = new CapabilitySigner('worker-random-cache-secret');
+  let upstreamCalls = 0;
+  const broker = new Broker({ fetcher: async () => new Response(JSON.stringify({ message: `https://images.dog.ceo/breeds/hound/${++upstreamCalls}.jpg`, status: 'success' }), { headers: { 'content-type': 'application/json' } }) });
+  const fetchHandler = createWebHandler({ store, signer, broker });
+  const run = store.createRun({ requestId: 'runtime-random-cache', selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }] });
+  store.acceptConcept(run.id, { requestId: 'runtime-random-concept', apiIds: ['dog-ceo'] });
+  store.acceptArtifact(run.id, { requestId: 'runtime-random-artifact', html: '<!doctype html>', sha256: 'test', bytes: 16 });
+  const capability = signer.issue({ creationId: run.creationId, revision: 1, selected: [{ apiId: 'dog-ceo', operationId: 'random' }] });
+  const request = () => fetchHandler(new Request('https://randomware.example/api/runtime/call', {
+    method: 'POST', headers: { origin: 'null', 'content-type': 'application/json' },
+    body: JSON.stringify({ creationId: run.creationId, revision: 1, apiId: 'dog-ceo', operationId: 'random', params: {}, capability })
+  }));
+
+  const first = await request();
+  const second = await request();
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal((await first.json()).cached, false);
+  assert.equal((await second.json()).cached, false);
+  assert.equal(upstreamCalls, 2);
+  assert.equal(store.findByCreation(run.creationId).runtimeRequests.length, 2);
+  assert.equal(store.getDailyBudgetUsage('api:dog-ceo').count, 2);
+});
+
 test('Worker records a bounded runtime timeout retry before the successful request', async () => {
   const store = new RunStore();
   const signer = new CapabilitySigner('worker-retry-test-secret');

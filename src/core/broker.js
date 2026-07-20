@@ -158,8 +158,8 @@ async function adaptAudio(apiId, value, context) {
 }
 
 class Broker {
-  constructor({ fixtureMode = false, fetcher = globalThis.fetch, fixtureRoot = typeof process !== 'undefined' && process.cwd ? process.cwd() : '/' } = {}) {
-    this.fixtureMode = Boolean(fixtureMode); this.contractFixtureMode = fixtureMode === true || fixtureMode === 'adapted'; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.cache = new Map();
+  constructor({ fixtureMode = false, fetcher = globalThis.fetch, fixtureRoot = typeof process !== 'undefined' && process.cwd ? process.cwd() : '/', now = Date.now } = {}) {
+    this.fixtureMode = Boolean(fixtureMode); this.contractFixtureMode = fixtureMode === true || fixtureMode === 'adapted'; this.fetcher = typeof fetcher === 'function' ? fetcher.bind(globalThis) : fetcher; this.fixtureRoot = fixtureRoot; this.now = now; this.cache = new Map();
   }
 
   async finalResult(base, media) {
@@ -188,14 +188,16 @@ class Broker {
     return result;
   }
 
-  async call({ selectedApis, apiId, operationId, params = {}, media, onRetry } = {}) {
+  async call({ selectedApis, apiId, operationId, params = {}, media, onRetry, onFetch } = {}) {
     const selected = (selectedApis || []).find((entry) => entry.apiId === apiId);
     if (!selected || !selected.operationIds.includes(operationId)) throw new Error('operation_not_selected');
     rejectParameters(params);
     const entry = getRegistryEntry(apiId); const op = entry.operations.find((candidate) => candidate.id === operationId);
     if (!op) throw new Error('operation_not_found');
     const cacheKey = `${apiId}:${operationId}:${JSON.stringify(params)}`;
-    if (this.cache.has(cacheKey)) return this.finalResult({ ...this.cache.get(cacheKey), cached: true }, media);
+    const cached = this.cache.get(cacheKey); const now = this.now();
+    if (cached && op.cacheMs > 0 && now - cached.fetchedAt < op.cacheMs) return this.finalResult({ ...cached.result, cached: true }, media);
+    if (cached) this.cache.delete(cacheKey);
     let data; let fixtureExample; let fixtureSources; let sourceUrl = `https://${entry.upstreamHosts[0]}${op.pathTemplate}`;
     if (this.fixtureMode) {
       const fs = require('node:fs'); const path = require('node:path');
@@ -209,6 +211,7 @@ class Broker {
       let response;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
+          if (typeof onFetch === 'function') await onFetch({ apiId, operationId, dailyBudget: entry.dailyBudget });
           response = await this.fetcher(sourceUrl, { method: 'GET', headers: { 'user-agent': 'Randomware/0.1 (competition demo)' }, signal: AbortSignal.timeout(Math.min(op.timeoutMs, 10000)) });
           break;
         } catch (error) {
@@ -234,7 +237,7 @@ class Broker {
     const assetCandidates = collectAssetCandidates(entry, data);
     const result = { ok: true, apiId, operationId, data, bytes: Buffer.byteLength(JSON.stringify(data)), sourceUrl, cached: false, mediaCandidate: adapted.mediaCandidate, assetCandidates, fixtureExample, fixtureSources };
     if (result.bytes > 64 * 1024) throw new Error('response_too_large');
-    this.cache.set(cacheKey, result);
+    if (op.cacheMs > 0) this.cache.set(cacheKey, { result, fetchedAt: this.now() });
     return this.finalResult(result, media);
   }
 

@@ -20,8 +20,16 @@ test('launch registry has 21 compatibility entries and 20 selectable entries wit
       else assert.ok(operation.timeoutMs <= 6000);
       if (['nasa-images', 'loc-photos', 'wikimedia-commons-audio'].includes(entry.id)) assert.equal(operation.maxRawBytes, 200_000);
       assert.equal(operation.paramsSchema.additionalProperties, false);
+      assert.ok(operation.cacheMs === 0 || operation.cacheMs === 300_000);
     }
   }
+});
+
+test('registry classifies replay-random operations as uncached and every other operation at five minutes', () => {
+  const uncached = new Set(['deck-of-cards/draw', 'poetrydb/random', 'dog-ceo/random', 'radio-browser/station', 'randomuser/person', 'themealdb/meal']);
+  const policies = Object.fromEntries(registry.flatMap((entry) => entry.operations.map((operation) => [`${entry.id}/${operation.id}`, operation.cacheMs])));
+  assert.equal(Object.keys(policies).length, 21);
+  for (const [key, cacheMs] of Object.entries(policies)) assert.equal(cacheMs, uncached.has(key) ? 0 : 300_000, key);
 });
 
 test('registry symbols are the owner-curated display-only strip', () => {
@@ -64,7 +72,7 @@ test('new visual sources use fixed bounded operations and fixture-confirmed asse
   assert.deepEqual(loc.assetPolicy.allowedHosts, ['tile.loc.gov']);
   assert.deepEqual(loc.assetPolicy.resolvedPaths, ['results.*.imageUrl']);
   assert.equal(loc.dailyBudget, 240);
-  assert.equal(loc.operations[0].cacheTtlSeconds, 300);
+  assert.equal(loc.operations[0].cacheMs, 300_000);
   assert.throws(() => getRegistryEntry('gbif'), /unknown_registry_entry/);
 });
 

@@ -13,6 +13,42 @@ test('broker permits only selected fixed operations and returns bounded JSON', a
   assert.ok(result.data);
 });
 
+test('broker expires default cache entries after five minutes using an injected clock', async () => {
+  let now = 1_000;
+  let upstreamCalls = 0;
+  const broker = new Broker({
+    now: () => now,
+    fetcher: async () => new Response(JSON.stringify({ sequence: ++upstreamCalls }), { headers: { 'content-type': 'application/json' } })
+  });
+  const input = { selectedApis: [{ apiId: 'open-meteo', operationIds: ['forecast'] }], apiId: 'open-meteo', operationId: 'forecast', params: {} };
+
+  const first = await broker.call(input);
+  now = 300_999;
+  const cached = await broker.call(input);
+  now = 301_000;
+  const expired = await broker.call(input);
+
+  assert.equal(first.cached, false);
+  assert.equal(cached.cached, true);
+  assert.equal(expired.cached, false);
+  assert.equal(upstreamCalls, 2);
+});
+
+test('zero-cache operations fetch again and return cached false on consecutive calls', async () => {
+  let upstreamCalls = 0;
+  const broker = new Broker({
+    fetcher: async () => new Response(JSON.stringify({ message: `https://images.dog.ceo/breeds/hound/${++upstreamCalls}.jpg`, status: 'success' }), { headers: { 'content-type': 'application/json' } })
+  });
+  const input = { selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }], apiId: 'dog-ceo', operationId: 'random', params: {} };
+
+  const first = await broker.call(input);
+  const second = await broker.call(input);
+
+  assert.equal(first.cached, false);
+  assert.equal(second.cached, false);
+  assert.equal(upstreamCalls, 2);
+});
+
 test('audio adapters return metadata and a same-origin media URL, never the upstream stream URL', async () => {
   const broker = new Broker({ fixtureMode: true });
   const result = await broker.call({

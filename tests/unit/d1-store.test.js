@@ -70,6 +70,15 @@ test('D1 health gating treats a missing registry row as unhealthy until explicit
   assert.equal((await store.unhealthyIds()).has('librivox'), true);
 });
 
+test('D1 per-API daily budget increment is atomic and resets on the next UTC date', async () => {
+  const store = new D1RunStore(database());
+  const dayOne = Date.UTC(2026, 6, 20, 12);
+  assert.equal((await store.consumeDailyBudget('api:dog-ceo', 2, dayOne)).count, 1);
+  assert.equal((await store.consumeDailyBudget('api:dog-ceo', 2, dayOne)).count, 2);
+  await assert.rejects(() => store.consumeDailyBudget('api:dog-ceo', 2, dayOne), /capacity_reached/);
+  assert.deepEqual(await store.consumeDailyBudget('api:dog-ceo', 2, dayOne + 86_400_000), { scope: 'api:dog-ceo', utcDate: '2026-07-21', count: 1, limit: 2 });
+});
+
 test('showcase migration classifies a boundary-spanning run by accepted revision time', () => {
   const db = database();
   const insertRun = db.sqlite.prepare("INSERT INTO runs (id, request_id, phase, selected_apis_json, history_json, concept_json, created_at, creation_id, repair_count, metadata_json) VALUES (?, ?, 'completed', '[]', '[]', ?, ?, ?, 0, '{\"listed\":true}')");

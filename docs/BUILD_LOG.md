@@ -337,3 +337,37 @@ Field-by-field drift audit, starting from `ARCHITECTURE.md` §4.2/§4.3:
 - Worker version `ef9e16c1-54c2-4607-aeab-61302186522b` is deployed at `https://randomware.randomware.workers.dev`. Minimal post-deploy reads returned `healthz {ok:true, registry:21}` and an 8-tool manifest whose artifact and repair descriptions begin with the priority declaration and whose concept description carries the one-line concept priority. The first widget read reached the prior 95,955-byte edge copy; one bounded retry returned the new 97,438-byte template with both priority strings. No further production probes were run.
 - Owner action: refresh the existing ChatGPT connector; recreation is not requested. Then run one quality spin before production recording. This round proves projection and rendering, not that the creative-quality outcome improved; that outcome remains owner-verifiable in the requested spin.
 - Meter is owner-transcribed, not inferred: weekly plan **0% remaining**, grant balance **314/2,500**. This is 78 below the last 392 table snapshot, but that span is not attributed to this round. The owner explicitly authorized this one required demo-quality correction while acknowledging it may enter the 300-credit reserve; no post-work balance is invented.
+
+## 2026-07-20 — Final code round: broker cache TTL and replay classification
+
+- Production behavior and documentation had diverged: `Broker.call()` stored a result directly in its process-local `Map` but stored no acquisition time and never read the registry's cache metadata. Every first response therefore remained frozen for the lifetime of that Worker isolate, despite prior five-minute-cache claims. The fix stores `{result, fetchedAt}`, injects the clock for deterministic tests, discards entries at `age >= cacheMs`, and uses a `300000` ms default. `cacheMs: 0` never reads or writes the cache.
+- While proving the required cost bounds, the round also confirmed that the existing `daily_budgets` D1 table was not connected to runtime fetches. Each real upstream attempt now atomically consumes the selected API's existing `dailyBudget` immediately before fetch. Cache hits do not consume an upstream budget; a timeout retry does, because it is a second provider request. The capability's 30-successful-call/1 MiB per-run limits remain unchanged and are still checked before every broker call. Parameter rejection, literal URLs, host binding, response byte caps, and all other broker containment rules are unchanged.
+
+| API / operation | `cacheMs` | Classification evidence |
+|---|---:|---|
+| Deck of Cards / draw | 0 | `/api/deck/new/draw` creates and draws a new shuffled deck |
+| PoetryDB / random | 0 | provider endpoint is explicitly random |
+| Datamuse / words | 300000 | fixed `quiet` relation and fixed result count |
+| Art Institute of Chicago / artwork | 300000 | fixed artwork ID 4 |
+| Dog CEO / random | 0 | provider endpoint is explicitly random |
+| Radio Browser / station | 0 | fixed query explicitly requests `order=random` |
+| Open-Meteo / forecast | 300000 | time-varying weather; five-minute freshness window |
+| Frankfurter / rates | 300000 | time-varying exchange rate; five-minute freshness window |
+| RandomUser / person | 0 | unseeded identity generation endpoint |
+| Wikipedia On This Day / events | 300000 | dated feed may be revised; five-minute freshness window |
+| USGS Earthquakes / recent | 300000 | live recent-event catalog; five-minute freshness window |
+| Met Museum / object | 300000 | fixed object ID 436121 |
+| Nager.Date / holidays | 300000 | fixed 2024/JP calendar |
+| TVMaze / show | 300000 | fixed `space` search and provider ordering |
+| Rick and Morty / character | 300000 | fixed character ID 1; two bounded live responses were identical |
+| Open Food Facts / product | 300000 | fixed barcode 3017624010701 |
+| LibriVox / book | 300000 | fixed book ID 47; retained only for frozen-creation compatibility |
+| TheMealDB / meal | 0 | provider endpoint is explicitly `random.php` |
+| NASA Images / search | 300000 | fixed PIA12348 search; variable-query work is deferred |
+| Library of Congress / search | 300000 | fixed moon query; variable-query work is deferred |
+| Wikimedia Commons Audio / recording | 300000 | fixed bounded field-recording query; variable-query work is deferred |
+
+- Live classification evidence was deliberately limited to the only named ambiguous fixed-ID case. Two no-retry Rick and Morty probes used the 10-second/200,000-byte bounds and both returned HTTP 200, 2,719 bytes, Rick Sanchez/character 1, and SHA-256 `aac4e5c80a5d97b398b3d4fa69419568d89c52d7a3aebb4b7f829982b76e9156` (150 ms then 19 ms). No other classification probe was run.
+- TDD evidence: focused tests first reproduced the permanent cache hit, missing `cacheMs`, absent daily-budget methods, and cached replay operation. The corrected focused set passed **50/50**. The final complete unit suite passed **125/125**; static format, lint, typecheck, build, security, secrets, and document gates passed. The first integration attempt was blocked by sandbox listener `EPERM`; the permitted rerun exposed one stale pre-playability test assertion, which was corrected without production changes, and the final integration suite passed **18/18**. No deployed E2E was run.
+- Worker version `6766d9b3-1d5d-4632-ae73-f2cd384bcee6` is deployed at `https://randomware.randomware.workers.dev`. The only post-deploy acceptance used completed creation `creation_cdba4b8ee449a6ebf461960a30cc4154`: health returned `{ok:true, registry:21}`, then exactly two consecutive Dog CEO calls both returned HTTP 200 and `cached:false`. Their signed asset payloads resolved to different upstream dogs (`terrier-border/n02093754_521.jpg` then `pomeranian/n02112018_6098.jpg`). No additional production call or provider probe followed.
+- Meter is owner-transcribed, not inferred: weekly plan **0% remaining**, grant balance **280/2,500**, 34 below the prior 314 snapshot with no usage attribution inferred. The owner explicitly authorized finishing this required final code action below the normal 300-credit threshold. After this round is committed and pushed, product code is frozen until the submission ceremony.

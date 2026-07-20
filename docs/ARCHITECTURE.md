@@ -428,11 +428,13 @@ type RegistryEntry = {
     shapeSignature: Record<string, JsonType>;
     timeoutMs: number;
     maxRawBytes: number;
-    cacheTtlSeconds: number;
+    cacheMs: number;
     adapt: AdapterName;
   }>;
 };
 ```
+
+The broker stores each cache entry with its acquisition time and uses the operation's `cacheMs` as the only freshness rule. The default is `300000` (five minutes); an expired entry is discarded and fetched again. A replay-random operation declares `cacheMs: 0` and bypasses the broker cache entirely.
 
 D1 `api_health` holds `api_id`, `registry_version`, `status` (`healthy`, `degraded`, `disabled`), consecutive successes/failures, last HTTP/content/schema result, latency, checked time, and operator reason. Only `healthy` entries are selectable. A cron check runs the smallest representative operation. One failure or latency over the entry threshold marks degraded; three consecutive failures, terms uncertainty, unexpected content, or schema failure disables. Two consecutive successes restore degraded to healthy; disabled requires an explicit owner action.
 

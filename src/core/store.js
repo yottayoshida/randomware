@@ -14,6 +14,7 @@ class RunStore {
     this.mediaTokens = new Map();
     this.assetTokens = new Map();
     this.assetPages = new Map();
+    this.dailyBudgets = new Map();
   }
 
   listCreations() {
@@ -125,6 +126,16 @@ class RunStore {
     const bytes = run.runtimeRequests.reduce((sum, row) => sum + (row.bytes || 0), 0);
     if (completed >= (quotas.jsonCalls || 30) || bytes >= (quotas.adaptedBytes || 1024 * 1024)) throw new Error('capacity_reached');
     return { completed, bytes };
+  }
+
+  consumeDailyBudget(scope, limit, now = Date.now()) {
+    const utcDate = new Date(now).toISOString().slice(0, 10); const key = `${scope}:${utcDate}`; const current = this.dailyBudgets.get(key) || { scope, utcDate, count: 0, limit };
+    if (current.count >= limit) throw new Error('capacity_reached');
+    const next = { scope, utcDate, count: current.count + 1, limit }; this.dailyBudgets.set(key, next); return next;
+  }
+
+  getDailyBudgetUsage(scope, now = Date.now()) {
+    const utcDate = new Date(now).toISOString().slice(0, 10); return this.dailyBudgets.get(`${scope}:${utcDate}`) || { scope, utcDate, count: 0, limit: null };
   }
 
   createMediaToken(runId, record) {
