@@ -6,9 +6,13 @@
 
 **[▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg)** · **[🎰 Live showcase — zero setup](https://randomware.randomware.workers.dev/)** · **[📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)**
 
+![Spinning the slot: two bounded APIs collide and a style cartridge is drawn](docs/media/spin.gif)
+
+*The spin: the reels collide two bounded public APIs — here Deck of Cards × Dog CEO — and draw one of eight style cartridges. The model then invents the concept and composes the app while the referee widget tracks honest elapsed time.*
+
 ![A generated specimen drawing a fresh card and a fresh dog live through the broker](docs/media/demo.gif)
 
-*Above: "Pawns & Paws", a generated specimen. Every press of DRAW CARD or SUMMON DOG calls the server-side broker for real data — a fresh card, a fresh dog — while the sandboxed app can reach nothing else.*
+*The result: "Pawns & Paws", the generated specimen. Every press of DRAW CARD or SUMMON DOG calls the server-side broker for real data — a fresh card, a fresh dog — while the sandboxed app can reach nothing else.*
 
 Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
@@ -24,9 +28,9 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 1. Open the **[live showcase](https://randomware.randomware.workers.dev/)** — no account, no install. The index embeds a live specimen and links every published creation.
 2. On any specimen record, press its controls, then open **Inspect requests** to watch the mediated broker traffic your presses produced. **Source** shows the exact accepted revision as inert text.
 3. See an honest failure: the **[intentional-failure death certificate](https://randomware.randomware.workers.dev/c/creation_e2524a43f21a0ce38244d40ece5ae266)** states its accurate cause with both failed revisions inspectable.
-4. For live spins in ChatGPT, follow [connect instructions](#chatgpt-prerequisites-and-connect) below (paid plan + developer mode required). Fixture replay is labeled and never counts as live evidence.
+## Spin one yourself (the full experience)
 
-For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker.
+The showcase shows what came out of the machine; the real product is pulling the lever. Connecting takes about two minutes with a paid ChatGPT plan in developer mode — [instructions below](#chatgpt-prerequisites-and-connect). Press **Spin the slot**, watch the reels collide two real APIs, and let your own GPT-5.6 session invent and build the specimen. A build takes a few honest minutes; the referee widget tracks it, and the finished specimen lands on the public showcase even if you close the chat. Fixture replay is labeled and never counts as live evidence.
 
 ## Media
 
@@ -45,6 +49,8 @@ The owner path requires ChatGPT developer mode and the deployed HTTPS MCP endpoi
 The Node implementation mirrors the contract boundaries: a deterministic selector, immutable run state machine, fixed operation registry, server-side broker, HMAC capability signer, static validator, trusted runtime harness, and an owner-controlled creation page. Generated HTML runs only in an iframe with `sandbox="allow-scripts"`; upstream calls are never made by the generated frame.
 
 ## Environment and setup
+
+For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker.
 
 Node.js 22+ and npm are required. `RANDOMWARE_FIXTURES=1` (the default) keeps local runs offline. Set `RANDOMWARE_FIXTURES=0` only for a bounded live check in an explicitly controlled environment. `RANDOMWARE_SIGNING_SECRET` is optional for local development and must be supplied as a deployment secret in production; no owner model key is used.
 
