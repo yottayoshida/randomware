@@ -14,7 +14,7 @@ A slot machine for software: spin real public APIs, and GPT-5.6 invents a workin
 
 ## Inspiration
 
-The inspiration is a Japanese noise band called Omoide Hatoba ("Memory Wharf"). The name itself is two ordinary sentimental words welded into something that belongs to neither, and their music does the same thing with sound: unrelated signals collide and produce something no one planned. I wanted to apply that principle to APIs: force two unrelated public data sources together and see what connection a model invents when no human gave it an idea.
+The inspiration is a Japanese psychedelic band called Omoide Hatoba ("Memory Wharf"). The name itself is two ordinary sentimental words welded into something that belongs to neither, and their music does the same thing with sound: unrelated signals collide and produce something no one planned. I wanted to apply that principle to APIs: force two unrelated public data sources together and see what connection a model invents when no human gave it an idea.
 
 The creative bet is that this is the right way to answer AI slop. Slop is what happens when generation optimizes for plausible usefulness. Randomware optimizes for the opposite: implausible, singular existence. Hallucination, confidently inventing connections that don't exist, becomes the entire point. The catch is that the invention has to run as working software against real data. Grounded confabulation, with receipts.
 
