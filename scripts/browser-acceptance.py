@@ -271,9 +271,10 @@ def main():
             active_restore_page.set_content(widget_html, wait_until="domcontentloaded")
             active_restore_page.wait_for_timeout(500)
             assert active_restore_requests, "widget_active_restore_not_rehydrated_immediately"
-            assert active_restore_page.locator("#spin").is_disabled(), "widget_active_restore_spin_not_guarded"
+            assert not active_restore_page.locator("#spin").is_disabled(), "widget_active_restore_spin_disabled_after_guard_removal"
             active_restore_page.locator("#spin").dispatch_event("click")
-            assert active_restore_page.evaluate("window.__activeRestoreSpinCalls") == 0, "widget_active_restore_allowed_second_spin"
+            active_restore_page.wait_for_timeout(100)
+            assert active_restore_page.evaluate("window.__activeRestoreSpinCalls") == 1, "widget_active_restore_spin_blocked_after_guard_removal"
             active_restore_page.close()
             failed_restore_page = browser.new_page(viewport={"width": 390, "height": 844})
             failed_restore_page.add_init_script(
@@ -299,13 +300,11 @@ def main():
             lifecycle_page.set_content(widget_html, wait_until="domcontentloaded")
             lifecycle_page.locator("#spin").click()
             lifecycle_page.wait_for_timeout(100)
-            assert lifecycle_page.locator("#spin").is_disabled(), "widget_spin_not_disabled_while_running"
             lifecycle_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
             assert not lifecycle_page.locator("#spin").is_disabled(), "widget_spin_not_reenabled_at_terminal"
             lifecycle_page.locator("#spin").click()
             lifecycle_page.wait_for_timeout(100)
             assert lifecycle_page.evaluate("window.__lifecycleSpinCalls") == 2, "widget_terminal_run_not_spinable_again"
-            assert lifecycle_page.locator("#spin").is_disabled(), "widget_second_spin_not_guarded"
             lifecycle_page.wait_for_timeout(1800)
             lifecycle_page.locator("#build").click()
             assert lifecycle_page.locator("#build").is_disabled(), "widget_build_not_disabled_after_click"

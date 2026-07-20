@@ -118,7 +118,7 @@ test('model recommendation and spin guard are projected across tool and widget s
   const widget = widgetResource('https://randomware.example').contents[0].text;
   assert.match(widget, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(widget, /spinInFlight/);
-  assert.match(widget, /if\(spinInFlight\|\|restoreGuardPending\|\|hasTrustedActiveRun\(\)\)return/);
+  assert.match(widget, /if\(spinInFlight\)return/);
   assert.match(widget, /spinInFlight=false/);
   assert.match(initializeResult().instructions, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   for (const name of ['open_randomware', 'spin_apis']) {
@@ -139,13 +139,14 @@ test('widget build guard and terminal lifecycle are explicit', () => {
   assert.match(widget, /showFollowUpFallback[\s\S]*?buildInFlight=false/);
 });
 
-test('widget restored-run guard requires server hydration and fails open', () => {
+test('widget spin is never phase-gated after the owner guard removal', () => {
   const widget = widgetResource('https://randomware.example').contents[0].text;
-  assert.match(widget, /let runGuardTrusted=false/);
-  assert.match(widget, /let restoreGuardPending=false/);
-  assert.match(widget, /function rehydrateRestoredRun/);
-  assert.match(widget, /RESTORE_GUARD_TIMEOUT_MS/);
-  assert.match(widget, /function hasTrustedActiveRun/);
+  assert.doesNotMatch(widget, /hasTrustedActiveRun/);
+  assert.doesNotMatch(widget, /restoreGuardPending/);
+  assert.doesNotMatch(widget, /rehydrateRestoredRun/);
+  assert.doesNotMatch(widget, /runGuardTrusted/);
+  assert.match(widget, /function syncSpinGuard\(\)\{spin\.disabled=spinInFlight;failureSpin\.disabled=spinInFlight;build\.disabled=buildInFlight\}/);
+  assert.match(widget, /void fetchRunStatus\('restore'\)/);
 });
 
 test('accepted artifact tool text presents only the creation URL as a link', () => {

@@ -134,7 +134,7 @@ test('MCP surface exposes eight annotated tools', async (t) => {
   const result = await request(base, '/mcp', { method: 'POST', body: JSON.stringify({ jsonrpc: '2.0', id: 4, method: 'tools/list' }) });
   assert.equal(result.response.status, 200);
   assert.equal(result.body.result.tools.length, 8);
-  assert.ok(result.body.result.tools.every((tool) => tool.description.startsWith('Use this')));
+  assert.ok(result.body.result.tools.every((tool) => tool.description.startsWith('BEST WITH GPT-5.6 SOL (HIGH REASONING). Use th')));
   assert.ok(result.body.result.tools.every((tool) => tool.annotations && typeof tool.annotations.readOnlyHint === 'boolean'));
   const annotations = Object.fromEntries(result.body.result.tools.map((tool) => [tool.name, tool.annotations]));
   for (const name of ['open_randomware', 'spin_apis', 'get_run', 'mutate_creation', 'record_choreography_failure']) assert.equal(annotations[name].openWorldHint, false);
