@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
-const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
+const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, acceptedArtifactToolText, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools, summary } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
 const { CONTRACT_PROMPT_LITERALS } = require('../../src/core/artifact-contract');
@@ -126,6 +126,29 @@ test('model recommendation and spin guard are projected across tool and widget s
     assert.match(description, new RegExp(spinGuard.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.match(description, new RegExp(noRespin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.match(description, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('widget build guard and terminal lifecycle are explicit', () => {
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, /let buildInFlight=false/);
+  assert.match(widget, /build\.disabled=buildInFlight/);
+  assert.match(widget, /function showCreation[\s\S]*?buildInFlight=false/);
+  assert.match(widget, /function showFailure[\s\S]*?buildInFlight=false/);
+  assert.match(widget, /if\(buildInFlight\)return/);
+  assert.match(widget, /showFollowUpFallback[\s\S]*?buildInFlight=false/);
+});
+
+test('accepted artifact tool text presents only the creation URL as a link', () => {
+  for (const kind of ['Artifact', 'Repair']) {
+    const text = acceptedArtifactToolText(kind, 'https://randomware.example/c/creation_demo');
+    assert.match(text, /creationUrl/);
+    assert.match(text, /as a link/i);
+    assert.match(text, /https:\/\/randomware\.example\/c\/creation_demo/);
+    assert.match(text, /do not list run IDs or internal details/i);
+  }
+  for (const name of ['submit_artifact', 'submit_repair']) {
+    assert.match(tools().find((tool) => tool.name === name).description, /creationUrl.*as a link/i);
   }
 });
 

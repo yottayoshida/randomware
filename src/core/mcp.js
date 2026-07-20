@@ -27,6 +27,11 @@ function widgetRepairPrompt(run, diagnostics) {
   return artifactRepairPrompt({ runId: String(input?.runId || 'unknown'), diagnostics: input?.diagnostics, selectedApis: input?.selectedApis, style: input?.style });
 }
 
+function acceptedArtifactToolText(kind, creationUrl) {
+  const url = String(creationUrl || 'creationUrl');
+  return `${kind} accepted. Present the creationUrl to the user as a link: [open the creation](${url}). Do not list run IDs or internal details; the URL alone is sufficient.`;
+}
+
 function toolDescription(name) {
   return promptSurface(`${MODEL_RECOMMENDATION}. ${TOOL_INSTRUCTIONS[name] || `Use the ${name} tool.`}`);
 }
@@ -71,7 +76,14 @@ function showRun(value,source='global'){const result=toolResult(value);if(!resul
 async function spinNow(){if(spinInFlight||activeWidgetRunId){if(spinInFlight||!['completed','failed'].includes(run?.phase))return}spinInFlight=true;syncSpinGuard();clearReveal();buildEngaged=false;failurePanel.hidden=true;creation.hidden=true;reassurance.hidden=true;styleCartridge.hidden=true;status.textContent='Calling the bounded selector…';try{if(typeof bridge().callTool!=='function')throw new Error('ChatGPT widget bridge unavailable');const result=await bridge().callTool('spin_apis',{seed:crypto.randomUUID(),requestId:crypto.randomUUID(),styleHistory});const parsed=toolResult(result)?.output;if(parsed?.styleId)styleHistory=[...styleHistory.filter((id)=>id!==parsed.styleId),parsed.styleId].slice(-3);showRun(result,'widget')}catch(error){status.textContent='The slot failed honestly: '+text(error.message)}finally{spinInFlight=false;syncSpinGuard()}}
 spin.addEventListener('click',spinNow);failureSpin.addEventListener('click',spinNow);build.addEventListener('click',()=>{buildEngaged=true;startTimer('concept');fallback.hidden=true;reassurance.hidden=false;status.textContent='Asking the model to build the specimen…';renderProgress();void sendFollowUp('concept').catch((error)=>showFollowUpFallback('concept',error));});copyPrompt.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(buildPrompt.value);fallbackStatus.textContent='Prompt copied. Paste it into the conversation, then resume the timer.'}catch{buildPrompt.focus();buildPrompt.select();fallbackStatus.textContent='Clipboard access was unavailable; the prompt is selected for manual copy.'}});resumeTimerButton.addEventListener('click',()=>{fallback.hidden=true;resumeTimer()});
 const savedState=bridge().widgetState||{};styleHistory=Array.isArray(savedState.styleHistory)?savedState.styleHistory.slice(-3):[];activeWidgetRunId=savedState.runId||null;runStartedAt=Number(savedState.createdAt)||0;buildEngaged=Boolean(savedState.buildEngaged);if(savedState.runId)run={runId:savedState.runId,createdAt:savedState.createdAt||null,creationId:savedState.creationId||null,creationUrl:savedState.creationUrl||null,selectedApis:savedState.selectedApis||[],styleId:savedState.styleId||null,style:savedState.style||null,phase:savedState.phase||'spinned',statusUrl:savedState.statusUrl||null,choreography:savedState.choreography||null};if(run){showStyle();ensureStatusPolling()}showRun(bridge().toolOutput);if(savedState.creationId)showCreation({creationId:savedState.creationId,creationUrl:savedState.creationUrl||null,phase:'completed'});renderProgress();window.addEventListener('openai:set_globals',(event)=>showRun(event.detail?.globals?.toolOutput||event.detail?.globals?.toolResponseMetadata?.mcp_tool_result),{passive:true});})();
-</script><!-- ${WIDGET_CONTRACT_PROMPT} --></body></html>`.replace('</aside><p id="reassurance"', `<br>${MODEL_RECOMMENDATION}</aside><p id="reassurance"`);
+</script><!-- ${WIDGET_CONTRACT_PROMPT} --></body></html>`
+  .replace('</aside><p id="reassurance"', `<br>${MODEL_RECOMMENDATION}</aside><p id="reassurance"`)
+  .replace('let activeWidgetRunId=null;let spinInFlight=false;let revealToken=0;', 'let activeWidgetRunId=null;let spinInFlight=false;let buildInFlight=false;let revealToken=0;')
+  .replace('spin.disabled=active;failureSpin.disabled=spinInFlight', 'spin.disabled=active;failureSpin.disabled=spinInFlight;build.disabled=buildInFlight')
+  .replace('function showFollowUpFallback(phase,error){const prompt=followUpPrompt(phase);', 'function showFollowUpFallback(phase,error){buildInFlight=false;syncSpinGuard();const prompt=followUpPrompt(phase);')
+  .replace("status.textContent='Creation accepted and routable.';syncSpinGuard();save()}", "status.textContent='Creation accepted and routable.';buildInFlight=false;syncSpinGuard();save()}")
+  .replace("status.textContent='The build ended honestly: '+code+'.';syncSpinGuard()}", "status.textContent='The build ended honestly: '+code+'.';buildInFlight=false;syncSpinGuard()}")
+  .replace("build.addEventListener('click',()=>{buildEngaged=true;", "build.addEventListener('click',()=>{if(buildInFlight)return;buildInFlight=true;syncSpinGuard();buildEngaged=true;");
 
 function chooseProtocolVersion(requested) {
   return SUPPORTED_PROTOCOL_VERSIONS.includes(requested) ? requested : MCP_PROTOCOL_VERSION;
@@ -146,6 +158,7 @@ module.exports = {
   widgetToolResult,
   widgetBuildPrompt,
   widgetRepairPrompt,
+  acceptedArtifactToolText,
   jsonRpcError,
   callToolResult
 };

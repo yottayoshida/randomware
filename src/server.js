@@ -13,7 +13,7 @@ const { CapabilitySigner } = require('./core/capability');
 const { validateConcept } = require('./core/concept');
 const { escapeHtml } = require('./core/artifact');
 const { deathCertificate } = require('./core/failure');
-const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult, toolDescription, conceptAcceptedPrompt, artifactRepairPrompt } = require('./core/mcp');
+const { MCP_RESOURCE_URI, initializeResult, widgetResource, resourceSummary, widgetToolMeta, jsonRpcError, callToolResult, toolDescription, conceptAcceptedPrompt, artifactRepairPrompt, acceptedArtifactToolText } = require('./core/mcp');
 const { CHATGPT_FRAME_ANCESTORS } = require('./core/csp');
 const { specHtml, specText } = require('./core/keeper');
 const { fetchMedia, limitedStream, MEDIA_LIMITS } = require('./core/media');
@@ -262,7 +262,7 @@ async function handleMcp(req, res, app) {
       app.store.noteActivity(args.runId, Date.now(), name === 'submit_repair' ? [phases.REPAIR_REQUESTED] : [phases.CONCEPT_ACCEPTED, phases.BUILDING]); const run = app.store.getRun(args.runId); const check = validateArtifact(args.html, { selectedApis: run.selectedApis, declaredApiUses: args.declaredApiUses });
       if (!check.ok) { const failureArgs = { requestId: args.requestId, code: check.code, html: args.html, bytes: check.bytes, sha256: check.sha256 }; const failed = name === 'submit_repair' ? app.store.recordRepairFailure(args.runId, failureArgs) : app.store.recordArtifactFailure(args.runId, failureArgs); const summary = runSummary(failed, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult({ ...summary, ...check, nextTool: name === 'submit_repair' ? 'none' : 'submit_repair' }, artifactRepairPrompt({ runId: args.runId, diagnostics: check.diagnostics, selectedApis: summary.selectedApis, style: summary.style }), { isError: true }) }); }
       const accepted = name === 'submit_repair' ? app.store.acceptRepair(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes }) : app.store.acceptArtifact(args.runId, { requestId: args.requestId, html: args.html, sha256: check.sha256, bytes: check.bytes });
-      return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(accepted, origin), `${name === 'submit_repair' ? 'Repair' : 'Artifact'} accepted.`) });
+      const acceptedSummary = runSummary(accepted, origin); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(acceptedSummary, acceptedArtifactToolText(name === 'submit_repair' ? 'Repair' : 'Artifact', acceptedSummary.creationUrl)) });
     }
     if (name === 'mutate_creation') { const run = app.store.findByCreation(args.creationId); const result = { ok: true, creationId: run.creationId, creationUrl: companionUrl(origin, `/c/${encodeURIComponent(run.creationId)}`), apiIds: run.selectedApis.map((entry) => entry.apiId), premise: args.premise, note: 'mutation preserves the immutable selected API set' }; return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(result, `Mutation recorded for ${run.creationId}.`) }); }
     if (name === 'record_choreography_failure') { const failed = app.store.fail(args.runId, args.code || 'choreography_timeout', args.phase); return json(res, 200, { jsonrpc: '2.0', id: input.id, result: callToolResult(runSummary(failed, origin), `Failure recorded for ${args.runId}.`) }); }

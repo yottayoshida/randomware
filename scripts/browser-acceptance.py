@@ -231,6 +231,31 @@ def main():
             widget_page.route(f"{BASE}/api/runs/widget-run", fulfill_status)
             _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
             widget_html = widget_body["result"]["contents"][0]["text"]
+            lifecycle_page = browser.new_page(viewport={"width": 390, "height": 844})
+            lifecycle_page.add_init_script(
+                "window.__lifecycleSpinCalls=0;"
+                "window.openai={toolOutput:null,widgetState:null,setWidgetState:state=>window.__lifecycleState=state,"
+                "callTool:async name=>{if(name!=='spin_apis') throw new Error('unexpected tool'); window.__lifecycleSpinCalls += 1; return " + json.dumps(envelope(spin_run)) + ";},"
+                "sendFollowUpMessage:async()=>({ok:true}),openExternal:arg=>{window.__openedExternal=arg&&arg.href;}};"
+            )
+            lifecycle_page.route(foreign_widget_url, lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html>"))
+            lifecycle_page.goto(foreign_widget_url, wait_until="domcontentloaded")
+            lifecycle_page.set_content(widget_html, wait_until="domcontentloaded")
+            lifecycle_page.locator("#spin").click()
+            lifecycle_page.wait_for_timeout(100)
+            assert lifecycle_page.locator("#spin").is_disabled(), "widget_spin_not_disabled_while_running"
+            lifecycle_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
+            assert not lifecycle_page.locator("#spin").is_disabled(), "widget_spin_not_reenabled_at_terminal"
+            lifecycle_page.locator("#spin").click()
+            lifecycle_page.wait_for_timeout(100)
+            assert lifecycle_page.evaluate("window.__lifecycleSpinCalls") == 2, "widget_terminal_run_not_spinable_again"
+            assert lifecycle_page.locator("#spin").is_disabled(), "widget_second_spin_not_guarded"
+            lifecycle_page.wait_for_timeout(1800)
+            lifecycle_page.locator("#build").click()
+            assert lifecycle_page.locator("#build").is_disabled(), "widget_build_not_disabled_after_click"
+            lifecycle_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", envelope(complete_run))
+            assert not lifecycle_page.locator("#build").is_disabled(), "widget_build_not_reenabled_at_terminal"
+            lifecycle_page.close()
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
             assert "BEST WITH GPT-5.6 SOL (HIGH REASONING)" in widget_page.locator(".guidance").inner_text(), "widget_model_recommendation_missing"
             widget_page.locator("#spin").click()
@@ -255,6 +280,8 @@ def main():
             assert widget_page.locator("#steps [data-step='concept']").get_attribute("data-state") == "current", "widget_stepper_concept_missing"
             assert widget_page.locator("#build").is_visible(), "widget_build_action_not_rendered"
             widget_page.locator("#build").click()
+            widget_page.wait_for_timeout(50)
+            assert not widget_page.locator("#build").is_disabled(), "widget_build_not_reenabled_after_follow_up_failure"
             assert widget_page.locator("#reassurance").is_visible(), "widget_session_reassurance_missing"
             assert "ELAPSED" in widget_page.locator("#elapsed").inner_text(), "widget_elapsed_missing"
             assert "AUTO-NUDGE AT" in widget_page.locator("#auto-nudge").inner_text(), "widget_auto_nudge_missing"

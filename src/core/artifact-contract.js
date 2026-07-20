@@ -120,8 +120,8 @@ const TOOL_INSTRUCTIONS = deepFreeze({
   open_randomware: `Use this to mount the Randomware slot machine. ${SPIN_GUARD}`,
   spin_apis: `Use this after open_randomware to select a fresh bounded API collision; next call submit_concept. ${SPIN_GUARD}`,
   submit_concept: 'Use this after spin_apis to submit the complete concept contract; next call submit_artifact only after acceptance.',
-  submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact; next call submit_repair only if requested.',
-  submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact; no further repair follows.',
+  submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact; next call submit_repair only if requested. On acceptance, present the creationUrl to the user as a link. Do not list run IDs or internal details; the URL alone is sufficient.',
+  submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact; no further repair follows. On acceptance, present the creationUrl to the user as a link. Do not list run IDs or internal details; the URL alone is sufficient.',
   get_run: 'Use this with a returned runId to recover the current run snapshot and named next tool.',
   mutate_creation: 'Use this on a completed creation to request a different concept while preserving the selected API set.',
   record_choreography_failure: 'Use this only after the active phase absolute deadline to close a silent or noncompliant run.'
