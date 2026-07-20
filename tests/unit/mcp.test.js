@@ -3,8 +3,9 @@ const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, acceptedArtifactToolText, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools, summary } = require('../../src/web');
+const { runSummary } = require('../../src/server');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
-const { CONTRACT_PROMPT_LITERALS, TOY_PRIORITY_PROMPT, CONCEPT_TOY_PRIORITY } = require('../../src/core/artifact-contract');
+const { CONTRACT_PROMPT_LITERALS, TOY_PRIORITY_PROMPT, CONCEPT_TOY_PRIORITY, LIVE_DRAW_RULE, CONCEPT_LIVE_DRAW_RULE } = require('../../src/core/artifact-contract');
 const { setPath } = require('../../scripts/test-synthetic-deployed');
 
 test('synthetic fuzz constructs optional schema containers before mutating nested constraints', () => {
@@ -226,9 +227,47 @@ test('toy priority is salient across concept and artifact prompt surfaces', () =
 
   const widget = widgetResource('https://randomware.example').contents[0].text;
   assert.match(widget, /const toyPriorityPrompt=/);
-  assert.match(widget, /if\(phase==='concept'\)return \[toyPriorityPrompt,/);
-  assert.match(widget, /if\(phase==='artifact'\)return \[toyPriorityPrompt,/);
-  assert.match(widget, /return \[toyPriorityPrompt,'Artifact rejected/);
+  assert.match(widget, /if\(phase==='concept'\)return \[toyPriorityPrompt,liveDrawRule,/);
+  assert.match(widget, /if\(phase==='artifact'\)return \[toyPriorityPrompt,liveDrawRule,/);
+  assert.match(widget, /return \[toyPriorityPrompt,liveDrawRule,'Artifact rejected/);
+});
+
+test('live-draw guidance follows playability and selected operations expose the derived flag', () => {
+  assert.match(LIVE_DRAW_RULE, /liveDraw: true/);
+  assert.match(LIVE_DRAW_RULE, /visible re-draw control/);
+  assert.match(LIVE_DRAW_RULE, /calls window\.randomware\.call again/);
+  assert.match(LIVE_DRAW_RULE, /single boot-time fetch is not acceptable/);
+  assert.match(LIVE_DRAW_RULE, /liveDraw: false/);
+  assert.match(LIVE_DRAW_RULE, /do not present any control that implies a fresh draw/);
+
+  const artifactSurfaces = [
+    initializeResult().instructions,
+    tools().find((tool) => tool.name === 'submit_artifact').description,
+    conceptAcceptedPrompt('run_live_draw'),
+    widgetBuildPrompt({ runId: 'run_live_draw', selectedApis: [{ id: 'dog-ceo', operations: [{ id: 'random', liveDraw: true }] }] }),
+    widgetRepairPrompt({ runId: 'run_live_draw', diagnostics: ['redraw missing'], selectedApis: [{ id: 'dog-ceo', operations: [{ id: 'random', liveDraw: true }] }] })
+  ];
+  for (const [index, surface] of artifactSurfaces.entries()) {
+    assert.ok(surface.indexOf(LIVE_DRAW_RULE) === TOY_PRIORITY_PROMPT.length + 2, `live_draw_not_after_playability:${index}`);
+    assert.ok(surface.indexOf(LIVE_DRAW_RULE) < surface.indexOf('Artifact contract'), `live_draw_buried:${index}`);
+  }
+  const conceptDescription = tools().find((tool) => tool.name === 'submit_concept').description;
+  assert.ok(conceptDescription.includes(CONCEPT_LIVE_DRAW_RULE));
+
+  const run = { id: 'run_live_draw', createdAt: Date.now(), phase: 'spinned', choreography: null, creationId: null, selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }, { apiId: 'met-museum', operationIds: ['object'] }], concept: null, conceptHistory: [], failure: null, revisions: [], events: [], repairCount: 0 };
+  for (const projected of [summary(run, 'https://randomware.example'), runSummary(run, 'https://randomware.example')]) {
+    assert.equal(projected.selectedApis[0].operations[0].liveDraw, true);
+    assert.equal(projected.selectedApis[1].operations[0].liveDraw, false);
+  }
+
+  assert.match(artifactSurfaces[3], /"liveDraw":true/);
+  assert.match(artifactSurfaces[4], /"liveDraw":true/);
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, /const liveDrawRule=/);
+  assert.match(widget, /\[toyPriorityPrompt,liveDrawRule,conceptToyPriority/);
+  assert.match(widget, /\[toyPriorityPrompt,liveDrawRule,'Use Randomware run/);
+  assert.match(widget, /\[toyPriorityPrompt,liveDrawRule,'Artifact rejected/);
+  assert.match(widget, /liveDraw:operation\.liveDraw===true/);
 });
 
 test('every prompt surface carries the shared artifact contract literals', () => {
