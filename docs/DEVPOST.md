@@ -14,7 +14,7 @@ A slot machine for software: spin real public APIs, and GPT-5.6 invents a workin
 
 ## Inspiration
 
-The name comes from a Japanese band called Omoide Hatoba ("Memory Wharf"), made by welding two stock sentimental words into something that belongs to neither. I wanted to do the same thing with APIs: force two unrelated public data sources together and see what connection a model invents when no human gave it an idea.
+The inspiration is a Japanese noise band called Omoide Hatoba ("Memory Wharf"). The name itself is two ordinary sentimental words welded into something that belongs to neither, and their music does the same thing with sound: unrelated signals collide and produce something no one planned. I wanted to apply that principle to APIs: force two unrelated public data sources together and see what connection a model invents when no human gave it an idea.
 
 The creative bet is that this is the right way to answer AI slop. Slop is what happens when generation optimizes for plausible usefulness. Randomware optimizes for the opposite: implausible, singular existence. Hallucination, confidently inventing connections that don't exist, becomes the entire point. The catch is that the invention has to run as working software against real data. Grounded confabulation, with receipts.
 
@@ -62,9 +62,10 @@ Final balance: **148 credits remaining** out of 2,500. The [build log](https://g
 
 ## What's next for Randomware
 
-The immediate backlog (all recorded in the build log): a gacha-style pairing constraint so the Gacha App cartridge only draws when at least one API returns varying data; list-and-pick for fixed-parameter APIs like the Met Museum so each spin surfaces a different artwork; a widget Mutate button; broker-side logging of rejected calls for better failure diagnosis; and a stop button for in-flight runs.
-
-The bigger question is whether the collision-aesthetics engine generalizes beyond public REST APIs. MCP tool servers, database views, and sensor feeds are all "bounded sources with a fixed schema" in the same way the current registry entries are. If the containment model holds, any two structured data sources become slot-machine reels.
+- **Faster generation.** Build times average 3 to 6 minutes today. Reducing model composition time is the single biggest UX improvement.
+- **More APIs.** The registry has 20 selectable sources. Expanding to weather services, finance, sports, transit, and other public feeds increases the collision space and the chance of genuinely surprising pairings.
+- **Higher-fidelity apps.** Current specimens are single-page 2D apps. Supporting 3D (WebGL, Three.js inlined), richer interaction patterns, and multi-screen flows would let the model produce games and simulations, not just dashboards with attitude.
+- **External conditions that shape generation.** Current weather, time of day, trending news, or the player's location could feed into the concept as a fourth input alongside the two or three APIs. The collision would be grounded not just in public data but in the moment it was made.
 
 ## Built with (tags)
 
