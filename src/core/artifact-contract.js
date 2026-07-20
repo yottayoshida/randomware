@@ -15,6 +15,11 @@ const record = (description, properties, required = Object.keys(properties), con
 const id = (description, source) => text(description, { minLength: 1, maxLength: 160, ...(source ? { 'x-randomware-source': source } : {}) });
 const operationIds = (source = 'selectedApis[].operations[].id') => list('One or more operation IDs exactly as exposed by the selected API contract.', id('Selected operation ID.', source), { minItems: 1, uniqueItems: true, 'x-randomware-source': source });
 
+const MODEL_RECOMMENDATION = 'BEST WITH GPT-5.6 SOL (HIGH REASONING)';
+const SPIN_GUARD = 'Do not call spin_apis unless the user explicitly asks to spin or the widget button initiated it. Do not self-spin again after an interruption.';
+const IMAGE_RUNTIME_RULE = 'For image-bearing fields, do not set img.src until the signed URL arrives in result.data; show an honest image loading status nearby; the first render must not show a broken image icon.';
+const FIXED_OPERATION_RULE = 'Registry operations use fixed parameters. Unless the selected source is inherently time-varying (weather, earthquakes, exchange rates, or live radio), do not promise changes every call; a fixed-operation gacha or summon must not claim fresh output each time.';
+
 const ARTIFACT_BLOCKED_PATTERN_SOURCES = deepFreeze([
   String.raw`\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b`,
   String.raw`\b(?:import\s*\(|eval\s*\(|new\s+Function\b|Worker\s*\(|SharedWorker\s*\()`,
@@ -54,6 +59,8 @@ const ARTIFACT_CONTRACT = deepFreeze({
     'one complete UTF-8 HTML5 document with inline CSS and JavaScript',
     'one literal broker call for every selected API operation',
     'audio and video autoplay attributes are forbidden; playback starts only from explicit user action',
+    IMAGE_RUNTIME_RULE,
+    FIXED_OPERATION_RULE,
     'no direct network primitive, external URL, storage, cookie, parent/top/opener access, unsafe HTML sink, credential field, nested frame, form, SVG, MathML, worker, or dynamic code execution',
     'safe DOM text rendering, every selected API essential, declared dependency observable, and usable at 390 CSS pixels'
   ]
@@ -77,6 +84,8 @@ const RUNTIME_DATA_CONTRACT = deepFreeze({
     'the app payload is exactly result.data, never result.current or another top-level public API field',
     'result.data has the operation adapted shape shown in responseExample, never the public API raw shape; deep values may be bounded or truncated',
     'image-bearing fields are rewritten to same-origin signed URLs and must be assigned verbatim to img.src',
+    IMAGE_RUNTIME_RULE,
+    FIXED_OPERATION_RULE,
     'audio is available only through a signed /media URL in result.data.mediaUrl',
     'fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent; render partial results and an honest per-source failure line instead of blanking the entire app; every selected API remains essential to the concept',
     'native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers',
@@ -108,8 +117,8 @@ const CONCEPT_SEMANTIC_RULES = deepFreeze([
 ]);
 
 const TOOL_INSTRUCTIONS = deepFreeze({
-  open_randomware: 'Use this to mount the Randomware slot machine.',
-  spin_apis: 'Use this after open_randomware to select a fresh bounded API collision; next call submit_concept.',
+  open_randomware: `Use this to mount the Randomware slot machine. ${SPIN_GUARD}`,
+  spin_apis: `Use this after open_randomware to select a fresh bounded API collision; next call submit_concept. ${SPIN_GUARD}`,
   submit_concept: 'Use this after spin_apis to submit the complete concept contract; next call submit_artifact only after acceptance.',
   submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact; next call submit_repair only if requested.',
   submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact; no further repair follows.',
@@ -280,6 +289,8 @@ function artifactContractPrompt() {
     `include a viewport tag beginning ${ARTIFACT_CONTRACT.viewport}`,
     'Runtime data contract: window.randomware.call resolves {ok:true, apiId, operationId, data, bytes, sourceUrl, cached}; on any HTTP failure it rejects with Error("broker_failure"). The app payload is exactly result.data.',
     'result.data uses the operation ADAPTED shape from responseExample, never the public API raw shape; deep values may be bounded/truncated. Image-bearing fields are same-origin signed URLs: use them verbatim in img.src. Audio is exposed only by a signed /media URL in result.data.mediaUrl.',
+    IMAGE_RUNTIME_RULE,
+    FIXED_OPERATION_RULE,
     'Fetch selected APIs with per-call failure isolation using Promise.allSettled or equivalent. Render partial results and an honest per-source failure line instead of blanking the entire app. Every selected API remains essential to the concept; runtime degradation must stay honest.',
     'When audio is present, native audio controls must be fully visible and unobstructed by labels, overlays, or decorative layers.',
     'Audio and video playback must begin only from an explicit user action such as a click. Never use an autoplay attribute, and never call play() on load or merely when data arrives.',
@@ -327,6 +338,10 @@ function artifactRepairPrompt({ runId = 'unknown', diagnostics = [], selectedApi
 }
 
 module.exports = {
+  MODEL_RECOMMENDATION,
+  SPIN_GUARD,
+  IMAGE_RUNTIME_RULE,
+  FIXED_OPERATION_RULE,
   ARTIFACT_CONTRACT,
   ARTIFACT_CONTRACT_LITERALS,
   ARTIFACT_BLOCKED_PATTERN_SOURCES,

@@ -232,6 +232,7 @@ def main():
             _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
             widget_html = widget_body["result"]["contents"][0]["text"]
             widget_page.set_content(widget_html, wait_until="domcontentloaded")
+            assert "BEST WITH GPT-5.6 SOL (HIGH REASONING)" in widget_page.locator(".guidance").inner_text(), "widget_model_recommendation_missing"
             widget_page.locator("#spin").click()
             widget_page.wait_for_timeout(150)
             assert widget_page.locator("#apis .reel[data-state='shuffling']").count() == 3, "widget_reel_shuffle_missing"
@@ -303,6 +304,13 @@ def main():
             assert "repair_failed" in widget_page.locator("#failure-copy").inner_text(), "widget_terminal_failure_code_missing"
             assert widget_page.locator("#failure-spin").is_visible(), "widget_failure_spin_missing"
             assert widget_page.locator("#autopsy").is_visible(), "widget_failure_autopsy_missing"
+            widget_page.evaluate("""() => { window.__spinCalls = 0; window.openai.callTool = async () => { window.__spinCalls += 1; return new Promise(resolve => { window.__resolveSpin = resolve; }); }; }""")
+            widget_page.locator("#spin").click()
+            widget_page.locator("#spin").dispatch_event("click")
+            assert widget_page.evaluate("window.__spinCalls") == 1, "widget_spin_reentry_not_ignored"
+            assert widget_page.locator("#spin").is_disabled(), "widget_spin_reentry_button_not_disabled"
+            widget_page.evaluate("envelope => window.__resolveSpin(envelope)", envelope(spin_run))
+            widget_page.wait_for_timeout(150)
             artifact_timeout = {**terminal_failure, "creationId": None, "creationUrl": None, "failure": {"code": "choreography_timeout", "detail": "artifact"}, "revisions": []}
             widget_page.evaluate("envelope => window.dispatchEvent(new CustomEvent('openai:set_globals', {detail: {globals: {toolOutput: envelope}}}))", {"content": [{"type": "text", "text": "timeout"}], "structuredContent": artifact_timeout, "isError": True})
             assert widget_page.locator("#steps [data-step='build']").get_attribute("data-state") == "failed", "widget_artifact_timeout_step_missing"

@@ -111,6 +111,24 @@ test('widget ships the approved RANDOMWARE.EXE machine surface', () => {
   assert.match(widget, /styleHistory/);
 });
 
+test('model recommendation and spin guard are projected across tool and widget surfaces', () => {
+  const recommendation = 'BEST WITH GPT-5.6 SOL (HIGH REASONING)';
+  const spinGuard = 'Do not call spin_apis unless the user explicitly asks to spin or the widget button initiated it';
+  const noRespin = 'Do not self-spin again after an interruption';
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  assert.match(widget, /spinInFlight/);
+  assert.match(widget, /if\(spinInFlight\|\|activeWidgetRunId\)/);
+  assert.match(widget, /spinInFlight=false/);
+  assert.match(initializeResult().instructions, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  for (const name of ['open_randomware', 'spin_apis']) {
+    const description = tools().find((tool) => tool.name === name).description;
+    assert.match(description, new RegExp(spinGuard.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.match(description, new RegExp(noRespin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.match(description, new RegExp(recommendation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
 test('registry symbols stay on display surfaces and out of run artifact inputs', () => {
   const run = { id: 'run_display', createdAt: Date.now(), phase: 'spinned', choreography: null, creationId: null, selectedApis: [{ apiId: 'dog-ceo', operationIds: ['random'] }], concept: null, conceptHistory: [], failure: null, revisions: [], events: [], repairCount: 0 };
   assert.equal(summary(run, 'https://randomware.example').selectedApis[0].symbol, undefined);
@@ -252,5 +270,24 @@ test('artifact-facing prompts teach the broker envelope, adapted payload, and se
   for (const source of [syntheticSource, browserSource]) {
     assert.match(source, /TUNING THE CARRIER/);
     assert.doesNotMatch(source, /<audio[^>]+autoplay/i);
+  }
+});
+
+test('artifact-facing prompts teach honest image arrival and fixed-operation behavior', () => {
+  const surfaces = [
+    initializeResult().instructions,
+    ...tools().map((tool) => tool.description),
+    conceptAcceptedPrompt('run_image_contract'),
+    widgetBuildPrompt({ runId: 'run_image_contract' }),
+    widgetRepairPrompt({ runId: 'run_image_contract', diagnostics: ['image missing'] }),
+    widgetResource('https://randomware.example').contents[0].text
+  ];
+  for (const surface of surfaces) {
+    assert.match(surface, /signed URL arrives in result\.data/i);
+    assert.match(surface, /do not set img\.src/i);
+    assert.match(surface, /honest.*image.*loading|image.*honest.*loading/i);
+    assert.match(surface, /broken image icon/i);
+    assert.match(surface, /fixed parameters|operation is fixed/i);
+    assert.match(surface, /do not promise.*changes every call|not promise.*changes every call/i);
   }
 });
