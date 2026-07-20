@@ -89,7 +89,7 @@ function initializeResult(params = {}) {
   return {
     protocolVersion: chooseProtocolVersion(params.protocolVersion),
     capabilities: { tools: { listChanged: false }, resources: { subscribe: false, listChanged: false } },
-    serverInfo: { name: 'randomware', title: 'Randomware', version: '0.1.0' },
+    serverInfo: { name: 'randomware', title: 'Randomware', version: '1.0.0' },
     instructions: promptSurface(`${MODEL_RECOMMENDATION}. Call open_randomware first to mount the persistent Randomware widget. The widget calls spin_apis directly; then follow the concept and artifact tool choreography.`)
   };
 }
