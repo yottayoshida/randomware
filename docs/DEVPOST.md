@@ -28,7 +28,7 @@ Accepted specimens run in an opaque `sandbox="allow-scripts"` iframe. The genera
 
 The same two APIs can yield wildly different apps. "Deck of Cards × Dog CEO" produced *Pawns & Paws*, a board game where drawn cards set movement rules for summoned dog pawns. Every press fetches a fresh card and a fresh dog through the broker. Every spin is a first contact.
 
-## How I built it
+## How we built it
 
 The build mirrors the product's constraint: everything must have receipts.
 
@@ -36,7 +36,7 @@ The build mirrors the product's constraint: everything must have receipts.
 - **No owner API key at runtime.** Generation, repair, and re-steering all run in the player's own ChatGPT session via an Apps SDK (MCP) connector. The server is a Cloudflare Worker + D1 on the free tier, so hosting adds zero incremental cost.
 - **Containment first.** A static validator blocks fetch, XHR, WebSocket, eval, storage, parent/top access, credential fields, external URLs, and 15 other pattern classes before the artifact is accepted. A short-lived HMAC-signed capability lets the app call only its selected operations. Upstream data is bounded, attributed, and rendered as untrusted text. PRD preparation used Claude Code, before and outside the Codex budget; this is disclosed in the build log.
 
-## Challenges
+## Challenges we ran into
 
 **The tests lied, repeatedly.** The hardest class of bugs was invisible to every machine gate. Synthetic test drivers stayed green while real ChatGPT clients failed, because the drivers mirrored the implementation's own assumptions rather than the real client's behavior. The runtime data contract was the first case: generated apps were never told what shape `window.randomware.call` returns, so they guessed wrong, and the synthetic driver guessed the same wrong way. I found four distinct classes of this "self-mirroring" failure, each discovered only by external curl probes against the deployed surface.
 
@@ -46,6 +46,12 @@ The build mirrors the product's constraint: everything must have receipts.
 
 **The spin guard that worked everywhere except production.** Three consecutive Codex repair rounds produced a widget Spin-button guard that passed every local and fixture test but remained permanently disabled in real ChatGPT. The root cause was never identified; the widget code was proven correct in every reproducible environment. After the third round, with credits at the reserve floor, I removed the phase-based guard entirely and kept only the in-flight guard that cannot structurally get stuck.
 
+## Accomplishments that I'm proud of
+
+Ten consecutive fresh spins, all 10 booted and produced real broker traffic from every selected API, with zero stalls and zero repairs. Both timing targets were honestly missed (median 5.4 minutes per specimen; target was 90 seconds), and I recorded them as misses instead of tuning them away. The acceptance protocol, the build log, and the budget meter are all public and hide nothing.
+
+The product itself bans plausible startup pitches as a shape. The eccentricity check confirmed that zero of the ten accepted concepts could pass as a sincere pitch. "Pawns & Paws" (a board game where playing cards govern dog-pawn movement rules) is a representative specimen, and it works.
+
 ## What I learned
 
 I ran an acceptance protocol of 10 consecutive fresh spins. No discards, no restarts, failures counted. All 10 booted and produced real broker traffic from every selected API. Both timing targets were honestly missed: median concept time 81.5 seconds (target: 10), median spin-to-preview 5.4 minutes (target: 90 seconds). Real invention is slower than a template. The contract says timing misses don't trigger tuning unless the core flow is broken, and 10/10 boot with zero stalls meant the core flow held.
@@ -53,6 +59,12 @@ I ran an acceptance protocol of 10 consecutive fresh spins. No discards, no rest
 The biggest surprise was that honesty became the product's strongest feature. Recorded failures, visible autopsies, truthful meters, and a build log that hides nothing turned out to be what makes the strange results trustworthy. When a specimen says it used Dog CEO and Frankfurter, the broker log proves it. When it dies, the death certificate says why.
 
 Final balance: **148 credits remaining** out of 2,500. The [build log](https://github.com/yottayoshida/randomware/blob/main/docs/BUILD_LOG.md) is the other half of this submission.
+
+## What's next for Randomware
+
+The immediate backlog (all recorded in the build log): a gacha-style pairing constraint so the Gacha App cartridge only draws when at least one API returns varying data; list-and-pick for fixed-parameter APIs like the Met Museum so each spin surfaces a different artwork; a widget Mutate button; broker-side logging of rejected calls for better failure diagnosis; and a stop button for in-flight runs.
+
+The bigger question is whether the collision-aesthetics engine generalizes beyond public REST APIs. MCP tool servers, database views, and sensor feeds are all "bounded sources with a fixed schema" in the same way the current registry entries are. If the containment model holds, any two structured data sources become slot-machine reels.
 
 ## Built with (tags)
 
