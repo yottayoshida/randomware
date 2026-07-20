@@ -4,8 +4,6 @@
 
 **A slot machine for software.** Spin 2–3 real public APIs, and GPT-5.6 invents, builds, and launches a brand-new web app from the collision — or fails honestly, with a death certificate. The unpredictability is the product.
 
-[![Demo video](https://img.youtube.com/vi/V86lJeaDVpg/maxresdefault.jpg)](https://youtu.be/V86lJeaDVpg)
-
 **[▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg)** · **[🎰 Live showcase — zero setup](https://randomware.randomware.workers.dev/)** · **[📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)**
 
 ![A generated specimen drawing a fresh card and a fresh dog live through the broker](docs/media/demo.gif)
