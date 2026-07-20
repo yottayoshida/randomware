@@ -8,9 +8,9 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
 ## Judge path and demo
 
-Run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. The zero-setup companion path uses fixture mode, visibly labels generated output, and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
+The zero-setup path is the deployed showcase: open [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/) in any browser — no account, no install. The index embeds a live specimen and links every published creation's record page, where source, mediated requests, and dataflow are inspectable. The Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp); the demo video link will be added before submission. Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md), and a short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
-The deployed showcase is available at [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/); its Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp). Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md). A short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
 
 ## Pitch
 
@@ -18,7 +18,11 @@ Real APIs go in. GPT-5.6 turns their collision into a tiny app — or an honest,
 
 ## Media
 
-The companion UI is the canonical zero-setup demo. No private media or credentials are committed. Deployment evidence belongs in the build log.
+![Deployed showcase landing page](docs/media/showcase-index.png)
+
+![A generated specimen running live on the showcase index](docs/media/showcase-specimen.png)
+
+The demo video link is pending and will be added before submission. No private media or credentials are committed; deployment evidence belongs in the build log.
 
 ## Deployed showcase URL
 
@@ -60,7 +64,7 @@ npm run deploy
 
 ## Registry and examples
 
-The launch registry contains 20 bounded entries with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links.
+The launch registry contains 21 bounded compatibility entries, 20 of which are selectable for new spins (one audio provider remains resolvable for frozen creations but is excluded from selection), with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links.
 
 ## Limits and security
 

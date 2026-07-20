@@ -1,6 +1,6 @@
 # Project description
 
-Randomware is a slot machine for software. A spin selects two or three bounded public APIs; the player's GPT-5.6 session invents an eccentric collision, submits a complete single-page app, and receives either a working creation or an honest failure. Fixed templates could not reproduce the point: the meaning is invented afresh from the collision, and the same APIs can yield different concepts.
+Randomware is a slot machine for software. A spin selects two or three bounded public APIs; the player's GPT-5.6 session invents an eccentric collision, submits a complete single-page app, and receives either a working creation or an honest failure. Selection is a seeded deterministic draw over the health-gated registry: it avoids the last three combinations, rejects single-category sets, requires at least one sensory-capable API, and weights toward the most dissimilar pairings. Fixed templates could not reproduce the point: the meaning is invented afresh from the collision, and the same APIs can yield different concepts.
 
 The server validates every concept and artifact, rejects unsafe fields and direct network primitives, and runs accepted HTML only in an opaque `sandbox="allow-scripts"` frame. A short-lived capability permits literal selected-operation calls to the server-side broker; upstream data is bounded, attributed, and rendered as untrusted text. Owners can inspect source and mediated traffic, report a creation, and unpublish it.
 
