@@ -231,6 +231,62 @@ def main():
             widget_page.route(f"{BASE}/api/runs/widget-run", fulfill_status)
             _, widget_body = call("/mcp", {"jsonrpc": "2.0", "id": "widget-resource", "method": "resources/read", "params": {"uri": "ui://widget/randomware.html"}})
             widget_html = widget_body["result"]["contents"][0]["text"]
+            restored_page = browser.new_page(viewport={"width": 390, "height": 844})
+            restored_state = {"runId": "widget-run", "statusUrl": f"{BASE}/api/runs/widget-run", "createdAt": now_ms}
+            restored_page.add_init_script(
+                "window.__restoredSpinCalls=0;"
+                "window.openai={toolOutput:null,widgetState:" + json.dumps(restored_state) + ",setWidgetState:state=>window.__restoredState=state,"
+                "callTool:async name=>{if(name!=='spin_apis') throw new Error('unexpected tool'); window.__restoredSpinCalls += 1; return " + json.dumps(envelope(spin_run)) + ";},"
+                "sendFollowUpMessage:async()=>({ok:true}),openExternal:()=>{}};"
+            )
+            restored_page.route(foreign_widget_url, lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html>"))
+            restored_status_requests = []
+            def fulfill_restored_status(route):
+                restored_status_requests.append(route.request.url)
+                route.fulfill(status=200, content_type="application/json", headers={"access-control-allow-origin": "*"}, body=json.dumps(complete_run))
+            restored_page.route(f"{BASE}/api/runs/widget-run", fulfill_restored_status)
+            restored_page.goto(foreign_widget_url, wait_until="domcontentloaded")
+            restored_page.set_content(widget_html, wait_until="domcontentloaded")
+            restored_page.wait_for_timeout(500)
+            assert restored_status_requests, "widget_restored_run_not_rehydrated_immediately"
+            assert not restored_page.locator("#spin").is_disabled(), "widget_restored_terminal_spin_not_enabled"
+            restored_page.locator("#spin").click()
+            restored_page.wait_for_timeout(100)
+            assert restored_page.evaluate("window.__restoredSpinCalls") == 1, "widget_restored_terminal_not_spinable"
+            restored_page.close()
+            active_restore_page = browser.new_page(viewport={"width": 390, "height": 844})
+            active_restore_page.add_init_script(
+                "window.__activeRestoreSpinCalls=0;"
+                "window.openai={toolOutput:null,widgetState:" + json.dumps(restored_state) + ",setWidgetState:state=>window.__activeRestoreState=state,"
+                "callTool:async()=>{window.__activeRestoreSpinCalls += 1; return " + json.dumps(envelope(spin_run)) + ";},"
+                "sendFollowUpMessage:async()=>({ok:true}),openExternal:()=>{}};"
+            )
+            active_restore_page.route(foreign_widget_url, lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html>"))
+            active_restore_requests = []
+            def fulfill_active_restore(route):
+                active_restore_requests.append(route.request.url)
+                route.fulfill(status=200, content_type="application/json", headers={"access-control-allow-origin": "*"}, body=json.dumps(spin_run))
+            active_restore_page.route(f"{BASE}/api/runs/widget-run", fulfill_active_restore)
+            active_restore_page.goto(foreign_widget_url, wait_until="domcontentloaded")
+            active_restore_page.set_content(widget_html, wait_until="domcontentloaded")
+            active_restore_page.wait_for_timeout(500)
+            assert active_restore_requests, "widget_active_restore_not_rehydrated_immediately"
+            assert active_restore_page.locator("#spin").is_disabled(), "widget_active_restore_spin_not_guarded"
+            active_restore_page.locator("#spin").dispatch_event("click")
+            assert active_restore_page.evaluate("window.__activeRestoreSpinCalls") == 0, "widget_active_restore_allowed_second_spin"
+            active_restore_page.close()
+            failed_restore_page = browser.new_page(viewport={"width": 390, "height": 844})
+            failed_restore_page.add_init_script(
+                "window.openai={toolOutput:null,widgetState:" + json.dumps(restored_state) + ",setWidgetState:state=>window.__failedRestoreState=state,"
+                "callTool:async()=>" + json.dumps(envelope(spin_run)) + ",sendFollowUpMessage:async()=>({ok:true}),openExternal:()=>{}};"
+            )
+            failed_restore_page.route(foreign_widget_url, lambda route: route.fulfill(status=200, content_type="text/html", body="<!doctype html>"))
+            failed_restore_page.route(f"{BASE}/api/runs/widget-run", lambda route: route.abort())
+            failed_restore_page.goto(foreign_widget_url, wait_until="domcontentloaded")
+            failed_restore_page.set_content(widget_html, wait_until="domcontentloaded")
+            failed_restore_page.wait_for_timeout(2200)
+            assert not failed_restore_page.locator("#spin").is_disabled(), "widget_failed_restore_did_not_fail_open"
+            failed_restore_page.close()
             lifecycle_page = browser.new_page(viewport={"width": 390, "height": 844})
             lifecycle_page.add_init_script(
                 "window.__lifecycleSpinCalls=0;"
