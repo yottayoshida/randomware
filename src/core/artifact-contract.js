@@ -19,6 +19,11 @@ const MODEL_RECOMMENDATION = 'BEST WITH GPT-5.6 SOL (HIGH REASONING)';
 const SPIN_GUARD = 'Do not call spin_apis unless the user explicitly asks to spin or the widget button initiated it. Do not self-spin again after an interruption.';
 const IMAGE_RUNTIME_RULE = 'For image-bearing fields, do not set img.src until the signed URL arrives in result.data; show an honest image loading status nearby; the first render must not show a broken image icon.';
 const FIXED_OPERATION_RULE = 'Registry operations use fixed parameters. Unless the selected source is inherently time-varying (weather, earthquakes, exchange rates, or live radio), do not promise changes every call; a fixed-operation gacha or summon must not claim fresh output each time.';
+const TOY_PRIORITY_PROMPT = `TOP PRIORITY — PLAYABILITY
+1. The creation is a toy, not a report: give the player at least one meaningful choice or manipulation whose consequence visibly cascades through the selected sources' data.
+2. Prefer a playable loop (act → see the result → want to act again) over a single reveal.
+3. When every selected source is parameter-pinned, replay value may come from honestly framed client-side randomness over the INTERPRETATION of the fixed data (each pull rolls a different reading of the same fixed material); never present fixed data as freshly fetched.`;
+const CONCEPT_TOY_PRIORITY = 'Concept priority: design a replayable toy, not a report—playerAction and interaction must define a meaningful act → visible cascading result → desire to act again; for parameter-pinned sources, replay may vary only the honest interpretation of fixed data.';
 
 const ARTIFACT_BLOCKED_PATTERN_SOURCES = deepFreeze([
   String.raw`\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b`,
@@ -119,7 +124,7 @@ const CONCEPT_SEMANTIC_RULES = deepFreeze([
 const TOOL_INSTRUCTIONS = deepFreeze({
   open_randomware: `Use this to mount the Randomware slot machine. ${SPIN_GUARD}`,
   spin_apis: `Use this after open_randomware to select a fresh bounded API collision; next call submit_concept. ${SPIN_GUARD}`,
-  submit_concept: 'Use this after spin_apis to submit the complete concept contract; next call submit_artifact only after acceptance.',
+  submit_concept: `${CONCEPT_TOY_PRIORITY} Use this after spin_apis to submit the complete concept contract; next call submit_artifact only after acceptance.`,
   submit_artifact: 'Use this after concept acceptance to submit one complete HTML artifact; next call submit_repair only if requested. On acceptance, present the creationUrl to the user as a link. Do not list run IDs or internal details; the URL alone is sufficient.',
   submit_repair: 'Use this once after a validation or boot failure to submit one complete replacement artifact; no further repair follows. On acceptance, present the creationUrl to the user as a link. Do not list run IDs or internal details; the URL alone is sufficient.',
   get_run: 'Use this with a returned runId to recover the current run snapshot and named next tool.',
@@ -304,7 +309,7 @@ function contractPrompt() {
 }
 
 function promptSurface(instruction, extra = '') {
-  return `${instruction}\n\n${contractPrompt()}${extra ? `\n\n${extra}` : ''}`;
+  return `${TOY_PRIORITY_PROMPT}\n\n${instruction}\n\n${contractPrompt()}${extra ? `\n\n${extra}` : ''}`;
 }
 
 function selectedOperationExamples(selectedApis = []) {
@@ -342,6 +347,8 @@ module.exports = {
   SPIN_GUARD,
   IMAGE_RUNTIME_RULE,
   FIXED_OPERATION_RULE,
+  TOY_PRIORITY_PROMPT,
+  CONCEPT_TOY_PRIORITY,
   ARTIFACT_CONTRACT,
   ARTIFACT_CONTRACT_LITERALS,
   ARTIFACT_BLOCKED_PATTERN_SOURCES,

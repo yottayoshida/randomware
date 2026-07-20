@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const { callToolResult, widgetResource, widgetToolResult, widgetBuildPrompt, widgetRepairPrompt, initializeResult, conceptAcceptedPrompt, acceptedArtifactToolText, ARTIFACT_CONTRACT_LITERALS } = require('../../src/core/mcp');
 const { tools, summary } = require('../../src/web');
 const { toolSchemas, validateToolArguments } = require('../../src/core/tool-contract');
-const { CONTRACT_PROMPT_LITERALS } = require('../../src/core/artifact-contract');
+const { CONTRACT_PROMPT_LITERALS, TOY_PRIORITY_PROMPT, CONCEPT_TOY_PRIORITY } = require('../../src/core/artifact-contract');
 const { setPath } = require('../../scripts/test-synthetic-deployed');
 
 test('synthetic fuzz constructs optional schema containers before mutating nested constraints', () => {
@@ -196,6 +196,39 @@ test('widget fallback prompt binds the active run and required build choreograph
   assert.match(prompt, /submit the complete artifact via submit_artifact/);
   assert.match(prompt, /DRAWN_STYLE=.*teletext/);
   assert.match(prompt, /inline CSS only/i);
+});
+
+test('toy priority is salient across concept and artifact prompt surfaces', () => {
+  const priorityPhrases = [
+    'The creation is a toy, not a report',
+    'Prefer a playable loop (act → see the result → want to act again) over a single reveal',
+    'client-side randomness over the INTERPRETATION of the fixed data',
+    'never present fixed data as freshly fetched'
+  ];
+  for (const phrase of priorityPhrases) assert.ok(TOY_PRIORITY_PROMPT.includes(phrase), `toy_priority_missing:${phrase}`);
+
+  const artifactSurfaces = [
+    initializeResult().instructions,
+    tools().find((tool) => tool.name === 'submit_artifact').description,
+    tools().find((tool) => tool.name === 'submit_repair').description,
+    conceptAcceptedPrompt('run_toy_priority'),
+    widgetBuildPrompt({ runId: 'run_toy_priority' }),
+    widgetRepairPrompt({ runId: 'run_toy_priority', diagnostics: ['interactive marker missing'] })
+  ];
+  for (const [index, surface] of artifactSurfaces.entries()) {
+    assert.ok(surface.startsWith(TOY_PRIORITY_PROMPT), `toy_priority_not_first:${index}`);
+    assert.ok(surface.indexOf(TOY_PRIORITY_PROMPT) < surface.indexOf('Artifact contract'), `toy_priority_buried:${index}`);
+  }
+
+  const conceptDescription = tools().find((tool) => tool.name === 'submit_concept').description;
+  assert.ok(conceptDescription.includes(CONCEPT_TOY_PRIORITY), 'concept_toy_priority_missing');
+  assert.ok(conceptDescription.indexOf(CONCEPT_TOY_PRIORITY) < conceptDescription.indexOf('Artifact contract'), 'concept_toy_priority_buried');
+
+  const widget = widgetResource('https://randomware.example').contents[0].text;
+  assert.match(widget, /const toyPriorityPrompt=/);
+  assert.match(widget, /if\(phase==='concept'\)return \[toyPriorityPrompt,/);
+  assert.match(widget, /if\(phase==='artifact'\)return \[toyPriorityPrompt,/);
+  assert.match(widget, /return \[toyPriorityPrompt,'Artifact rejected/);
 });
 
 test('every prompt surface carries the shared artifact contract literals', () => {

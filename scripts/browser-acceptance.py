@@ -346,6 +346,7 @@ def main():
             assert "concept contract" in widget_page.locator("#composing-copy").inner_text(), "widget_concept_detail_not_honest"
             assert widget_page.locator("#fallback").is_visible(), "widget_follow_up_fallback_missing"
             fallback_prompt = widget_page.locator("#build-prompt").input_value()
+            assert fallback_prompt.startswith("TOP PRIORITY — PLAYABILITY"), "widget_toy_priority_not_first"
             assert "Use Randomware run widget-run:" in fallback_prompt, "widget_fallback_run_id_missing"
             assert "submit the complete artifact via submit_artifact" in fallback_prompt, "widget_fallback_prompt_incomplete"
             assert widget_page.evaluate("window.__widgetState?.paused") is True, "widget_concept_timer_not_paused"

@@ -125,6 +125,7 @@ The worker fills a row immediately at each boundary. Copy the exact UI wording; 
 | Owner low-credit checkpoint | 2026-07-19 JST | 0% of the weekly limit remaining | 590 | 1,521 since the 2,111-credit snapshot | Required fixes only | Owner stopped the long deployed E2E; remaining work is restricted to keeper layout plus prompt/validator contract fixes and focused local verification |
 | Owner acceptance repair reserve checkpoint | 2026-07-20 JST | 0% of the weekly limit remaining | 435 | 155 since the 590 snapshot; not attributed to repository work | 300 reserve | Owner-authorized guidance/tool-text/widget-copy fixes only; no long deployed E2E or live-provider probe |
 | Owner widget re-instantiation correction | 2026-07-20 JST | 0% of the weekly limit remaining | 392 | 17 since the owner-transcribed 409 post-round snapshot | 300 reserve | Owner-authorized terminal Spin guard correction; focused static/unit/fixture-Chromium verification only, with no deployed E2E or live-provider probe |
+| Owner playability-priority declaration | 2026-07-20 JST | 0% of the weekly limit remaining | 314 | 78 since the last 392 table snapshot; not attributed to this round | 300 reserve | Owner explicitly authorized this one-round, prompt-only demo-quality correction despite the 14-credit margin above reserve; focused static/unit/fixture-Chromium verification only |
 | Pre-demo/submission | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 300 reserve | Reserve-eligible blockers only |
 | Final after `/feedback` | Not yet measured | Not yet measured | Not yet measured | Not yet measured | 0 | Record total, remaining balance, final plan meter |
 
@@ -137,6 +138,8 @@ Low-credit update (2026-07-19 JST, owner-transcribed): weekly plan remains **0% 
 Owner acceptance repair meter (2026-07-20 JST, owner-transcribed): weekly plan remains **0% remaining** and the grant balance is **435/2,500**. The 155-credit delta is not attributed to work logged in this repository. Reserve scope remains limited to guidance, tool text, widget state/copy, and focused local verification.
 
 Widget re-instantiation correction meter (2026-07-20 JST, owner-transcribed): weekly plan remains **0% remaining** and the grant balance is **392/2,500**. The prior post-round owner transcription was 409, so the exact decrease is 17 and the remaining margin above the 300-credit reserve is 92. No usage source is inferred.
+
+Playability-priority meter (2026-07-20 JST, owner-transcribed): weekly plan remains **0% remaining** and the grant balance is **314/2,500**. The 78-credit decrease from the last 392 table snapshot spans intervening activity and is not attributed to this round. The owner explicitly authorized this single required demo-quality prompt correction while acknowledging that it may consume the 300-credit reserve; no post-work balance is inferred.
 
 ## 9. Checkpoint calculation
 
