@@ -2,19 +2,33 @@
 
 > Real APIs go in. Random apps come out.
 
-Randomware is a slot machine for software: it randomly selects two or three real public APIs, then GPT-5.6 invents, builds, and launches a brand-new working web app from that combination in real time. Some spins produce something useful, some produce something absurd, and some produce a glorious failure — the unpredictability is the product.
+**A slot machine for software.** Spin 2–3 real public APIs, and GPT-5.6 invents, builds, and launches a brand-new web app from the collision — or fails honestly, with a death certificate. The unpredictability is the product.
+
+[![Demo video](https://img.youtube.com/vi/V86lJeaDVpg/maxresdefault.jpg)](https://youtu.be/V86lJeaDVpg)
+
+**[▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg)** · **[🎰 Live showcase — zero setup](https://randomware.randomware.workers.dev/)** · **[📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)**
+
+![A generated specimen drawing a fresh card and a fresh dog live through the broker](docs/media/demo.gif)
+
+*Above: "Pawns & Paws", a generated specimen. Every press of DRAW CARD or SUMMON DOG calls the server-side broker for real data — a fresh card, a fresh dog — while the sandboxed app can reach nothing else.*
 
 Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
-## Judge path and demo
+## How it works
 
-The zero-setup path is the deployed showcase: open [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/) in any browser — no account, no install. The index embeds a live specimen and links every published creation's record page, where source, mediated requests, and dataflow are inspectable. The Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp); the demo video is at [youtu.be/V86lJeaDVpg](https://youtu.be/V86lJeaDVpg). Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md), and a short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+1. 🎰 **Spin** — a seeded selector draws 2–3 bounded public APIs from a health-gated 21-entry registry, weighted toward the most dissimilar pairings, plus one of eight visual style cartridges.
+2. 🧠 **Invent** — the player's own GPT-5.6 session (no owner API key) proposes an eccentric but structured concept: causal chain, API roles, one observable dependency. Plain dashboards and plausible startup pitches are contractually banned shapes.
+3. 🔬 **Validate** — a static validator enforces byte range, required markers, and literal broker calls, and rejects every direct network primitive. One bounded repair is allowed per run.
+4. 🪦 **Publish — or autopsy** — accepted specimens go live at their own URL with source, mediated request logs, and dataflow records. Failures get an honest death certificate. Both are part of the showcase.
 
-For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
+## Try it in 30 seconds (judges)
 
-## Pitch
+1. Open the **[live showcase](https://randomware.randomware.workers.dev/)** — no account, no install. The index embeds a live specimen and links every published creation.
+2. On any specimen record, press its controls, then open **Inspect requests** to watch the mediated broker traffic your presses produced. **Source** shows the exact accepted revision as inert text.
+3. See an honest failure: the **[intentional-failure death certificate](https://randomware.randomware.workers.dev/c/creation_e2524a43f21a0ce38244d40ece5ae266)** states its accurate cause with both failed revisions inspectable.
+4. For live spins in ChatGPT, follow [connect instructions](#chatgpt-prerequisites-and-connect) below (paid plan + developer mode required). Fixture replay is labeled and never counts as live evidence.
 
-Real APIs go in. GPT-5.6 turns their collision into a tiny app — or an honest, inspectable failure.
+For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker.
 
 ## Media
 
@@ -24,15 +38,9 @@ Real APIs go in. GPT-5.6 turns their collision into a tiny app — or an honest,
 
 The demo video (1:55, synthesized narration) is at [youtu.be/V86lJeaDVpg](https://youtu.be/V86lJeaDVpg). No private media or credentials are committed; deployment evidence belongs in the build log.
 
-## Deployed showcase URL
-
-[https://randomware.randomware.workers.dev/](https://randomware.randomware.workers.dev/)
-
-MCP endpoint: [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp)
-
 ## ChatGPT prerequisites and connect
 
-The owner path requires ChatGPT developer mode and the deployed HTTPS `/mcp` URL above. Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. Model recommendation: run spins on GPT-5.6 Sol at high reasoning effort or above — the owner's acceptance runs observed lower-effort settings composing artifacts noticeably less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT still serves a stale template or shows an immediate “Runtime error,” remove and recreate the connector. The local companion does not require ChatGPT.
+The owner path requires ChatGPT developer mode and the deployed HTTPS MCP endpoint: [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp). Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. Model recommendation: run spins on GPT-5.6 Sol at high reasoning effort or above — the owner's acceptance runs observed lower-effort settings composing artifacts noticeably less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT still serves a stale template or shows an immediate “Runtime error,” remove and recreate the connector. The local companion does not require ChatGPT.
 
 ## Architecture
 
@@ -69,10 +77,6 @@ The launch registry contains 21 bounded compatibility entries, 20 of which are s
 ## Limits and security
 
 Artifacts are 10,000–40,000 UTF-8 bytes and must include loading, error, interaction, attribution, ready, mobile, and literal selected broker-call markers. Direct network primitives, storage, cookies, parent/top access, unsafe HTML sinks, and credential-like fields are rejected. Capabilities bind creation, revision, and operation and expire; repairs are limited to one received revision. This is an experimental app: never enter real personal, payment, authentication, or secret data.
-
-## Judges
-
-The judge can open the companion URL without setup, inspect the generated source as inert text, view broker request rows, and verify the owner warning and attribution outside the sandbox. Fixture replay is labeled and does not count as live API or model evidence.
 
 ## Built with Codex and GPT-5.6
 
