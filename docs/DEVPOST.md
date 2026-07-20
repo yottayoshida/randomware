@@ -47,4 +47,4 @@ javascript, node.js, cloudflare-workers, cloudflare-d1, chatgpt, apps-sdk, mcp, 
 
 ## Video demo link
 
-(pending — add after upload)
+https://youtu.be/6aPYDkCDbuQ
