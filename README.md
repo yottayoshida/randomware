@@ -8,7 +8,7 @@ Built for OpenAI Build Week. Category: **Apps for Your Life**.
 
 ## Judge path and demo
 
-The zero-setup path is the deployed showcase: open [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/) in any browser — no account, no install. The index embeds a live specimen and links every published creation's record page, where source, mediated requests, and dataflow are inspectable. The Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp); the demo video is at [youtu.be/6aPYDkCDbuQ](https://youtu.be/6aPYDkCDbuQ). Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md), and a short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+The zero-setup path is the deployed showcase: open [randomware.randomware.workers.dev](https://randomware.randomware.workers.dev/) in any browser — no account, no install. The index embeds a live specimen and links every published creation's record page, where source, mediated requests, and dataflow are inspectable. The Apps SDK MCP endpoint is [https://randomware.randomware.workers.dev/mcp](https://randomware.randomware.workers.dev/mcp); the demo video is at [youtu.be/V86lJeaDVpg](https://youtu.be/V86lJeaDVpg). Deployment and smoke evidence are recorded in [docs/BUILD_LOG.md](docs/BUILD_LOG.md), and a short spoken walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 
 For an offline local run, use the companion in fixture mode: run `npm ci`, then `npm run dev` and open `http://127.0.0.1:8787/`. It visibly labels generated output and keeps every generated request behind the fixed broker. Spin, reveal the selected APIs, accept a concept, build, open the creation, and use the interaction button to inspect mediated traffic.
 
@@ -22,7 +22,7 @@ Real APIs go in. GPT-5.6 turns their collision into a tiny app — or an honest,
 
 ![A generated specimen running live on the showcase index](docs/media/showcase-specimen.png)
 
-The demo video (1:55, synthesized narration) is at [youtu.be/6aPYDkCDbuQ](https://youtu.be/6aPYDkCDbuQ). No private media or credentials are committed; deployment evidence belongs in the build log.
+The demo video (1:55, synthesized narration) is at [youtu.be/V86lJeaDVpg](https://youtu.be/V86lJeaDVpg). No private media or credentials are committed; deployment evidence belongs in the build log.
 
 ## Deployed showcase URL
 
