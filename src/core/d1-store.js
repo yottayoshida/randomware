@@ -34,7 +34,13 @@ class D1RunStore {
   }
 
   async findByCreation(creationId) { const row = await this.db.prepare('SELECT * FROM runs WHERE creation_id = ?').bind(creationId).first(); return this.hydrate(row); }
-  async listCreations() { const rows = await this.db.prepare('SELECT * FROM runs WHERE creation_id IS NOT NULL ORDER BY created_at DESC LIMIT 2000').all(); return Promise.all((rows.results || []).map((row) => this.hydrate(row))); }
+  async listCreations() {
+    const rows = await this.db.prepare('SELECT id, phase, selected_apis_json, concept_json, creation_id, created_at, failure_code, metadata_json FROM runs WHERE creation_id IS NOT NULL ORDER BY created_at DESC LIMIT 100').all();
+    return (rows.results || []).map((row) => {
+      const metadata = parse(row.metadata_json, {});
+      return { id: row.id, phase: row.phase, selectedApis: parse(row.selected_apis_json, []), concept: parse(row.concept_json, null), creationId: row.creation_id, createdAt: row.created_at, failure: row.failure_code ? { code: row.failure_code } : null, listed: metadata.listed !== false, unpublished: Boolean(metadata.unpublished), revisions: [], runtimeRequests: [] };
+    });
+  }
   async unhealthyIds() {
     const rows = await this.db.prepare('SELECT api_id, status FROM api_health').all();
     const statuses = new Map((rows.results || []).map((row) => [row.api_id, row.status]));
