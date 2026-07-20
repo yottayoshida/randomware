@@ -32,7 +32,7 @@ MCP endpoint: [https://randomware.randomware.workers.dev/mcp](https://randomware
 
 ## ChatGPT prerequisites and connect
 
-The owner path requires ChatGPT developer mode and the deployed HTTPS `/mcp` URL above. Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT still serves a stale template or shows an immediate “Runtime error,” remove and recreate the connector. The local companion does not require ChatGPT.
+The owner path requires ChatGPT developer mode and the deployed HTTPS `/mcp` URL above. Use a paid personal plan or a workspace where an administrator has enabled developer mode. Connect the URL as an app, call `open_randomware`, then follow `spin_apis` → concept → artifact. Model recommendation: run spins on GPT-5.6 Sol at high reasoning effort or above — the owner's acceptance runs observed lower-effort settings composing artifacts noticeably less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT still serves a stale template or shows an immediate “Runtime error,” remove and recreate the connector. The local companion does not require ChatGPT.
 
 ## Architecture
 
