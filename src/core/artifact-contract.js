@@ -29,11 +29,25 @@ const LIVE_DRAW_RULE = `LIVE-DRAW CONTROL RULES
 2. Conversely, for parameter-pinned operations with liveDraw: false, do not present any control that implies a fresh draw.`;
 const CONCEPT_LIVE_DRAW_RULE = 'Concept source rule: inspect selectedApis[].operations[].liveDraw; every liveDraw:true source requires a visible repeat call and updated result, while liveDraw:false sources may offer only controls that honestly reinterpret fixed material without implying a fresh draw.';
 
+// Cross-origin Window proxy members an attacker could chain off parent/top/opener
+// (window included, for the parent.window.postMessage(...) chained form).
+const CROSS_FRAME_MEMBER_NAMES = deepFreeze([
+  'location', 'document', 'postMessage', 'opener', 'parent', 'top', 'window',
+  'frames', 'name', 'close', 'open', 'history', 'self', 'focus', 'blur'
+]);
+
 const ARTIFACT_BLOCKED_PATTERN_SOURCES = deepFreeze([
   String.raw`\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b`,
   String.raw`\b(?:import\s*\(|eval\s*\(|new\s+Function\b|Worker\s*\(|SharedWorker\s*\()`,
   String.raw`\b(?:localStorage|sessionStorage|indexedDB|document\.cookie|window\.openai)\b`,
-  String.raw`(?:\bparent\b|\btop\b|\bopener\b)\s*[.\[]`,
+  // parent/top/opener: only matches real member access (dot, optional-chaining, or
+  // bracket) to the cross-origin Window proxy, not the CSS `top`/`transition` keyword
+  // (e.g. `transition:top .24s`). postMessage stays listed because the sandbox does not
+  // block it (the harness itself calls parent.postMessage). Defense-in-depth telemetry,
+  // not the security boundary — see ARCHITECTURE §5.1. Whitespace is capped at 8 chars
+  // (not `\s*`): nested unbounded `\s*` branches caused O(n²) backtracking on adversarial
+  // all-whitespace input up to the 40,000-byte artifact cap (~750ms CPU per request).
+  String.raw`\b(?:parent|top|opener)\b\s{0,8}(?:(?:\?\.|\.)\s{0,8}(?:${CROSS_FRAME_MEMBER_NAMES.join('|')})\b|(?:\?\.)?\s{0,8}\[)`,
   String.raw`(?:innerHTML|outerHTML|insertAdjacentHTML|srcdoc|javascript:)`,
   String.raw`\bdocument\s*\.\s*write\b`,
   String.raw`\b(?:location|history)\s*\.\s*(?:assign|replace|pushState|back|forward)\b`,
