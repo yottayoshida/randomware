@@ -8,7 +8,7 @@ The unpredictability is the product.
 
 Built for **OpenAI Build Week** · Category: **Apps for Your Life**
 
-### **[🎰 Try the live showcase — no setup needed](https://randomware.randomware.workers.dev/)**
+**[🎰 Try the live showcase — no setup needed](https://randomware.randomware.workers.dev/)**
 
 [▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg) · [📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)
 
@@ -22,7 +22,7 @@ Built for **OpenAI Build Week** · Category: **Apps for Your Life**
 
 ## Try it
 
-### In 30 seconds — the showcase
+**In 30 seconds — the showcase**
 
 1. Open the **[live showcase](https://randomware.randomware.workers.dev/)** — no account, no install. The index embeds a live specimen and links every published creation.
 2. On any specimen record, press its controls, then open **Inspect requests** to watch the mediated broker traffic your presses produced. **Source** shows the exact accepted revision as inert text.
@@ -30,7 +30,7 @@ Built for **OpenAI Build Week** · Category: **Apps for Your Life**
 
 <a id="chatgpt-prerequisites-and-connect"></a>
 
-### Spin one yourself — connect in ChatGPT
+**Spin one yourself — connect in ChatGPT**
 
 The showcase shows what came out of the machine; the real product is pulling the lever.
 
@@ -39,12 +39,7 @@ The showcase shows what came out of the machine; the real product is pulling the
 3. **Spin**: press **Spin the slot** in the widget, watch the reels collide two real APIs, then press **Ask the model to build**. Your own GPT-5.6 session invents and builds the specimen — no owner API key is involved.
 4. **Wait honestly**: a build takes a few real minutes. The referee widget tracks elapsed time and deadlines, and once accepted, the finished specimen remains available on the public showcase, independent of the chat.
 
-<details>
-<summary>Spin tips and known quirks</summary>
-
-Run spins on GPT-5.6 Sol at high reasoning effort — lower-effort settings produce artifacts less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT shows a stale template or immediate "Runtime error," remove and recreate the connector. Fixture replay is labeled and never counts as live evidence.
-
-</details>
+**Spin tips and known quirks.** Run spins on GPT-5.6 Sol at high reasoning effort — lower-effort settings produce artifacts less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT shows a stale template or immediate "Runtime error," remove and recreate the connector. Fixture replay is labeled and never counts as live evidence.
 
 ## How it works
 
@@ -52,6 +47,8 @@ Run spins on GPT-5.6 Sol at high reasoning effort — lower-effort settings prod
 2. 🧠 **Invent** — the player's own GPT-5.6 session proposes an eccentric but structured concept: causal chain, API roles, one observable dependency. Plain dashboards and plausible startup pitches are contractually banned shapes.
 3. 🔬 **Validate** — a static validator enforces byte range, required markers, and literal broker calls, and rejects every direct network primitive. One bounded repair is allowed per run.
 4. 🪦 **Publish — or autopsy** — accepted specimens go live at their own URL with source, mediated request logs, and dataflow records. Failures get an honest death certificate. Both are part of the showcase.
+
+**Registry and examples.** 21 bounded APIs, 20 selectable for new spins, with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links. Sample combinations from the recorded acceptance run include Deck of Cards × Dog CEO ("Pawns & Paws"), wiki-onthisday × USGS earthquakes ("Seismic Time Mixer"), and Open Food Facts × Wikimedia Commons audio ("Snack Signal Quest").
 
 ## Built with Codex and GPT-5.6
 
@@ -72,10 +69,6 @@ The Node implementation mirrors the contract boundaries: a deterministic selecto
 
 Artifacts are 10,000–40,000 UTF-8 bytes and must include loading, error, interaction, attribution, ready, mobile, and literal selected broker-call markers. Direct network primitives, storage, cookies, parent/top access, unsafe HTML sinks, and credential-like fields are rejected. Capabilities bind creation, revision, and operation and expire; repairs are limited to one received revision. This is an experimental app: never enter real personal, payment, authentication, or secret data.
 
-## Registry and examples
-
-21 bounded APIs, 20 selectable for new spins, with fixed GET operations and preserved attribution metadata. Offline fixtures cover each operation under `docs/api-candidates/samples/`; live checks remain separately recorded. Example output and request rows can be inspected from a local creation's Source and Requests links. Sample combinations from the recorded acceptance run include Deck of Cards × Dog CEO ("Pawns & Paws"), wiki-onthisday × USGS earthquakes ("Seismic Time Mixer"), and Open Food Facts × Wikimedia Commons audio ("Snack Signal Quest").
-
 ## Local development
 
 ```bash
@@ -85,8 +78,7 @@ npm run dev          # fixture mode — http://127.0.0.1:8787/
 
 `RANDOMWARE_FIXTURES=1` (the default) keeps local runs offline; set `RANDOMWARE_FIXTURES=0` only for a bounded live check. `RANDOMWARE_SIGNING_SECRET` is optional locally and must be supplied as a deployment secret in production; no owner model key is used. Node.js 22+ and npm required.
 
-<details>
-<summary>Full command reference</summary>
+Full command reference:
 
 ```bash
 npm run format:check
@@ -104,8 +96,6 @@ npm run acceptance:machine
 npm run dev:worker
 npm run deploy
 ```
-
-</details>
 
 ## Source documents
 
