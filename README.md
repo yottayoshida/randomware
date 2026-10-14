@@ -8,7 +8,7 @@ The unpredictability is the product.
 
 Built for **OpenAI Build Week** · Category: **Apps for Your Life**
 
-**[🎰 Try the live showcase — no setup needed](https://randomware.randomware.workers.dev/)**
+**Status:** the hosted instance — the public showcase and its MCP endpoint — was retired on 2026-10-14. The video and recordings below show it running; to spin one yourself, run it locally or deploy your own copy.
 
 [▶ Demo video (1:55)](https://youtu.be/V86lJeaDVpg) · [📦 v1.0.0 release](https://github.com/yottayoshida/randomware/releases/tag/v1.0.0)
 
@@ -22,22 +22,21 @@ Built for **OpenAI Build Week** · Category: **Apps for Your Life**
 
 ## Try it
 
-**In 30 seconds — the showcase**
+**Locally — no account, offline**
 
-1. Open the **[live showcase](https://randomware.randomware.workers.dev/)** — no account, no install. The index embeds a live specimen and links every published creation.
-2. On any specimen record, press its controls, then open **Inspect requests** to watch the mediated broker traffic your presses produced. **Source** shows the exact accepted revision as inert text.
-3. See an honest failure: the **[intentional-failure death certificate](https://randomware.randomware.workers.dev/c/creation_e2524a43f21a0ce38244d40ece5ae266)** states its accurate cause with both failed revisions inspectable.
+Run `npm ci && npm run dev` and open `http://127.0.0.1:8787/` (see [Local development](#local-development)). On any specimen record, press its controls, then open **Inspect requests** to watch the mediated broker traffic your presses produced. **Source** shows the exact accepted revision as inert text.
 
 <a id="chatgpt-prerequisites-and-connect"></a>
 
-**Spin one yourself — connect in ChatGPT**
+**Spin one yourself — deploy your own copy and connect in ChatGPT**
 
 The showcase shows what came out of the machine; the real product is pulling the lever.
 
-1. **Prerequisites**: a paid ChatGPT plan with developer mode enabled.
-2. **Connect**: add a new app in developer mode with the MCP endpoint `https://randomware.randomware.workers.dev/mcp`, then mention **@Randomware** in a chat to mount the slot machine.
-3. **Spin**: press **Spin the slot** in the widget, watch the reels collide two real APIs, then press **Ask the model to build**. Your own GPT-5.6 session invents and builds the specimen — no owner API key is involved.
-4. **Wait honestly**: a build takes a few real minutes. The referee widget tracks elapsed time and deadlines, and once accepted, the finished specimen remains available on the public showcase, independent of the chat.
+1. **Prerequisites**: a paid ChatGPT plan with developer mode enabled, and a Cloudflare account.
+2. **Deploy**: create a D1 database (`npx wrangler d1 create randomware`), put its `database_id` into `wrangler.jsonc`, then run `npm run db:migrate -- --remote`, `npx wrangler secret put RANDOMWARE_SIGNING_SECRET`, and `npm run deploy`.
+3. **Connect**: add a new app in developer mode with your Worker's MCP endpoint (`https://<your-worker>.workers.dev/mcp`), then mention **@Randomware** in a chat to mount the slot machine.
+4. **Spin**: press **Spin the slot** in the widget, watch the reels collide two real APIs, then press **Ask the model to build**. Your own GPT-5.6 session invents and builds the specimen — no owner API key is involved.
+5. **Wait honestly**: a build takes a few real minutes. The referee widget tracks elapsed time and deadlines, and once accepted, the finished specimen remains available on your deployment's showcase, independent of the chat.
 
 **Spin tips and known quirks.** Run spins on GPT-5.6 Sol at high reasoning effort — lower-effort settings produce artifacts less reliably. After any widget-template deployment, refresh the connector (sometimes twice); if ChatGPT shows a stale template or immediate "Runtime error," remove and recreate the connector. Fixture replay is labeled and never counts as live evidence.
 
